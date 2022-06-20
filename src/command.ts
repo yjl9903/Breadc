@@ -1,6 +1,6 @@
 import type { ParsedArgs } from 'minimist';
 
-import type { IBreadc } from './types';
+import type { ActionFn, ExtractCommand, IBreadc, ParseResult } from './types';
 
 export type ConditionFn = (args: ParsedArgs) => boolean;
 
@@ -8,40 +8,110 @@ export interface CommandConfig {
   description?: string;
 }
 
-export class Command {
+export class Command<
+  F extends string = string,
+  GlobalOption extends string | never = never,
+  CommandOption extends string | never = never
+> {
+  private static MaxDep = 4;
+
   private readonly conditionFn?: ConditionFn;
 
-  readonly prefix: string;
+  readonly format: string[];
   readonly description: string;
 
-  private actionFn?: () => void;
+  private actionFn?: ActionFn<ExtractCommand<F>, GlobalOption | CommandOption>;
 
-  constructor(format: string, config: CommandConfig & { condition?: ConditionFn } = {}) {
-    this.prefix = format;
+  constructor(format: F, config: CommandConfig & { condition?: ConditionFn } = {}) {
+    this.format = config.condition
+      ? [format]
+      : format
+          .split(' ')
+          .map((t) => t.trim())
+          .filter(Boolean);
     this.description = config.description ?? '';
     this.conditionFn = config.condition;
   }
 
-  checkCommand(args: ParsedArgs) {
+  shouldRun(args: ParsedArgs) {
     if (this.conditionFn) {
       return this.conditionFn(args);
     } else {
-      return false;
+      const isArg = (t: string) => t[0] !== '[' && t[0] !== '<';
+      for (let i = 0; i < this.format.length; i++) {
+        if (isArg(this.format[i])) {
+          return true;
+        }
+        if (i >= args['_'].length || this.format[i] !== args['_'][i]) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 
-  action(fn: () => void) {
+  parseArgs(args: ParsedArgs): ParseResult {
+    if (this.conditionFn) {
+      const argumentss: any[] = args['_'];
+      const options: Record<string, string> = args;
+      delete options['_'];
+
+      return {
+        // @ts-ignore
+        command: this,
+        arguments: argumentss,
+        options: args
+      };
+    }
+
+    const isArg = (t: string) => t[0] !== '[' && t[0] !== '<';
+
+    const argumentss: any[] = [];
+    for (let i = 0; i < this.format.length; i++) {
+      if (isArg(this.format[i])) continue;
+      if (i < args['_'].length) {
+        if (this.format[i].startsWith('[...')) {
+          argumentss.push(args['_'].slice(i));
+        } else {
+          argumentss.push(args['_'][i]);
+        }
+      } else {
+        if (this.format[i].startsWith('<')) {
+          argumentss.push(undefined);
+        } else if (this.format[i].startsWith('[...')) {
+          argumentss.push([]);
+        } else if (this.format[i].startsWith('[')) {
+          argumentss.push(undefined);
+        } else {
+          // Unreachable
+        }
+      }
+    }
+
+    const options: Record<string, string> = args;
+    delete options['_'];
+
+    return {
+      // @ts-ignore
+      command: this,
+      arguments: argumentss,
+      options: args
+    };
+  }
+
+  action(fn: ActionFn<ExtractCommand<F>, GlobalOption | CommandOption>) {
     this.actionFn = fn;
     return this;
   }
 
-  async run() {
-    this.actionFn && this.actionFn();
+  async run(...args: any[]) {
+    // @ts-ignore
+    this.actionFn && this.actionFn(...args);
   }
 }
 
 export function createVersionCommand(breadc: IBreadc): Command {
-  return new Command('help', {
+  return new Command('-h, --help', {
     condition(args) {
       const isEmpty = !args['_'].length && !args['--']?.length;
       if (args.help && isEmpty) {
@@ -58,7 +128,7 @@ export function createVersionCommand(breadc: IBreadc): Command {
 }
 
 export function createHelpCommand(breadc: IBreadc): Command {
-  return new Command('version', {
+  return new Command('-v, --version', {
     condition(args) {
       const isEmpty = !args['_'].length && !args['--']?.length;
       if (args.version && isEmpty) {

@@ -1,4 +1,4 @@
-import type { AppOption, Logger } from './types';
+import type { AppOption, ExtractOption, Logger, ParseResult } from './types';
 
 import minimist from 'minimist';
 
@@ -6,7 +6,7 @@ import { createDefaultLogger } from './logger';
 import { Option, OptionConfig } from './option';
 import { Command, CommandConfig, createHelpCommand, createVersionCommand } from './command';
 
-export class Breadc {
+export class Breadc<GlobalOption extends string | never = never> {
   private readonly name: string;
   private readonly version: string;
 
@@ -30,43 +30,64 @@ export class Breadc {
     this.commands = [createVersionCommand(breadc), createHelpCommand(breadc)];
   }
 
-  option(format: string, config: OptionConfig = {}) {
+  option<F extends string>(
+    format: F,
+    config: OptionConfig = {}
+  ): Breadc<GlobalOption | ExtractOption<F>> {
     try {
       const option = new Option(format, config);
       this.options.push(option);
     } catch (error: any) {
       this.logger.warn(error.message);
     }
-    return this;
+    return this as Breadc<GlobalOption | ExtractOption<F>>;
   }
 
-  command(format: string, config: CommandConfig = {}) {
+  command<F extends string>(format: F, config: CommandConfig = {}): Command<F, GlobalOption> {
     const command = new Command(format, config);
     this.commands.push(command);
-    return command;
+    return command as Command<F, GlobalOption>;
   }
 
-  parse(args: string[]) {
+  parse(args: string[]): ParseResult {
+    const alias = this.options.reduce((map: Record<string, string>, o) => {
+      if (o.shortcut) {
+        map[o.shortcut] = o.name;
+      }
+      return map;
+    }, {});
+
     const argv = minimist(args, {
       string: this.options.filter((o) => o.type === 'string').map((o) => o.name),
       boolean: this.options.filter((o) => o.type === 'boolean').map((o) => o.name),
-      alias: this.options.reduce((map: Record<string, string>, o) => {
-        if (o.shortcut) {
-          map[o.shortcut] = o.name;
-        }
-        return map;
-      }, {})
+      alias
     });
-    return argv;
+
+    for (const shortcut of Object.keys(alias)) {
+      delete argv[shortcut];
+    }
+
+    for (const command of this.commands) {
+      if (command.shouldRun(argv)) {
+        return command.parseArgs(argv);
+      }
+    }
+
+    const argumentss = argv['_'];
+    const options: Record<string, string> = argv;
+    delete options['_'];
+
+    return {
+      command: undefined,
+      arguments: argumentss,
+      options
+    };
   }
 
   async run(args: string[]) {
-    const argv = this.parse(args);
-    for (const command of this.commands) {
-      if (command.checkCommand(argv)) {
-        await command.run();
-        return;
-      }
+    const parsed = this.parse(args);
+    if (parsed.command) {
+      parsed.command.run(...parsed.arguments, parsed.options);
     }
   }
 }

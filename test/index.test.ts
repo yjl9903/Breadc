@@ -7,10 +7,12 @@ describe('Parse', () => {
   it('should parse', () => {
     expect(Breadc('cli').parse(['hello', 'world'])).toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "hello",
           "world",
         ],
+        "command": undefined,
+        "options": {},
       }
     `);
   });
@@ -18,57 +20,75 @@ describe('Parse', () => {
   it('should parse boolean option', () => {
     expect(Breadc('cli').parse(['--root'])).toMatchInlineSnapshot(`
       {
-        "_": [],
-        "root": true,
+        "arguments": [],
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
 
     expect(Breadc('cli').parse(['--root', 'folder'])).toMatchInlineSnapshot(`
       {
-        "_": [],
-        "root": "folder",
+        "arguments": [],
+        "command": undefined,
+        "options": {
+          "root": "folder",
+        },
       }
     `);
 
     expect(Breadc('cli').parse(['--root', 'folder', 'text'])).toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "text",
         ],
-        "root": "folder",
+        "command": undefined,
+        "options": {
+          "root": "folder",
+        },
       }
     `);
 
     expect(Breadc('cli').option('--root').parse(['--root', 'folder', 'text']))
       .toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "folder",
           "text",
         ],
-        "root": true,
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
 
     expect(Breadc('cli').option('--root').parse(['folder', '--root', 'text']))
       .toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "folder",
           "text",
         ],
-        "root": true,
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
 
     expect(Breadc('cli').option('--root').parse(['folder', 'text', '--root']))
       .toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "folder",
           "text",
         ],
-        "root": true,
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
   });
@@ -78,45 +98,55 @@ describe('Parse', () => {
 
     expect(parser.parse([])).toMatchInlineSnapshot(`
       {
-        "_": [],
-        "r": false,
-        "root": false,
+        "arguments": [],
+        "command": undefined,
+        "options": {
+          "root": false,
+        },
       }
     `);
 
     expect(parser.parse(['--root'])).toMatchInlineSnapshot(`
       {
-        "_": [],
-        "r": true,
-        "root": true,
+        "arguments": [],
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
 
     expect(parser.parse(['-r'])).toMatchInlineSnapshot(`
       {
-        "_": [],
-        "r": true,
-        "root": true,
+        "arguments": [],
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
 
     expect(parser.parse(['-r', 'root'])).toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "root",
         ],
-        "r": true,
-        "root": true,
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
 
     expect(parser.parse(['root', '-r'])).toMatchInlineSnapshot(`
       {
-        "_": [
+        "arguments": [
           "root",
         ],
-        "r": true,
-        "root": true,
+        "command": undefined,
+        "options": {
+          "root": true,
+        },
       }
     `);
   });
@@ -129,24 +159,85 @@ describe('Parse', () => {
     };
     Breadc('cli', { logger }).option('invalid');
 
-    expect(output).toMatchInlineSnapshot(`
-      [
-        "Can not extract option name from \\"invalid\\"",
-      ]
-    `);
+    expect(output[0]).toMatchInlineSnapshot('"Can not parse option format from \\"invalid\\""');
   });
 });
 
 describe('Common commands', () => {
-  it('should print version', () => {
+  it('should print version', async () => {
     const output: string[] = [];
     const logger = createDefaultLogger('cli');
     const cli = Breadc('cli', { version: '1.0.0', logger });
     logger.println = (text: string) => output.push(text);
 
-    cli.run(['-v']);
-    cli.run(['--version']);
+    await cli.run(['-v']);
+    await cli.run(['--version']);
+
     expect(output[0]).toMatchInlineSnapshot('"cli/1.0.0"');
     expect(output[1]).toMatchInlineSnapshot('"cli/1.0.0"');
+  });
+});
+
+describe.only('Infer type', () => {
+  it('should run dev', async () => {
+    const cliWithOption = Breadc('cli').option('--root');
+    const cmd = cliWithOption.command('dev');
+
+    cmd.action((option) => {
+      expect(option).toMatchInlineSnapshot(`
+        {
+          "root": true,
+        }
+      `);
+    });
+
+    await cliWithOption.run(['dev', '--root']);
+  });
+
+  it('should have no type', async () => {
+    const cliWithOption = Breadc('cli').option('--root');
+    const cmd = cliWithOption.command('dev');
+
+    cmd.action((option) => {
+      expect(option).toMatchInlineSnapshot(`
+        {
+          "root": true,
+        }
+      `);
+    });
+
+    await cliWithOption.run(['dev', '--root']);
+  });
+
+  it('should have one type (string | undefined)', async () => {
+    const cliWithOption = Breadc('cli').option('--root');
+    const cmd = cliWithOption.command('dev [root]');
+
+    cmd.action((root, option) => {
+      expect(root).toMatchInlineSnapshot('undefined');
+      expect(option).toMatchInlineSnapshot(`
+        {
+          "root": true,
+        }
+      `);
+    });
+
+    await cliWithOption.run(['dev', '--root']);
+  });
+
+  it('should have one type (string)', async () => {
+    const cliWithOption = Breadc('cli').option('--root');
+    const cmd = cliWithOption.command('dev <root>');
+
+    cmd.action((root, option) => {
+      expect(root).toMatchInlineSnapshot('"."');
+      expect(option).toMatchInlineSnapshot(`
+        {
+          "root": true,
+        }
+      `);
+    });
+
+    await cliWithOption.run(['dev', '.', '--root']);
   });
 });
