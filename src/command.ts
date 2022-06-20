@@ -52,12 +52,12 @@ export class Command<
 
   option<OF extends string>(
     format: OF,
-    config: OptionConfig
+    config?: OptionConfig
   ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
 
   option<OF extends string>(
     format: OF,
-    configOrDescription: OptionConfig | string,
+    configOrDescription: OptionConfig | string = '',
     otherConfig: Omit<OptionConfig, 'description'> = {}
   ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>> {
     const config: OptionConfig = otherConfig;

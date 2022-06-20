@@ -38,12 +38,12 @@ export class Breadc<GlobalOption extends string | never = never> {
 
   option<F extends string>(
     format: F,
-    config: OptionConfig
+    config?: OptionConfig
   ): Breadc<GlobalOption | ExtractOption<F>>;
 
   option<F extends string>(
     format: F,
-    configOrDescription: OptionConfig | string,
+    configOrDescription: OptionConfig | string = '',
     otherConfig: Omit<OptionConfig, 'description'> = {}
   ): Breadc<GlobalOption | ExtractOption<F>> {
     const config: OptionConfig = otherConfig;
