@@ -176,6 +176,38 @@ describe('Common commands', () => {
     expect(output[0]).toMatchInlineSnapshot('"cli/1.0.0"');
     expect(output[1]).toMatchInlineSnapshot('"cli/1.0.0"');
   });
+
+  it('should print help', async () => {
+    const output: string[] = [];
+    const logger = createDefaultLogger('cli');
+    const cli = Breadc('cli', { version: '1.0.0', logger });
+    logger.println = (text: string) => output.push(text);
+
+    await cli.run(['-h']);
+    expect(output).toMatchInlineSnapshot(`
+      [
+        "cli/1.0.0",
+        "",
+        "Options:",
+        "  -h, --help",
+        "  -v, --version",
+        "",
+      ]
+    `);
+    output.splice(0);
+
+    await cli.run(['--help']);
+    expect(output).toMatchInlineSnapshot(`
+      [
+        "cli/1.0.0",
+        "",
+        "Options:",
+        "  -h, --help",
+        "  -v, --version",
+        "",
+      ]
+    `);
+  });
 });
 
 describe('Infer type', () => {

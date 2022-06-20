@@ -195,6 +195,8 @@ export function createVersionCommand(breadc: IBreadc): Command {
     for (const option of breadc.options) {
       breadc.logger.println(`  ${option.format}`);
     }
+    breadc.logger.println(`  -h, --help`);
+    breadc.logger.println(`  -v, --version`);
     breadc.logger.println(``);
   });
 }
