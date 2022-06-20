@@ -1,6 +1,6 @@
 import type { AppOption, Logger } from './types';
 
-import minimist from 'minimist';
+import minimist, { ParsedArgs } from 'minimist';
 
 import { createDefaultLogger } from './logger';
 
@@ -17,6 +17,37 @@ export class Breadc {
     this.name = name;
     this.version = option.version ?? 'unknown';
     this.logger = option.logger ?? createDefaultLogger(name);
+
+    this.commands = [
+      new Command(this, 'help', {
+        condition(args) {
+          const isEmpty = !args['_'].length && !args['--']?.length;
+          if (args.help && isEmpty) {
+            return true;
+          } else if (args.h && isEmpty) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }).action(() => {
+        this.logger.println('Help');
+      }),
+      new Command(this, 'version', {
+        condition(args) {
+          const isEmpty = !args['_'].length && !args['--']?.length;
+          if (args.version && isEmpty) {
+            return true;
+          } else if (args.v && isEmpty) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      }).action(() => {
+        this.logger.println(`${name}/${this.version}`);
+      })
+    ];
   }
 
   option(format: string, config: OptionConfig = {}) {
@@ -29,8 +60,10 @@ export class Breadc {
     return this;
   }
 
-  command(format: string) {
-    return new Command(this, format);
+  command(format: string, config: CommandConfig = {}) {
+    const command = new Command(this, format, config);
+    this.commands.push(command);
+    return command;
   }
 
   parse(args: string[]) {
@@ -46,14 +79,60 @@ export class Breadc {
     });
     return argv;
   }
+
+  async run(args: string[]) {
+    const argv = this.parse(args);
+    for (const command of this.commands) {
+      if (command.checkCommand(argv)) {
+        await command.run();
+        return;
+      }
+    }
+  }
 }
 
 class Command {
   private readonly breadc: Breadc;
+  private readonly conditionFn?: ConditionFn;
 
-  constructor(breadc: Breadc, format: string) {
+  readonly prefix: string;
+  readonly description: string;
+
+  private actionFn?: () => void;
+
+  constructor(
+    breadc: Breadc,
+    format: string,
+    config: CommandConfig & { condition?: ConditionFn } = {}
+  ) {
     this.breadc = breadc;
+    this.prefix = format;
+    this.description = config.description ?? '';
+    this.conditionFn = config.condition;
   }
+
+  checkCommand(args: ParsedArgs) {
+    if (this.conditionFn) {
+      return this.conditionFn(args);
+    } else {
+      return false;
+    }
+  }
+
+  action(fn: () => void) {
+    this.actionFn = fn;
+    return this;
+  }
+
+  async run() {
+    this.actionFn && this.actionFn();
+  }
+}
+
+type ConditionFn = (args: ParsedArgs) => boolean;
+
+interface CommandConfig {
+  description?: string;
 }
 
 /**
@@ -75,7 +154,7 @@ class Option {
 
   readonly construct: (rawText: string | undefined) => any;
 
-  constructor(format: string, option: OptionConfig = {}) {
+  constructor(format: string, config: OptionConfig = {}) {
     if (Option.BooleanRE.test(format)) {
       this.type = 'boolean';
     } else {
@@ -99,8 +178,8 @@ class Option {
       }
     }
 
-    this.description = option.description ?? '';
-    this.construct = option.construct ?? ((text) => text ?? option.default ?? undefined);
+    this.description = config.description ?? '';
+    this.construct = config.construct ?? ((text) => text ?? config.default ?? undefined);
   }
 }
 

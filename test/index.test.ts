@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import Breadc from '../src';
 import { createDefaultLogger } from '../src/logger';
 
-describe('Breadc', () => {
+describe('Parse', () => {
   it('should parse', () => {
     expect(Breadc('cli').parse(['hello', 'world'])).toMatchInlineSnapshot(`
       {
@@ -134,5 +134,19 @@ describe('Breadc', () => {
         "Can not extract option name from \\"invalid\\"",
       ]
     `);
+  });
+});
+
+describe('Common commands', () => {
+  it('should print version', () => {
+    const output: string[] = [];
+    const logger = createDefaultLogger('cli');
+    const cli = Breadc('cli', { version: '1.0.0', logger });
+    logger.println = (text: string) => output.push(text);
+
+    cli.run(['-v']);
+    cli.run(['--version']);
+    expect(output[0]).toMatchInlineSnapshot('"cli/1.0.0"');
+    expect(output[1]).toMatchInlineSnapshot('"cli/1.0.0"');
   });
 });
