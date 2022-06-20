@@ -44,13 +44,15 @@ export class Breadc<GlobalOption extends string | never = never> {
   }
 
   command<F extends string>(format: F, config: CommandConfig = {}): Command<F, GlobalOption> {
-    const command = new Command(format, config);
+    const command = new Command(format, { ...config, logger: this.logger });
     this.commands.push(command);
     return command as Command<F, GlobalOption>;
   }
 
   parse(args: string[]): ParseResult {
-    const alias = this.options.reduce((map: Record<string, string>, o) => {
+    const allowOptions = [this.options, this.commands.map((c) => c.options)].flat() as Option[];
+
+    const alias = allowOptions.reduce((map: Record<string, string>, o) => {
       if (o.shortcut) {
         map[o.shortcut] = o.name;
       }
@@ -58,8 +60,8 @@ export class Breadc<GlobalOption extends string | never = never> {
     }, {});
 
     const argv = minimist(args, {
-      string: this.options.filter((o) => o.type === 'string').map((o) => o.name),
-      boolean: this.options.filter((o) => o.type === 'boolean').map((o) => o.name),
+      string: allowOptions.filter((o) => o.type === 'string').map((o) => o.name),
+      boolean: allowOptions.filter((o) => o.type === 'boolean').map((o) => o.name),
       alias
     });
 

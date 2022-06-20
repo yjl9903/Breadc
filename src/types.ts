@@ -104,11 +104,11 @@ export type ExtractOption<T extends string> = T extends `-${Letter}, --${infer R
   ? R
   : T extends `-${Letter}, --${infer R}`
   ? R
-  : T extends `--${infer R}`
-  ? R
   : T extends `--${infer R} [${infer U}]`
   ? R
   : T extends `--${infer R} <${infer U}>`
+  ? R
+  : T extends `--${infer R}`
   ? R
   : never;
 

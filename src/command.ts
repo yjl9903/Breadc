@@ -1,6 +1,14 @@
 import type { ParsedArgs } from 'minimist';
+import { Option, OptionConfig } from './option';
 
-import type { ActionFn, ExtractCommand, IBreadc, ParseResult } from './types';
+import type {
+  ActionFn,
+  ExtractCommand,
+  ExtractOption,
+  IBreadc,
+  Logger,
+  ParseResult
+} from './types';
 
 export type ConditionFn = (args: ParsedArgs) => boolean;
 
@@ -16,13 +24,15 @@ export class Command<
   private static MaxDep = 4;
 
   private readonly conditionFn?: ConditionFn;
+  private readonly logger: Logger;
 
   readonly format: string[];
   readonly description: string;
+  readonly options: Option[] = [];
 
   private actionFn?: ActionFn<ExtractCommand<F>, GlobalOption | CommandOption>;
 
-  constructor(format: F, config: CommandConfig & { condition?: ConditionFn } = {}) {
+  constructor(format: F, config: CommandConfig & { condition?: ConditionFn; logger: Logger }) {
     this.format = config.condition
       ? [format]
       : format
@@ -31,6 +41,20 @@ export class Command<
           .filter(Boolean);
     this.description = config.description ?? '';
     this.conditionFn = config.condition;
+    this.logger = config.logger;
+  }
+
+  option<OF extends string>(
+    format: OF,
+    config: OptionConfig = {}
+  ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>> {
+    try {
+      const option = new Option(format, config);
+      this.options.push(option);
+    } catch (error: any) {
+      this.logger.warn(error.message);
+    }
+    return this as Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
   }
 
   shouldRun(args: ParsedArgs) {
@@ -121,7 +145,8 @@ export function createVersionCommand(breadc: IBreadc): Command {
       } else {
         return false;
       }
-    }
+    },
+    logger: breadc.logger
   }).action(() => {
     breadc.logger.println('Help');
   });
@@ -138,7 +163,8 @@ export function createHelpCommand(breadc: IBreadc): Command {
       } else {
         return false;
       }
-    }
+    },
+    logger: breadc.logger
   }).action(() => {
     breadc.logger.println(`${breadc.name}/${breadc.version}`);
   });

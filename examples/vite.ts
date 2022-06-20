@@ -11,15 +11,15 @@ const vite = Breadc('vite', { version: '1.0.0' })
 
 vite
   .command('dev [root]', { description: 'start dev server' })
-  // .option('--host [host]', { description: `[string] specify hostname` })
-  // .option('--port <port>', { description: `[number] specify port` })
-  // .option('--https', { description: `[boolean] use TLS + HTTP/2` })
-  // .option('--open [path]', { description: `[boolean | string] open browser on startup` })
-  // .option('--cors', { description: `[boolean] enable CORS` })
-  // .option('--strictPort', { description: `[boolean] exit if specified port is already in use` })
-  // .option('--force', {
-  //   description: `[boolean] force the optimizer to ignore the cache and re-bundle`
-  // })
+  .option('--host [host]', { description: `[string] specify hostname` })
+  .option('--port <port>', { description: `[number] specify port` })
+  .option('--https', { description: `[boolean] use TLS + HTTP/2` })
+  .option('--open [path]', { description: `[boolean | string] open browser on startup` })
+  .option('--cors', { description: `[boolean] enable CORS` })
+  .option('--strictPort', { description: `[boolean] exit if specified port is already in use` })
+  .option('--force', {
+    description: `[boolean] force the optimizer to ignore the cache and re-bundle`
+  })
   .action(async (root, option) => {});
 
 vite.run(process.argv.slice(2)).catch((err) => vite.logger.error(err.message));
