@@ -19,9 +19,9 @@ export class Breadc {
     this.logger = option.logger ?? createDefaultLogger(name);
   }
 
-  option(text: string) {
+  option(format: string, config: OptionConfig = {}) {
     try {
-      const option = new Option(text);
+      const option = new Option(format, config);
       this.options.push(option);
     } catch (error: any) {
       this.logger.warn(error.message);
@@ -29,14 +29,20 @@ export class Breadc {
     return this;
   }
 
-  command(text: string) {
-    return new Command(this, text);
+  command(format: string) {
+    return new Command(this, format);
   }
 
   parse(args: string[]) {
     const argv = minimist(args, {
       string: this.options.filter((o) => o.type === 'string').map((o) => o.name),
-      boolean: this.options.filter((o) => o.type === 'boolean').map((o) => o.name)
+      boolean: this.options.filter((o) => o.type === 'boolean').map((o) => o.name),
+      alias: this.options.reduce((map: Record<string, string>, o) => {
+        if (o.shortcut) {
+          map[o.shortcut] = o.name;
+        }
+        return map;
+      }, {})
     });
     return argv;
   }
@@ -45,30 +51,61 @@ export class Breadc {
 class Command {
   private readonly breadc: Breadc;
 
-  constructor(breadc: Breadc, text: string) {
+  constructor(breadc: Breadc, format: string) {
     this.breadc = breadc;
   }
 }
 
+/**
+ * Option
+ *
+ * Option format must follow:
+ * + --option
+ * + -o, --option
+ */
 class Option {
-  private static BooleanRE = /^--[a-zA-Z.]+$/;
+  private static BooleanRE = /^(-[a-zA-Z], )?--[a-zA-Z.]+$/;
   private static NameRE = /--([a-zA-Z.]+)/;
+  private static ShortcutRE = /^-([a-zA-Z])/;
 
   readonly name: string;
+  readonly shortcut?: string;
+  readonly description: string;
   readonly type: 'string' | 'boolean';
 
-  constructor(text: string) {
-    if (Option.BooleanRE.test(text)) {
+  readonly construct: (rawText: string | undefined) => any;
+
+  constructor(format: string, option: OptionConfig = {}) {
+    if (Option.BooleanRE.test(format)) {
       this.type = 'boolean';
     } else {
       this.type = 'string';
     }
 
-    const match = Option.NameRE.exec(text);
-    if (match) {
-      this.name = match[1];
-    } else {
-      throw new Error(`Can not extract option name from "${text}"`);
+    {
+      // Extract option name, i.e. --root => root
+      const match = Option.NameRE.exec(format);
+      if (match) {
+        this.name = match[1];
+      } else {
+        throw new Error(`Can not extract option name from "${format}"`);
+      }
     }
+    {
+      // Extract option shortcut, i.e. -r => r
+      const match = Option.ShortcutRE.exec(format);
+      if (match) {
+        this.shortcut = match[1];
+      }
+    }
+
+    this.description = option.description ?? '';
+    this.construct = option.construct ?? ((text) => text ?? option.default ?? undefined);
   }
+}
+
+interface OptionConfig<T = string> {
+  description?: string;
+  default?: T;
+  construct?: (rawText?: string) => T;
 }

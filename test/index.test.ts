@@ -15,7 +15,7 @@ describe('Breadc', () => {
     `);
   });
 
-  it('should parse option', () => {
+  it('should parse boolean option', () => {
     expect(Breadc('cli').parse(['--root'])).toMatchInlineSnapshot(`
       {
         "_": [],
@@ -68,6 +68,54 @@ describe('Breadc', () => {
           "folder",
           "text",
         ],
+        "root": true,
+      }
+    `);
+  });
+
+  it('should parse boolean option with shortcut', () => {
+    const parser = Breadc('cli').option('-r, --root');
+
+    expect(parser.parse([])).toMatchInlineSnapshot(`
+      {
+        "_": [],
+        "r": false,
+        "root": false,
+      }
+    `);
+
+    expect(parser.parse(['--root'])).toMatchInlineSnapshot(`
+      {
+        "_": [],
+        "r": true,
+        "root": true,
+      }
+    `);
+
+    expect(parser.parse(['-r'])).toMatchInlineSnapshot(`
+      {
+        "_": [],
+        "r": true,
+        "root": true,
+      }
+    `);
+
+    expect(parser.parse(['-r', 'root'])).toMatchInlineSnapshot(`
+      {
+        "_": [
+          "root",
+        ],
+        "r": true,
+        "root": true,
+      }
+    `);
+
+    expect(parser.parse(['root', '-r'])).toMatchInlineSnapshot(`
+      {
+        "_": [
+          "root",
+        ],
+        "r": true,
         "root": true,
       }
     `);
