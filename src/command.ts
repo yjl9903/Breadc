@@ -1,4 +1,5 @@
 import type { ParsedArgs } from 'minimist';
+
 import { Option, OptionConfig } from './option';
 
 import type {
@@ -71,6 +72,10 @@ export class Command<
       this.logger.warn(error.message);
     }
     return this as Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
+  }
+
+  get hasConditionFn(): boolean {
+    return !!this.conditionFn;
   }
 
   shouldRun(args: ParsedArgs) {
@@ -164,7 +169,33 @@ export function createVersionCommand(breadc: IBreadc): Command {
     },
     logger: breadc.logger
   }).action(() => {
-    breadc.logger.println('Help');
+    breadc.logger.println(`${breadc.name}/${breadc.version}`);
+
+    const defaultCommand = breadc.commands.find(
+      (c) => c.format.length === 0 || c.format[0][0] === '[' || c.format[0][0] === '<'
+    );
+    if (defaultCommand) {
+      breadc.logger.println(``);
+      breadc.logger.println(`Usage:`);
+      breadc.logger.println(`  $ ${breadc.name} ${defaultCommand.format.join(' ')}`);
+    }
+
+    if (breadc.commands.length > 2) {
+      breadc.logger.println(``);
+      breadc.logger.println(`Commands:`);
+      for (const command of breadc.commands) {
+        if (!command.hasConditionFn) {
+          breadc.logger.println(`  ${command.format.join(' ')}`);
+        }
+      }
+    }
+
+    breadc.logger.println(``);
+    breadc.logger.println(`Options:`);
+    for (const option of breadc.options) {
+      breadc.logger.println(`  ${option.format}`);
+    }
+    breadc.logger.println(``);
   });
 }
 

@@ -20,12 +20,15 @@ export class Option<T extends string = string, U = ExtractOption<T>> {
 
   readonly name: string;
   readonly shortcut?: string;
+  readonly format: string;
   readonly description: string;
   readonly type: 'string' | 'boolean';
 
   readonly construct: (rawText: string | undefined) => any;
 
   constructor(format: T, config: OptionConfig = {}) {
+    this.format = format;
+
     const match = Option.OptionRE.exec(format);
     if (match) {
       if (match[3]) {

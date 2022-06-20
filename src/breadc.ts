@@ -27,7 +27,7 @@ export class Breadc<GlobalOption extends string | never = never> {
       options: this.options,
       commands: this.commands
     };
-    this.commands = [createVersionCommand(breadc), createHelpCommand(breadc)];
+    this.commands.push(createVersionCommand(breadc), createHelpCommand(breadc));
   }
 
   option<F extends string>(
