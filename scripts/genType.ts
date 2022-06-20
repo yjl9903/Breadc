@@ -59,6 +59,8 @@ for (let dep = maxDep; dep >= 1; dep--) {
   }
 }
 
+ans.push([]);
+
 console.log(
   ans
     .map((args, i) => {

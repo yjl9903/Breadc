@@ -230,6 +230,8 @@ export type ExtractCommand<T extends string> =
     ? [string]
     : T extends `${infer P1}`
     ? []
+    : T extends ``
+    ? []
     : never;
 
 export type ExtractArgument<T extends string> = T extends `<${infer R}>`

@@ -12,17 +12,21 @@ npm i breadc
 
 ## Usage
 
+See [./examples/echo.ts](./examples/echo.ts).
+
 ```ts
 import Breadc from 'breadc'
 
-const cli = Breadc('vite', { version: '1.0.0' })
+const cli = Breadc('echo', { version: '1.0.0' })
   .option('--host <host>')
   .option('--port <port>')
 
-cli.command('dev')
-  .action((option) => {
-    console.log(`Host: ${option.host}`);
-    console.log(`Port: ${option.port}`);
+cli
+  .command('[message]')
+  .action((message, option) => {
+    console.log(message ?? 'You can say anything!')
+    console.log(`Host: ${option.host}`)
+    console.log(`Port: ${option.port}`)
   })
 
 cli.run(process.argv.slice(2))
@@ -30,6 +34,10 @@ cli.run(process.argv.slice(2))
 ```
 
 If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), move your cursor to the parameter `option` in this `dev` command, and then you will find the `option` is automatically typed with `{ host: string, port: string }` or `Record<'host' | 'port', string>`.
+
+![vscode1](./images/vscode1.png)
+
+![vscode2](./images/vscode2.png)
 
 ## Inspiration
 
