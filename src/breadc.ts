@@ -1,28 +1,36 @@
+import type { AppOption, Logger } from './types';
+
 import minimist from 'minimist';
+
+import { createDefaultLogger } from './logger';
 
 export class Breadc {
   private readonly name: string;
   private readonly version: string;
 
-  private readonly options: BreadcOption[] = [];
+  private readonly logger: Logger;
 
-  constructor(name: string, option: { version: string }) {
+  private readonly options: Option[] = [];
+  private readonly commands: Command[] = [];
+
+  constructor(name: string, option: AppOption) {
     this.name = name;
-    this.version = option.version;
+    this.version = option.version ?? 'unknown';
+    this.logger = option.logger ?? createDefaultLogger(name);
   }
 
   option(text: string) {
     try {
-      const option = new BreadcOption(text);
+      const option = new Option(text);
       this.options.push(option);
-    } catch (error) {
-      // Handle warning
+    } catch (error: any) {
+      this.logger.warn(error.message);
     }
     return this;
   }
 
   command(text: string) {
-    return new Breadcommand(this, text);
+    return new Command(this, text);
   }
 
   parse(args: string[]) {
@@ -34,7 +42,7 @@ export class Breadc {
   }
 }
 
-class Breadcommand {
+class Command {
   private readonly breadc: Breadc;
 
   constructor(breadc: Breadc, text: string) {
@@ -42,7 +50,7 @@ class Breadcommand {
   }
 }
 
-class BreadcOption {
+class Option {
   private static BooleanRE = /^--[a-zA-Z.]+$/;
   private static NameRE = /--([a-zA-Z.]+)/;
 
@@ -50,13 +58,13 @@ class BreadcOption {
   readonly type: 'string' | 'boolean';
 
   constructor(text: string) {
-    if (BreadcOption.BooleanRE.test(text)) {
+    if (Option.BooleanRE.test(text)) {
       this.type = 'boolean';
     } else {
       this.type = 'string';
     }
 
-    const match = BreadcOption.NameRE.exec(text);
+    const match = Option.NameRE.exec(text);
     if (match) {
       this.name = match[1];
     } else {

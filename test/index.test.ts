@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import Breadc from '../src';
+import { createDefaultLogger } from '../src/logger';
 
 describe('Breadc', () => {
   it('should parse', () => {
@@ -60,9 +61,8 @@ describe('Breadc', () => {
       }
     `);
 
-    expect(
-      Breadc('cli').option('--root').parse(['folder', 'text', '--root'])
-    ).toMatchInlineSnapshot(`
+    expect(Breadc('cli').option('--root').parse(['folder', 'text', '--root']))
+      .toMatchInlineSnapshot(`
       {
         "_": [
           "folder",
@@ -70,6 +70,21 @@ describe('Breadc', () => {
         ],
         "root": true,
       }
+    `);
+  });
+
+  it('should not parse wrong option', () => {
+    const output: string[] = [];
+    const logger = createDefaultLogger('cli');
+    logger.warn = (message: string) => {
+      output.push(message);
+    };
+    Breadc('cli', { logger }).option('invalid');
+
+    expect(output).toMatchInlineSnapshot(`
+      [
+        "Can not extract option name from \\"invalid\\"",
+      ]
     `);
   });
 });
