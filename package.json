@@ -2,7 +2,9 @@
   "name": "breadc",
   "version": "0.0.0",
   "description": "",
-  "keywords": [],
+  "keywords": [
+    "cli"
+  ],
   "homepage": "https://github.com/yjl9903/Breadc#readme",
   "bugs": {
     "url": "https://github.com/yjl9903/Breadc/issues"
@@ -31,11 +33,15 @@
     "build": "unbuild",
     "format": "prettier --write src/**/*.ts",
     "release": "bumpp --commit --push --tag && pnpm publish",
-    "preversion": "pnpm typecheck && pnpm build",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preversion": "pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "minimist": "^1.2.6"
   },
   "devDependencies": {
+    "@types/minimist": "^1.2.2",
     "@types/node": "17.0.43",
     "bumpp": "8.2.1",
     "prettier": "2.7.1",
