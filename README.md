@@ -39,6 +39,26 @@ If you are using IDEs that support TypeScript (like [Visual Studio Code](https:/
 
 ![vscode2](./images/vscode2.png)
 
+### Limitation
+
+For the limitation of TypeScript, in the command format string, you can only write up to **4** pieces. That is to say, you can only write format string like `<p1> <p2> <p3> <p4>`, but `<p1> <p2> <p3> <p4> <p5>` does not work.
+
+You should always use method chaining when registering options and commands. The example below will fail to infer the option `--host`.
+
+```ts
+const cli = Breadc('cli')
+
+cli
+  .option('--host')
+
+cli
+  .option('--port')
+  .command('')
+  .action((option) => {
+    // The type of option is Record<'port', string>
+  })
+```
+
 ## Inspiration
 
 + [cac](https://github.com/cacjs/cac): Simple yet powerful framework for building command-line apps.
