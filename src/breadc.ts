@@ -10,10 +10,10 @@ export class Breadc<GlobalOption extends string | never = never> {
   private readonly name: string;
   private readonly version: string;
 
-  private readonly logger: Logger;
-
   private readonly options: Option[] = [];
   private readonly commands: Command[] = [];
+
+  readonly logger: Logger;
 
   constructor(name: string, option: AppOption) {
     this.name = name;
