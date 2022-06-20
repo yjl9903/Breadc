@@ -1,0 +1,48 @@
+{
+  "name": "breadc",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "homepage": "https://github.com/yjl9903/Breadc#readme",
+  "bugs": {
+    "url": "https://github.com/yjl9903/Breadc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yjl9903/Breadc.git"
+  },
+  "license": "MIT",
+  "author": "XLor",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "format": "prettier --write src/**/*.ts",
+    "release": "bumpp --commit --push --tag && pnpm publish",
+    "preversion": "pnpm typecheck && pnpm build",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.43",
+    "bumpp": "8.2.1",
+    "prettier": "2.7.1",
+    "typescript": "4.7.4",
+    "unbuild": "0.7.4",
+    "vite": "2.9.12",
+    "vitest": "0.15.1"
+  },
+  "packageManager": "pnpm@7.3.0"
+}
