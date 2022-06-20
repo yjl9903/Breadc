@@ -155,7 +155,7 @@ export class Command<
   }
 }
 
-export function createVersionCommand(breadc: IBreadc): Command {
+export function createHelpCommand(breadc: IBreadc): Command {
   return new Command('-h, --help', {
     condition(args) {
       const isEmpty = !args['_'].length && !args['--']?.length;
@@ -201,7 +201,7 @@ export function createVersionCommand(breadc: IBreadc): Command {
   });
 }
 
-export function createHelpCommand(breadc: IBreadc): Command {
+export function createVersionCommand(breadc: IBreadc): Command {
   return new Command('-v, --version', {
     condition(args) {
       const isEmpty = !args['_'].length && !args['--']?.length;
