@@ -32,8 +32,24 @@ export class Breadc<GlobalOption extends string | never = never> {
 
   option<F extends string>(
     format: F,
-    config: OptionConfig = {}
+    description: string,
+    config?: Omit<OptionConfig, 'description'>
+  ): Breadc<GlobalOption | ExtractOption<F>>;
+
+  option<F extends string>(
+    format: F,
+    config: OptionConfig
+  ): Breadc<GlobalOption | ExtractOption<F>>;
+
+  option<F extends string>(
+    format: F,
+    configOrDescription: OptionConfig | string,
+    otherConfig: Omit<OptionConfig, 'description'> = {}
   ): Breadc<GlobalOption | ExtractOption<F>> {
+    const config: OptionConfig = otherConfig;
+    if (typeof configOrDescription === 'string') {
+      config.description = configOrDescription;
+    }
     try {
       const option = new Option(format, config);
       this.options.push(option);

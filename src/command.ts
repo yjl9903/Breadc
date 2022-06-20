@@ -46,8 +46,24 @@ export class Command<
 
   option<OF extends string>(
     format: OF,
-    config: OptionConfig = {}
+    description: string,
+    config?: Omit<OptionConfig, 'description'>
+  ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
+
+  option<OF extends string>(
+    format: OF,
+    config: OptionConfig
+  ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
+
+  option<OF extends string>(
+    format: OF,
+    configOrDescription: OptionConfig | string,
+    otherConfig: Omit<OptionConfig, 'description'> = {}
   ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>> {
+    const config: OptionConfig = otherConfig;
+    if (typeof configOrDescription === 'string') {
+      config.description = configOrDescription;
+    }
     try {
       const option = new Option(format, config);
       this.options.push(option);

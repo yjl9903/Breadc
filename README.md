@@ -31,6 +31,11 @@ cli.run(process.argv.slice(2))
 
 If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), move your cursor to the parameter `option` in this `dev` command, and then you will find the `option` is automatically typed with `{ host: string, port: string }` or `Record<'host' | 'port', string>`.
 
+## Inspiration
+
++ [cac](https://github.com/cacjs/cac): Simple yet powerful framework for building command-line apps.
++ [TypeScript: Documentation - Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+
 ## License
 
 MIT License © 2021 [XLor](https://github.com/yjl9903)
