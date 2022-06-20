@@ -178,7 +178,7 @@ describe('Common commands', () => {
   });
 });
 
-describe.only('Infer type', () => {
+describe('Infer type', () => {
   it('should run dev', async () => {
     const cliWithOption = Breadc('cli').option('--root');
     const cmd = cliWithOption.command('dev');
