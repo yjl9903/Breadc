@@ -22,7 +22,7 @@ export class Command<
   GlobalOption extends string | never = never,
   CommandOption extends string | never = never
 > {
-  private static MaxDep = 4;
+  private static MaxDep = 5;
 
   private readonly conditionFn?: ConditionFn;
   private readonly logger: Logger;
@@ -40,9 +40,14 @@ export class Command<
           .split(' ')
           .map((t) => t.trim())
           .filter(Boolean);
+
     this.description = config.description ?? '';
     this.conditionFn = config.condition;
     this.logger = config.logger;
+
+    if (this.format.length > Command.MaxDep) {
+      this.logger.warn(`Command format string "${format}" is too long`);
+    }
   }
 
   option<OF extends string>(

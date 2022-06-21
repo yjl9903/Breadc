@@ -22,7 +22,6 @@ for (let dep = maxDep; dep >= 1; dep--) {
         nQ.push([`<\${infer P${i}}>`, ...args]);
         nQ.push([`\${infer P${i}}`, ...args]);
       } else if (pre === '[') {
-        nQ.push([`[\${infer P${i}}]`, ...args]);
         nQ.push([`<\${infer P${i}}>`, ...args]);
         nQ.push([`\${infer P${i}}`, ...args]);
       }
