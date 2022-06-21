@@ -18,8 +18,8 @@ Try [./examples/echo.ts](./examples/echo.ts).
 import Breadc from 'breadc'
 
 const cli = Breadc('echo', { version: '1.0.0' })
-  .option('--host <host>')
-  .option('--port <port>')
+  .option('--host <host>', { default: 'localhost' })
+  .option('--port <port>', { construct: (port) => (port ? +port : 3000) });
 
 cli
   .command('[message]')
