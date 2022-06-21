@@ -17,15 +17,17 @@ export interface AppOption {
 
   help?: string | string[] | (() => string | string[]);
 
-  logger?: Logger;
+  logger?: Logger | LoggerFn;
 }
 
+export type LoggerFn = (message: string, ...args: any[]) => void;
+
 export interface Logger {
-  println: (message: string) => void;
-  info: (message: string, ...args: any[]) => void;
-  warn: (message: string, ...args: any[]) => void;
-  error: (message: string, ...args: any[]) => void;
-  debug: (message: string, ...args: any[]) => void;
+  println: LoggerFn;
+  info: LoggerFn;
+  warn: LoggerFn;
+  error: LoggerFn;
+  debug: LoggerFn;
 }
 
 export interface ParseResult {
@@ -33,6 +35,45 @@ export interface ParseResult {
   arguments: any[];
   options: Record<string, string>;
 }
+
+export type ExtractOption<T extends string> = {
+  [k in ExtractOptionName<T>]: ExtractOptionType<T>;
+};
+
+/**
+ * Extract option name type
+ *
+ * Examples:
+ * + const t1: ExtractOption<'--option' | '--hello'> = 'hello'
+ * + const t2: ExtractOption<'-r, --root'> = 'root'
+ */
+export type ExtractOptionName<T extends string> = T extends `-${Letter}, --${infer R} [${infer U}]`
+  ? R
+  : T extends `-${Letter}, --${infer R} <${infer U}>`
+  ? R
+  : T extends `-${Letter}, --${infer R}`
+  ? R
+  : T extends `--${infer R} [${infer U}]`
+  ? R
+  : T extends `--${infer R} <${infer U}>`
+  ? R
+  : T extends `--${infer R}`
+  ? R
+  : never;
+
+export type ExtractOptionType<T extends string> = T extends `-${Letter}, --${infer R} [${infer U}]`
+  ? string | undefined
+  : T extends `-${Letter}, --${infer R} <${infer U}>`
+  ? string | boolean
+  : T extends `-${Letter}, --${infer R}`
+  ? boolean
+  : T extends `--${infer R} [${infer U}]`
+  ? string | undefined
+  : T extends `--${infer R} <${infer U}>`
+  ? string | boolean
+  : T extends `--${infer R}`
+  ? boolean
+  : never;
 
 type Digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 
@@ -94,31 +135,10 @@ type Uppercase =
 
 type Letter = Lowercase | Uppercase;
 
-/**
- * Extract option name type
- *
- * Examples:
- * + const t1: ExtractOption<'--option' | '--hello'> = 'hello'
- * + const t2: ExtractOption<'-r, --root'> = 'root'
- */
-export type ExtractOption<T extends string> = T extends `-${Letter}, --${infer R} [${infer U}]`
-  ? R
-  : T extends `-${Letter}, --${infer R} <${infer U}>`
-  ? R
-  : T extends `-${Letter}, --${infer R}`
-  ? R
-  : T extends `--${infer R} [${infer U}]`
-  ? R
-  : T extends `--${infer R} <${infer U}>`
-  ? R
-  : T extends `--${infer R}`
-  ? R
-  : never;
-
 type Push<T extends any[], U> = [...T, U];
 
-export type ActionFn<T extends any[], Option extends string = never> = (
-  ...arg: Push<T, Record<Option, string>>
+export type ActionFn<T extends any[], Option extends object = {}> = (
+  ...arg: Push<T, Option>
 ) => void;
 
 /**

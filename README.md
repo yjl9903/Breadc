@@ -35,9 +35,7 @@ cli.run(process.argv.slice(2))
 
 If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), move your cursor to the parameter `option` in this `dev` command, and then you will find the `option` is automatically typed with `{ host: string, port: string }` or `Record<'host' | 'port', string>`.
 
-![vscode1](./images/vscode1.png)
-
-![vscode2](./images/vscode2.png)
+![vscode](./images/vscode.png)
 
 ### Limitation
 

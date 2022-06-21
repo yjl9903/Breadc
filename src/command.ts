@@ -17,11 +17,7 @@ export interface CommandConfig {
   description?: string;
 }
 
-export class Command<
-  F extends string = string,
-  GlobalOption extends string | never = never,
-  CommandOption extends string | never = never
-> {
+export class Command<F extends string = string, CommandOption extends object = {}> {
   private static MaxDep = 5;
 
   private readonly conditionFn?: ConditionFn;
@@ -32,7 +28,7 @@ export class Command<
   readonly description: string;
   readonly options: Option[] = [];
 
-  private actionFn?: ActionFn<ExtractCommand<F>, GlobalOption | CommandOption>;
+  private actionFn?: ActionFn<ExtractCommand<F>, CommandOption>;
 
   constructor(format: F, config: CommandConfig & { condition?: ConditionFn; logger: Logger }) {
     this.format = config.condition
@@ -53,34 +49,34 @@ export class Command<
     }
   }
 
-  option<OF extends string>(
+  option<OF extends string, T = string>(
     format: OF,
     description: string,
-    config?: Omit<OptionConfig, 'description'>
-  ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
+    config?: Omit<OptionConfig<T>, 'description'>
+  ): Command<F, CommandOption & ExtractOption<OF>>;
 
-  option<OF extends string>(
+  option<OF extends string, T = string>(
     format: OF,
-    config?: OptionConfig
-  ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
+    config?: OptionConfig<T>
+  ): Command<F, CommandOption & ExtractOption<OF>>;
 
-  option<OF extends string>(
+  option<OF extends string, T = string>(
     format: OF,
-    configOrDescription: OptionConfig | string = '',
-    otherConfig: Omit<OptionConfig, 'description'> = {}
-  ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>> {
-    const config: OptionConfig =
+    configOrDescription: OptionConfig<T> | string = '',
+    otherConfig: Omit<OptionConfig<T>, 'description'> = {}
+  ): Command<F, CommandOption & ExtractOption<OF>> {
+    const config: OptionConfig<T> =
       typeof configOrDescription === 'object'
         ? configOrDescription
         : { ...otherConfig, description: configOrDescription };
 
     try {
-      const option = new Option(format, config);
-      this.options.push(option);
+      const option = new Option<OF, T>(format, config);
+      this.options.push(option as unknown as Option);
     } catch (error: any) {
       this.logger.warn(error.message);
     }
-    return this as Command<F, GlobalOption, CommandOption | ExtractOption<OF>>;
+    return this as Command<F, CommandOption & ExtractOption<OF>>;
   }
 
   get hasConditionFn(): boolean {
@@ -105,7 +101,7 @@ export class Command<
     }
   }
 
-  parseArgs(args: ParsedArgs): ParseResult {
+  parseArgs(args: ParsedArgs, globalOptions: Option[]): ParseResult {
     if (this.conditionFn) {
       const argumentss: any[] = args['_'];
       const options: Record<string, string> = args;
@@ -144,18 +140,38 @@ export class Command<
       }
     }
 
-    const options: Record<string, string> = args;
+    const fullOptions = globalOptions.concat(this.options).reduce((map, o) => {
+      map.set(o.name, o);
+      return map;
+    }, new Map<string, Option>());
+    const options: Record<string, any> = args;
     delete options['_'];
+
+    for (const [name, rawOption] of fullOptions) {
+      if (rawOption.required) {
+        if (options[name] === undefined) {
+          options[name] = false;
+        } else if (options[name] === '') {
+          options[name] = true;
+        }
+      } else {
+        if (options[name] === false) {
+          options[name] = undefined;
+        } else if (!(name in options)) {
+          options[name] = undefined;
+        }
+      }
+    }
 
     return {
       // @ts-ignore
       command: this,
       arguments: argumentss,
-      options: args
+      options
     };
   }
 
-  action(fn: ActionFn<ExtractCommand<F>, GlobalOption | CommandOption>) {
+  action(fn: ActionFn<ExtractCommand<F>, CommandOption>) {
     this.actionFn = fn;
     return this;
   }

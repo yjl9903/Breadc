@@ -4,8 +4,10 @@ import Breadc from '../src';
 import { createDefaultLogger } from '../src/logger';
 
 describe('Parse', () => {
+  const logger = () => {};
+
   it('should parse', () => {
-    expect(Breadc('cli').parse(['hello', 'world'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['hello', 'world'])).toMatchInlineSnapshot(`
       {
         "arguments": [
           "hello",
@@ -18,35 +20,29 @@ describe('Parse', () => {
   });
 
   it('should parse boolean option', () => {
-    expect(Breadc('cli').parse(['--root'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['--root'])).toMatchInlineSnapshot(`
       {
         "arguments": [],
         "command": undefined,
-        "options": {
-          "root": true,
-        },
+        "options": {},
       }
     `);
 
-    expect(Breadc('cli').parse(['--root', 'folder'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['--root', 'folder'])).toMatchInlineSnapshot(`
       {
         "arguments": [],
         "command": undefined,
-        "options": {
-          "root": "folder",
-        },
+        "options": {},
       }
     `);
 
-    expect(Breadc('cli').parse(['--root', 'folder', 'text'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['--root', 'folder', 'text'])).toMatchInlineSnapshot(`
       {
         "arguments": [
           "text",
         ],
         "command": undefined,
-        "options": {
-          "root": "folder",
-        },
+        "options": {},
       }
     `);
 
@@ -230,6 +226,131 @@ describe('Run', () => {
       expect(+a + +b).toBe(35);
     });
     cli.run(['0x11', '0x12']);
+  });
+
+  it('should run with boolean option', () => {
+    const cli = Breadc('cal');
+    cli
+      .command('minus <a> <b>')
+      .option('--minus')
+      .action((a, b, option) => {
+        expect(typeof a).toBe('string');
+        expect(typeof b).toBe('string');
+        expect(option.minus).toBeFalsy();
+      });
+    cli
+      .command('<a> <b>')
+      .option('--minus')
+      .action((a, b, option) => {
+        expect(typeof a).toBe('string');
+        expect(typeof b).toBe('string');
+        expect(option.minus).toBeTruthy();
+      });
+    cli.run(['--minus', '1', '2']);
+    cli.run(['minus', '1', '2']);
+    cli.run(['minus', '1', '2', '--no-minus']);
+  });
+
+  it('should run with required option', () => {
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst <fst>')
+        .option('--snd <snd>')
+        .action((option) => {
+          expect(option.fst).toBe('1');
+          expect(option.snd).toBe('2');
+        });
+      cli.run(['--fst', '1', '--snd', '2']);
+    }
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst <fst>')
+        .option('--snd <snd>')
+        .action((option) => {
+          expect(option.fst).toBeTruthy();
+          expect(option.snd).toBeTruthy();
+        });
+      cli.run(['--fst', '--snd']);
+    }
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst <fst>')
+        .option('--snd <snd>')
+        .action((option) => {
+          expect(option.fst).toBeTruthy();
+          expect(option.snd).toBeFalsy();
+        });
+      cli.run(['--fst']);
+    }
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst <fst>')
+        .option('--snd <snd>')
+        .action((option) => {
+          expect(option.fst).toBeFalsy();
+          expect(option.snd).toBeFalsy();
+        });
+      cli.run(['--no-fst']);
+    }
+  });
+
+  it('should run with non-required option', () => {
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst [fst]')
+        .option('--snd [snd]')
+        .action((option) => {
+          expect(option.fst).toBe('1');
+          expect(option.snd).toBe('2');
+        });
+      cli.run(['--fst', '1', '--snd', '2']);
+    }
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst [fst]')
+        .option('--snd [snd]')
+        .action((option) => {
+          expect(option.fst).toBe('');
+          expect(option.snd).toBe('');
+        });
+      cli.run(['--fst', '--snd']);
+    }
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst [fst]')
+        .option('--snd [snd]')
+        .action((option) => {
+          expect(option.fst).toBe('');
+          expect(option.snd).toBeUndefined();
+        });
+      cli.run(['--fst']);
+    }
+    {
+      const cli = Breadc('cal');
+      cli
+        .command('')
+        .option('--fst [fst]')
+        .option('--snd [snd]')
+        .action((option) => {
+          expect(option.fst).toBeUndefined();
+          expect(option.snd).toBeUndefined();
+        });
+      cli.run(['--no-fst']);
+    }
   });
 });
 

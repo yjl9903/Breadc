@@ -1,5 +1,3 @@
-import type { ExtractOption } from './types';
-
 export interface OptionConfig<T = string> {
   description?: string;
   default?: T;
@@ -15,18 +13,20 @@ export interface OptionConfig<T = string> {
  * + --option <arg>
  * + --option [arg]
  */
-export class Option<T extends string = string, U = ExtractOption<T>> {
+export class Option<T extends string = string, F = string> {
   private static OptionRE = /^(-[a-zA-Z], )?--([a-zA-Z.]+)( \[[a-zA-Z]+\]| <[a-zA-Z]+>)?$/;
 
   readonly name: string;
   readonly shortcut?: string;
+  readonly default?: F;
   readonly format: string;
   readonly description: string;
   readonly type: 'string' | 'boolean';
+  readonly required: boolean;
 
   readonly construct: (rawText: string | undefined) => any;
 
-  constructor(format: T, config: OptionConfig = {}) {
+  constructor(format: T, config: OptionConfig<F> = {}) {
     this.format = format;
 
     const match = Option.OptionRE.exec(format);
@@ -45,6 +45,8 @@ export class Option<T extends string = string, U = ExtractOption<T>> {
     }
 
     this.description = config.description ?? '';
+    this.required = format.indexOf('<') !== -1;
+    this.default = config.default;
     this.construct = config.construct ?? ((text) => text ?? config.default ?? undefined);
   }
 }

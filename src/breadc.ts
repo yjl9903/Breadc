@@ -6,7 +6,7 @@ import { createDefaultLogger } from './logger';
 import { Option, OptionConfig } from './option';
 import { Command, CommandConfig, createHelpCommand, createVersionCommand } from './command';
 
-export class Breadc<GlobalOption extends string | never = never> {
+export class Breadc<GlobalOption extends object = {}> {
   private readonly name: string;
   private readonly _version: string;
   private readonly description?: string | string[];
@@ -22,7 +22,7 @@ export class Breadc<GlobalOption extends string | never = never> {
     this.name = name;
     this._version = option.version ?? 'unknown';
     this.description = option.description;
-    this.logger = option.logger ?? createDefaultLogger(name);
+    this.logger = createDefaultLogger(name, option.logger);
 
     const breadc = {
       name: this.name,
@@ -103,34 +103,34 @@ export class Breadc<GlobalOption extends string | never = never> {
     return output;
   }
 
-  option<F extends string>(
+  option<F extends string, T = string>(
     format: F,
     description: string,
-    config?: Omit<OptionConfig, 'description'>
-  ): Breadc<GlobalOption | ExtractOption<F>>;
+    config?: Omit<OptionConfig<T>, 'description'>
+  ): Breadc<GlobalOption & ExtractOption<F>>;
 
-  option<F extends string>(
+  option<F extends string, T = string>(
     format: F,
-    config?: OptionConfig
-  ): Breadc<GlobalOption | ExtractOption<F>>;
+    config?: OptionConfig<T>
+  ): Breadc<GlobalOption & ExtractOption<F>>;
 
-  option<F extends string>(
+  option<F extends string, T = string>(
     format: F,
-    configOrDescription: OptionConfig | string = '',
-    otherConfig: Omit<OptionConfig, 'description'> = {}
-  ): Breadc<GlobalOption | ExtractOption<F>> {
-    const config: OptionConfig =
+    configOrDescription: OptionConfig<T> | string = '',
+    otherConfig: Omit<OptionConfig<T>, 'description'> = {}
+  ): Breadc<GlobalOption & ExtractOption<F>> {
+    const config: OptionConfig<T> =
       typeof configOrDescription === 'object'
         ? configOrDescription
         : { ...otherConfig, description: configOrDescription };
 
     try {
-      const option = new Option(format, config);
-      this.options.push(option);
+      const option = new Option<F, T>(format, config);
+      this.options.push(option as unknown as Option);
     } catch (error: any) {
       this.logger.warn(error.message);
     }
-    return this as Breadc<GlobalOption | ExtractOption<F>>;
+    return this as Breadc<GlobalOption & ExtractOption<F>>;
   }
 
   command<F extends string>(
@@ -163,7 +163,7 @@ export class Breadc<GlobalOption extends string | never = never> {
   }
 
   parse(args: string[]): ParseResult {
-    const allowOptions = [this.options, this.commands.map((c) => c.options)].flat() as Option[];
+    const allowOptions: Option[] = [...this.options, ...this.commands.flatMap((c) => c.options)];
 
     const alias = allowOptions.reduce((map: Record<string, string>, o) => {
       if (o.shortcut) {
@@ -171,24 +171,44 @@ export class Breadc<GlobalOption extends string | never = never> {
       }
       return map;
     }, {});
+    const defaults = allowOptions.reduce((map: Record<string, string>, o) => {
+      if (o.default) {
+        map[o.name] = o.default;
+      }
+      return map;
+    }, {});
 
     const argv = minimist(args, {
       string: allowOptions.filter((o) => o.type === 'string').map((o) => o.name),
       boolean: allowOptions.filter((o) => o.type === 'boolean').map((o) => o.name),
-      alias
+      alias,
+      default: defaults,
+      unknown: (t) => {
+        if (t[0] !== '-') return true;
+        else {
+          if (['--help', '-h', '--version', '-v'].includes(t)) {
+            return true;
+          } else {
+            this.logger.warn(`Find unknown flag "${t}"`);
+            return false;
+          }
+        }
+      }
     });
 
     for (const shortcut of Object.keys(alias)) {
       delete argv[shortcut];
     }
 
+    // Try non-default command first
     for (const command of this.commands) {
       if (!command.default && command.shouldRun(argv)) {
-        return command.parseArgs(argv);
+        return command.parseArgs(argv, this.options);
       }
     }
+    // Then try default command
     if (this.defaultCommand) {
-      return this.defaultCommand.parseArgs(argv);
+      return this.defaultCommand.parseArgs(argv, this.options);
     }
 
     const argumentss = argv['_'];
