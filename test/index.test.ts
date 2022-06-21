@@ -164,12 +164,45 @@ describe('Parse', () => {
 });
 
 describe('Run', () => {
+  it('should run sub commands', () => {
+    const cli = Breadc('cli');
+    cli.command('pages build');
+    cli.command('pages dev [...files]').action((files) => {
+      expect(files).toMatchInlineSnapshot(`
+        [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+        ]
+      `);
+    });
+    cli.run(['pages', 'dev', 'a', 'b', 'c', 'd', 'e']);
+  });
+
   it('should parse rest arguments', () => {
     const cli = Breadc('cli');
     cli.command('[...]').action((files) => {
       expect(files).toMatchInlineSnapshot(`
         [
           "a",
+          "b",
+          "c",
+          "d",
+          "e",
+        ]
+      `);
+    });
+    cli.run(['a', 'b', 'c', 'd', 'e']);
+  });
+
+  it('should parse one argument and rest arguments', () => {
+    const cli = Breadc('cli');
+    cli.command('<root> [...]').action((root, files) => {
+      expect(root).toMatchInlineSnapshot('"a"');
+      expect(files).toMatchInlineSnapshot(`
+        [
           "b",
           "c",
           "d",
