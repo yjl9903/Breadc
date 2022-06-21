@@ -152,13 +152,18 @@ describe('Parse', () => {
   it('should not parse wrong option', () => {
     const output: string[] = [];
     Breadc('cli', {
-      logger: (message: string) => {
-        output.push(message);
+      logger: {
+        println(message: string) {
+          output.push(message);
+        },
+        warn(message: string) {
+          output.push(message);
+        }
       }
     }).option('invalid');
 
     expect(output[0]).toMatchInlineSnapshot(
-      '"WARN Can not parse option format from \\"invalid\\""'
+      '"Can not parse option format from \\"invalid\\""'
     );
   });
 });
