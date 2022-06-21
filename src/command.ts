@@ -126,9 +126,9 @@ export class Command<
       if (isCmd(this.format[i])) continue;
       if (i < args['_'].length) {
         if (this.format[i].startsWith('[...')) {
-          argumentss.push(args['_'].slice(i));
+          argumentss.push(args['_'].slice(i).map(String));
         } else {
-          argumentss.push(args['_'][i]);
+          argumentss.push(String(args['_'][i]));
         }
       } else {
         if (this.format[i].startsWith('<')) {

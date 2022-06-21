@@ -212,6 +212,25 @@ describe('Run', () => {
     });
     cli.run(['a', 'b', 'c', 'd', 'e']);
   });
+
+  it('should run number argument', () => {
+    const cli = Breadc('add');
+    cli.command('<a> <b>').action((a, b) => {
+      expect(typeof a).toBe('string');
+      expect(typeof b).toBe('string');
+    });
+    cli.run(['1', '2']);
+  });
+
+  it('should run hex number argument', () => {
+    const cli = Breadc('add');
+    cli.command('<a> <b>').action((a, b) => {
+      expect(typeof a).toBe('string');
+      expect(typeof b).toBe('string');
+      expect(+a + +b).toBe(35);
+    });
+    cli.run(['0x11', '0x12']);
+  });
 });
 
 describe('Common commands', () => {
