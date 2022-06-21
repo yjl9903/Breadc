@@ -133,7 +133,7 @@ export class Command<
         } else if (this.format[i].startsWith('[')) {
           argumentss.push(undefined);
         } else {
-          // Unreachable
+          this.logger.warn(`unknown format string ("${this.format[i]}")`);
         }
       }
     }
@@ -155,8 +155,12 @@ export class Command<
   }
 
   async run(...args: any[]) {
-    // @ts-ignore
-    this.actionFn && this.actionFn(...args);
+    if (this.actionFn) {
+      // @ts-ignore
+      this.actionFn(...args);
+    } else {
+      this.logger.warn(`You may miss action function in "${this.format}"`);
+    }
   }
 }
 
