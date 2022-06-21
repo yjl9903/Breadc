@@ -66,10 +66,11 @@ export class Command<
     configOrDescription: OptionConfig | string = '',
     otherConfig: Omit<OptionConfig, 'description'> = {}
   ): Command<F, GlobalOption, CommandOption | ExtractOption<OF>> {
-    const config: OptionConfig = otherConfig;
-    if (typeof configOrDescription === 'string') {
-      config.description = configOrDescription;
-    }
+    const config: OptionConfig =
+      typeof configOrDescription === 'object'
+        ? configOrDescription
+        : { ...otherConfig, description: configOrDescription };
+
     try {
       const option = new Option(format, config);
       this.options.push(option);
@@ -165,12 +166,20 @@ export class Command<
 }
 
 export function createHelpCommand(breadc: IBreadc): Command {
+  let helpCommand: Command | undefined = undefined;
+
   return new Command('-h, --help', {
     condition(args) {
-      const isEmpty = !args['_'].length && !args['--']?.length;
-      if (args.help && isEmpty) {
-        return true;
-      } else if (args.h && isEmpty) {
+      const isEmpty = !args['--']?.length;
+      if ((args.help || args.h) && isEmpty) {
+        if (args['_'].length > 0) {
+          for (const cmd of breadc.commands) {
+            if (!cmd.hasConditionFn && cmd.shouldRun(args)) {
+              helpCommand = cmd;
+              return true;
+            }
+          }
+        }
         return true;
       } else {
         return false;
@@ -178,7 +187,7 @@ export function createHelpCommand(breadc: IBreadc): Command {
     },
     logger: breadc.logger
   }).action(() => {
-    for (const line of breadc.help()) {
+    for (const line of breadc.help(helpCommand)) {
       breadc.logger.println(line);
     }
   });

@@ -225,6 +225,31 @@ describe('Common commands', () => {
       "
     `);
   });
+
+  it('should print command help', async () => {
+    const output: string[] = [];
+    const logger = createDefaultLogger('cli');
+    logger.println = (text: string) => output.push(text);
+
+    const cli = Breadc('cli', { version: '1.0.0', description: 'This is a cli app.', logger });
+    cli.command('[root]', 'Start dev server');
+    cli.command('build [root]', 'Build static site');
+
+    await cli.run(['build', '--help']);
+    expect(output.join('\n')).toMatchInlineSnapshot(`
+      "cli/1.0.0
+
+      Build static site
+
+      Usage:
+        $ cli build [root]
+
+      Options:
+        -h, --help     Display this message
+        -v, --version  Display version number
+      "
+    `);
+  });
 });
 
 describe('Infer type', () => {

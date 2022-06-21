@@ -25,7 +25,7 @@ export class Breadc<GlobalOption extends string | never = never> {
     const breadc = {
       name: this.name,
       version: () => this.version.call(this),
-      help: () => this.help.call(this),
+      help: (command?: Command) => this.help.call(this, command),
       logger: this.logger,
       options: this.options,
       commands: this.commands
@@ -37,33 +37,45 @@ export class Breadc<GlobalOption extends string | never = never> {
     return `${this.name}/${this._version}`;
   }
 
-  help() {
+  help(command?: Command) {
     const output: string[] = [];
     const println = (msg: string) => output.push(msg);
 
     println(this.version());
-
-    if (this.description) {
-      println('');
-      if (Array.isArray(this.description)) {
-        for (const line of this.description) {
-          println(line);
+    if (!command) {
+      if (this.description) {
+        println('');
+        if (Array.isArray(this.description)) {
+          for (const line of this.description) {
+            println(line);
+          }
+        } else {
+          println(this.description);
         }
-      } else {
-        println(this.description);
+      }
+    } else {
+      if (command.description) {
+        println('');
+        println(command.description);
       }
     }
 
-    const defaultCommand = this.commands.find(
-      (c) => c.format.length === 0 || c.format[0][0] === '[' || c.format[0][0] === '<'
-    );
-    if (defaultCommand) {
+    if (!command) {
+      const defaultCommand = this.commands.find(
+        (c) => c.format.length === 0 || c.format[0][0] === '[' || c.format[0][0] === '<'
+      );
+      if (defaultCommand) {
+        println(``);
+        println(`Usage:`);
+        println(`  $ ${this.name} ${defaultCommand.format.join(' ')}`);
+      }
+    } else {
       println(``);
       println(`Usage:`);
-      println(`  $ ${this.name} ${defaultCommand.format.join(' ')}`);
+      println(`  $ ${this.name} ${command.format.join(' ')}`);
     }
 
-    if (this.commands.length > 2) {
+    if (!command && this.commands.length > 2) {
       println(``);
       println(`Commands:`);
       const commandHelps = this.commands
@@ -76,12 +88,14 @@ export class Breadc<GlobalOption extends string | never = never> {
 
     println(``);
     println(`Options:`);
-    const optionHelps = this.options
-      .map((o) => [`  ${o.format}`, o.description] as [string, string])
-      .concat([
-        [`  -h, --help`, `Display this message`],
-        [`  -v, --version`, `Display version number`]
-      ]);
+    const optionHelps = ([] as Array<[string, string]>).concat([
+      ...(command
+        ? command.options.map((o) => [`  ${o.format}`, o.description] as [string, string])
+        : []),
+      ...this.options.map((o) => [`  ${o.format}`, o.description] as [string, string]),
+      [`  -h, --help`, `Display this message`],
+      [`  -v, --version`, `Display version number`]
+    ]);
     for (const line of twoColumn(optionHelps)) {
       println(line);
     }
@@ -106,10 +120,11 @@ export class Breadc<GlobalOption extends string | never = never> {
     configOrDescription: OptionConfig | string = '',
     otherConfig: Omit<OptionConfig, 'description'> = {}
   ): Breadc<GlobalOption | ExtractOption<F>> {
-    const config: OptionConfig = otherConfig;
-    if (typeof configOrDescription === 'string') {
-      config.description = configOrDescription;
-    }
+    const config: OptionConfig =
+      typeof configOrDescription === 'object'
+        ? configOrDescription
+        : { ...otherConfig, description: configOrDescription };
+
     try {
       const option = new Option(format, config);
       this.options.push(option);
@@ -132,10 +147,11 @@ export class Breadc<GlobalOption extends string | never = never> {
     configOrDescription: CommandConfig | string = '',
     otherConfig: Omit<CommandConfig, 'description'> = {}
   ): Command<F, GlobalOption> {
-    const config: CommandConfig = otherConfig;
-    if (typeof configOrDescription === 'string') {
-      config.description = configOrDescription;
-    }
+    const config: CommandConfig =
+      typeof configOrDescription === 'object'
+        ? configOrDescription
+        : { ...otherConfig, description: configOrDescription };
+
     const command = new Command(format, { ...config, logger: this.logger });
     this.commands.push(command);
     return command as Command<F, GlobalOption>;

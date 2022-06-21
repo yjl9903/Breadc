@@ -4,7 +4,7 @@ import type { Option } from './option';
 export interface IBreadc {
   name: string;
   version: () => string;
-  help: () => string[];
+  help: (command?: Command) => string[];
   logger: Logger;
   options: Option[];
   commands: Command[];
