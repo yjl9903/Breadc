@@ -163,6 +163,24 @@ describe('Parse', () => {
   });
 });
 
+describe('Run', () => {
+  it('should parse rest arguments', () => {
+    const cli = Breadc('cli');
+    cli.command('[...]').action((files) => {
+      expect(files).toMatchInlineSnapshot(`
+        [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+        ]
+      `);
+    });
+    cli.run(['a', 'b', 'c', 'd', 'e']);
+  });
+});
+
 describe('Common commands', () => {
   it('should print version', async () => {
     const output: string[] = [];

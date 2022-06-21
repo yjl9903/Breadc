@@ -28,6 +28,7 @@ export class Command<
   private readonly logger: Logger;
 
   readonly format: string[];
+  readonly default: boolean;
   readonly description: string;
   readonly options: Option[] = [];
 
@@ -41,6 +42,8 @@ export class Command<
           .map((t) => t.trim())
           .filter(Boolean);
 
+    this.default =
+      this.format.length === 0 || this.format[0][0] === '[' || this.format[0][0] === '<';
     this.description = config.description ?? '';
     this.conditionFn = config.condition;
     this.logger = config.logger;
@@ -88,9 +91,10 @@ export class Command<
     if (this.conditionFn) {
       return this.conditionFn(args);
     } else {
-      const isArg = (t: string) => t[0] !== '[' && t[0] !== '<';
+      if (this.default) return true;
+      const isCmd = (t: string) => t[0] !== '[' && t[0] !== '<';
       for (let i = 0; i < this.format.length; i++) {
-        if (isArg(this.format[i])) {
+        if (!isCmd(this.format[i])) {
           return true;
         }
         if (i >= args['_'].length || this.format[i] !== args['_'][i]) {
@@ -115,11 +119,11 @@ export class Command<
       };
     }
 
-    const isArg = (t: string) => t[0] !== '[' && t[0] !== '<';
+    const isCmd = (t: string) => t[0] !== '[' && t[0] !== '<';
 
     const argumentss: any[] = [];
     for (let i = 0; i < this.format.length; i++) {
-      if (isArg(this.format[i])) continue;
+      if (isCmd(this.format[i])) continue;
       if (i < args['_'].length) {
         if (this.format[i].startsWith('[...')) {
           argumentss.push(args['_'].slice(i));
@@ -175,7 +179,7 @@ export function createHelpCommand(breadc: IBreadc): Command {
       if ((args.help || args.h) && isEmpty) {
         if (args['_'].length > 0) {
           for (const cmd of breadc.commands) {
-            if (!cmd.hasConditionFn && cmd.shouldRun(args)) {
+            if (!cmd.hasConditionFn && !cmd.default && cmd.shouldRun(args)) {
               helpCommand = cmd;
               return true;
             }

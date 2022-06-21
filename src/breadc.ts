@@ -14,6 +14,8 @@ export class Breadc<GlobalOption extends string | never = never> {
   private readonly options: Option[] = [];
   private readonly commands: Command[] = [];
 
+  private defaultCommand?: Command;
+
   readonly logger: Logger;
 
   constructor(name: string, option: AppOption) {
@@ -61,13 +63,10 @@ export class Breadc<GlobalOption extends string | never = never> {
     }
 
     if (!command) {
-      const defaultCommand = this.commands.find(
-        (c) => c.format.length === 0 || c.format[0][0] === '[' || c.format[0][0] === '<'
-      );
-      if (defaultCommand) {
+      if (this.defaultCommand) {
         println(``);
         println(`Usage:`);
-        println(`  $ ${this.name} ${defaultCommand.format.join(' ')}`);
+        println(`  $ ${this.name} ${this.defaultCommand.format.join(' ')}`);
       }
     } else {
       println(``);
@@ -153,6 +152,12 @@ export class Breadc<GlobalOption extends string | never = never> {
         : { ...otherConfig, description: configOrDescription };
 
     const command = new Command(format, { ...config, logger: this.logger });
+    if (command.default) {
+      if (this.defaultCommand) {
+        this.logger.warn('You can not have two default commands.');
+      }
+      this.defaultCommand = command;
+    }
     this.commands.push(command);
     return command as Command<F, GlobalOption>;
   }
@@ -178,9 +183,12 @@ export class Breadc<GlobalOption extends string | never = never> {
     }
 
     for (const command of this.commands) {
-      if (command.shouldRun(argv)) {
+      if (!command.default && command.shouldRun(argv)) {
         return command.parseArgs(argv);
       }
+    }
+    if (this.defaultCommand) {
+      return this.defaultCommand.parseArgs(argv);
     }
 
     const argumentss = argv['_'];
