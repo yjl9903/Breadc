@@ -16,11 +16,11 @@ importers:
       vitest: ^0.15.1
     dependencies:
       kolorist: 1.5.1
+      minimist: 1.2.6
     devDependencies:
       '@types/minimist': 1.2.2
       '@types/node': 17.0.43
       bumpp: 8.2.1
-      minimist: 1.2.6
       prettier: 2.7.1
       typescript: 4.7.4
       unbuild: 0.7.4
@@ -1245,7 +1245,7 @@ packages:
 
   /minimist/1.2.6:
     resolution: {integrity: sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==}
-    dev: true
+    dev: false
 
   /mkdirp/1.0.4:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
