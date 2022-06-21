@@ -4,32 +4,46 @@ import { blue, gray, red, yellow } from 'kolorist';
 
 export function createDefaultLogger(
   name: string,
-  logger?: Logger | LoggerFn
+  logger?: Partial<Logger> | LoggerFn
 ): Logger {
-  if (!!logger && typeof logger === 'object') {
-    return logger;
-  }
-
   const println: LoggerFn =
     !!logger && typeof logger === 'function'
       ? logger
-      : (message: string, ...args: any[]) => {
+      : logger?.println ??
+        ((message: string, ...args: any[]) => {
           console.log(message, ...args);
+        });
+
+  const info =
+    typeof logger === 'object' && logger?.info
+      ? logger.info
+      : (message: string, ...args: any[]) => {
+          println(`${blue('INFO')} ${message}`, ...args);
+        };
+  const warn =
+    typeof logger === 'object' && logger?.warn
+      ? logger.warn
+      : (message: string, ...args: any[]) => {
+          println(`${yellow('WARN')} ${message}`, ...args);
+        };
+  const error =
+    typeof logger === 'object' && logger?.error
+      ? logger.error
+      : (message: string, ...args: any[]) => {
+          println(`${red('ERROR')} ${message}`, ...args);
+        };
+  const debug =
+    typeof logger === 'object' && logger?.debug
+      ? logger.debug
+      : (message: string, ...args: any[]) => {
+          println(`${gray(name)} ${message}`, ...args);
         };
 
   return {
     println,
-    info(message, ...args) {
-      println(`${blue('INFO')} ${message}`, ...args);
-    },
-    warn(message, ...args) {
-      println(`${yellow('WARN')} ${message}`, ...args);
-    },
-    error(message, ...args) {
-      println(`${red('ERROR')} ${message}`, ...args);
-    },
-    debug(message, ...args) {
-      println(`${gray(name)} ${message}`, ...args);
-    }
+    info,
+    warn,
+    error,
+    debug
   };
 }

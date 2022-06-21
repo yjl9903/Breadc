@@ -17,7 +17,7 @@ export interface AppOption {
 
   help?: string | string[] | (() => string | string[]);
 
-  logger?: Logger | LoggerFn;
+  logger?: Partial<Logger> | LoggerFn;
 }
 
 export type LoggerFn = (message: string, ...args: any[]) => void;
