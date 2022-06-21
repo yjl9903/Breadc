@@ -3,7 +3,8 @@ import type { Option } from './option';
 
 export interface IBreadc {
   name: string;
-  version: string;
+  version: () => string;
+  help: () => string[];
   logger: Logger;
   options: Option[];
   commands: Command[];
@@ -11,6 +12,8 @@ export interface IBreadc {
 
 export interface AppOption {
   version?: string;
+
+  description?: string | string[];
 
   help?: string | string[] | (() => string | string[]);
 

@@ -1,6 +1,6 @@
 import Breadc from '../src';
 
-const vite = Breadc('vite', { version: '1.0.0' })
+const vite = Breadc('vite', { version: '1.0.0', description: 'Next generation frontend tooling.' })
   .option('-c, --config <file>', `[string] use specified config file`)
   .option('--base <path>', `[string] public base path (default: /)`)
   .option('-l, --logLevel <level>', `[string] info | warn | error | silent`)

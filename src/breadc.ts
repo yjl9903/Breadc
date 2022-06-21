@@ -8,7 +8,8 @@ import { Command, CommandConfig, createHelpCommand, createVersionCommand } from 
 
 export class Breadc<GlobalOption extends string | never = never> {
   private readonly name: string;
-  private readonly version: string;
+  private readonly _version: string;
+  private readonly description?: string | string[];
 
   private readonly options: Option[] = [];
   private readonly commands: Command[] = [];
@@ -17,17 +18,76 @@ export class Breadc<GlobalOption extends string | never = never> {
 
   constructor(name: string, option: AppOption) {
     this.name = name;
-    this.version = option.version ?? 'unknown';
+    this._version = option.version ?? 'unknown';
+    this.description = option.description;
     this.logger = option.logger ?? createDefaultLogger(name);
 
     const breadc = {
       name: this.name,
-      version: this.version,
+      version: () => this.version.call(this),
+      help: () => this.help.call(this),
       logger: this.logger,
       options: this.options,
       commands: this.commands
     };
     this.commands.push(createVersionCommand(breadc), createHelpCommand(breadc));
+  }
+
+  version() {
+    return `${this.name}/${this._version}`;
+  }
+
+  help() {
+    const output: string[] = [];
+    const println = (msg: string) => output.push(msg);
+
+    println(this.version());
+
+    if (this.description) {
+      println('');
+      if (Array.isArray(this.description)) {
+        for (const line of this.description) {
+          println(line);
+        }
+      } else {
+        println(this.description);
+      }
+    }
+
+    const defaultCommand = this.commands.find(
+      (c) => c.format.length === 0 || c.format[0][0] === '[' || c.format[0][0] === '<'
+    );
+    if (defaultCommand) {
+      println(``);
+      println(`Usage:`);
+      println(`  $ ${this.name} ${defaultCommand.format.join(' ')}`);
+    }
+
+    if (this.commands.length > 2) {
+      println(``);
+      println(`Commands:`);
+      const commandHelps = this.commands
+        .filter((c) => !c.hasConditionFn)
+        .map((c) => [`  $ ${this.name} ${c.format.join(' ')}`, c.description] as [string, string]);
+      for (const line of twoColumn(commandHelps)) {
+        println(line);
+      }
+    }
+
+    println(``);
+    println(`Options:`);
+    const optionHelps = this.options
+      .map((o) => [`  ${o.format}`, o.description] as [string, string])
+      .concat([
+        [`  -h, --help`, `Display this message`],
+        [`  -v, --version`, `Display version number`]
+      ]);
+    for (const line of twoColumn(optionHelps)) {
+      println(line);
+    }
+    println(``);
+
+    return output;
   }
 
   option<F extends string>(
@@ -108,4 +168,14 @@ export class Breadc<GlobalOption extends string | never = never> {
       parsed.command.run(...parsed.arguments, parsed.options);
     }
   }
+}
+
+function twoColumn(texts: Array<[string, string]>, split = '  ') {
+  const left = padRight(texts.map((t) => t[0]));
+  return left.map((l, idx) => l + split + texts[idx][1]);
+}
+
+function padRight(texts: string[], fill = ' '): string[] {
+  const length = texts.map((t) => t.length).reduce((max, l) => Math.max(max, l), 0);
+  return texts.map((t) => t + fill.repeat(length - t.length));
 }

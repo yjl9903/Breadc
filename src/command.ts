@@ -178,35 +178,9 @@ export function createHelpCommand(breadc: IBreadc): Command {
     },
     logger: breadc.logger
   }).action(() => {
-    breadc.logger.println(`${breadc.name}/${breadc.version}`);
-
-    const defaultCommand = breadc.commands.find(
-      (c) => c.format.length === 0 || c.format[0][0] === '[' || c.format[0][0] === '<'
-    );
-    if (defaultCommand) {
-      breadc.logger.println(``);
-      breadc.logger.println(`Usage:`);
-      breadc.logger.println(`  $ ${breadc.name} ${defaultCommand.format.join(' ')}`);
+    for (const line of breadc.help()) {
+      breadc.logger.println(line);
     }
-
-    if (breadc.commands.length > 2) {
-      breadc.logger.println(``);
-      breadc.logger.println(`Commands:`);
-      for (const command of breadc.commands) {
-        if (!command.hasConditionFn) {
-          breadc.logger.println(`  ${command.format.join(' ')}`);
-        }
-      }
-    }
-
-    breadc.logger.println(``);
-    breadc.logger.println(`Options:`);
-    for (const option of breadc.options) {
-      breadc.logger.println(`  ${option.format}`);
-    }
-    breadc.logger.println(`  -h, --help`);
-    breadc.logger.println(`  -v, --version`);
-    breadc.logger.println(``);
   });
 }
 
@@ -224,6 +198,6 @@ export function createVersionCommand(breadc: IBreadc): Command {
     },
     logger: breadc.logger
   }).action(() => {
-    breadc.logger.println(`${breadc.name}/${breadc.version}`);
+    breadc.logger.println(breadc.version());
   });
 }
