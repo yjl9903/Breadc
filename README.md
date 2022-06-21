@@ -12,7 +12,7 @@ npm i breadc
 
 ## Usage
 
-See [./examples/echo.ts](./examples/echo.ts).
+Try [./examples/echo.ts](./examples/echo.ts).
 
 ```ts
 import Breadc from 'breadc'
@@ -24,16 +24,17 @@ const cli = Breadc('echo', { version: '1.0.0' })
 cli
   .command('[message]')
   .action((message, option) => {
-    console.log(message ?? 'You can say anything!')
-    console.log(`Host: ${option.host}`)
-    console.log(`Port: ${option.port}`)
+    const host = option.host;
+    const port = option.port;
+    console.log(`Host: ${host}`);
+    console.log(`Port: ${port}`);
   })
 
 cli.run(process.argv.slice(2))
   .catch(err => cli.logger.error(err.message))
 ```
 
-If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), move your cursor to the parameter `option` in this `dev` command, and then you will find the `option` is automatically typed with `{ host: string, port: string }` or `Record<'host' | 'port', string>`.
+If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), move your cursor to the parameter `option` in the default command, and then you will find the `option` is automatically typed with `{ host: string | boolean, port: string | boolean }`.
 
 ![vscode](./images/vscode.png)
 
