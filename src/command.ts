@@ -57,23 +57,23 @@ export class Command<
     }
   }
 
-  option<OF extends string, T = string>(
+  option<OF extends string, T = undefined>(
     format: OF,
     description: string,
-    config?: Omit<OptionConfig<T>, 'description'>
-  ): Command<F, CommandOption & ExtractOption<OF>>;
+    config?: Omit<OptionConfig<OF, T>, 'description'>
+  ): Command<F, CommandOption & ExtractOption<OF, T>>;
 
-  option<OF extends string, T = string>(
+  option<OF extends string, T = undefined>(
     format: OF,
-    config?: OptionConfig<T>
-  ): Command<F, CommandOption & ExtractOption<OF>>;
+    config?: OptionConfig<OF, T>
+  ): Command<F, CommandOption & ExtractOption<OF, T>>;
 
-  option<OF extends string, T = string>(
+  option<OF extends string, T = undefined>(
     format: OF,
-    configOrDescription: OptionConfig<T> | string = '',
-    otherConfig: Omit<OptionConfig<T>, 'description'> = {}
-  ): Command<F, CommandOption & ExtractOption<OF>> {
-    const config: OptionConfig<T> =
+    configOrDescription: OptionConfig<OF, T> | string = '',
+    otherConfig: Omit<OptionConfig<OF, T>, 'description'> = {}
+  ): Command<F, CommandOption & ExtractOption<OF, T>> {
+    const config: OptionConfig<OF, T> =
       typeof configOrDescription === 'object'
         ? configOrDescription
         : { ...otherConfig, description: configOrDescription };
@@ -84,7 +84,7 @@ export class Command<
     } catch (error: any) {
       this.logger.warn(error.message);
     }
-    return this as Command<F, CommandOption & ExtractOption<OF>>;
+    return this as Command<F, CommandOption & ExtractOption<OF, T>>;
   }
 
   get hasConditionFn(): boolean {
@@ -169,6 +169,14 @@ export class Command<
           options[name] = undefined;
         } else if (!(name in options)) {
           options[name] = undefined;
+        }
+      }
+      if (rawOption.construct) {
+        // @ts-ignore
+        options[name] = rawOption.construct(options[name]);
+      } else if (rawOption.default) {
+        if (!options[name]) {
+          options[name] = rawOption.default;
         }
       }
     }

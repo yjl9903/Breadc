@@ -118,23 +118,23 @@ export class Breadc<GlobalOption extends object = {}> {
     return output;
   }
 
-  option<F extends string, T = string>(
+  option<F extends string, T = undefined>(
     format: F,
     description: string,
-    config?: Omit<OptionConfig<T>, 'description'>
-  ): Breadc<GlobalOption & ExtractOption<F>>;
+    config?: Omit<OptionConfig<F, T>, 'description'>
+  ): Breadc<GlobalOption & ExtractOption<F, T>>;
 
-  option<F extends string, T = string>(
+  option<F extends string, T = undefined>(
     format: F,
-    config?: OptionConfig<T>
-  ): Breadc<GlobalOption & ExtractOption<F>>;
+    config?: OptionConfig<F, T>
+  ): Breadc<GlobalOption & ExtractOption<F, T>>;
 
-  option<F extends string, T = string>(
+  option<F extends string, T = undefined>(
     format: F,
-    configOrDescription: OptionConfig<T> | string = '',
-    otherConfig: Omit<OptionConfig<T>, 'description'> = {}
-  ): Breadc<GlobalOption & ExtractOption<F>> {
-    const config: OptionConfig<T> =
+    configOrDescription: OptionConfig<F, T> | string = '',
+    otherConfig: Omit<OptionConfig<F, T>, 'description'> = {}
+  ): Breadc<GlobalOption & ExtractOption<F, T>> {
+    const config: OptionConfig<F, T> =
       typeof configOrDescription === 'object'
         ? configOrDescription
         : { ...otherConfig, description: configOrDescription };
@@ -145,7 +145,7 @@ export class Breadc<GlobalOption extends object = {}> {
     } catch (error: any) {
       this.logger.warn(error.message);
     }
-    return this as Breadc<GlobalOption & ExtractOption<F>>;
+    return this as Breadc<GlobalOption & ExtractOption<F, T>>;
   }
 
   command<F extends string>(
@@ -192,12 +192,6 @@ export class Breadc<GlobalOption extends object = {}> {
       }
       return map;
     }, {});
-    const defaults = allowOptions.reduce((map: Record<string, string>, o) => {
-      if (o.default) {
-        map[o.name] = o.default;
-      }
-      return map;
-    }, {});
 
     const argv = minimist(args, {
       string: allowOptions
@@ -207,7 +201,6 @@ export class Breadc<GlobalOption extends object = {}> {
         .filter((o) => o.type === 'boolean')
         .map((o) => o.name),
       alias,
-      default: defaults,
       unknown: (t) => {
         if (t[0] !== '-') return true;
         else {

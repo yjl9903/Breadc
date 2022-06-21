@@ -1,7 +1,9 @@
-export interface OptionConfig<T = string> {
+import type { ExtractOptionType } from './types';
+
+export interface OptionConfig<F extends string, T = never> {
   description?: string;
   default?: T;
-  construct?: (rawText?: string) => T;
+  construct?: (rawText: ExtractOptionType<F>) => T;
 }
 
 /**
@@ -25,9 +27,9 @@ export class Option<T extends string = string, F = string> {
   readonly type: 'string' | 'boolean';
   readonly required: boolean;
 
-  readonly construct: (rawText: string | undefined) => any;
+  readonly construct?: (rawText: ExtractOptionType<T>) => F;
 
-  constructor(format: T, config: OptionConfig<F> = {}) {
+  constructor(format: T, config: OptionConfig<T, F> = {}) {
     this.format = format;
 
     const match = Option.OptionRE.exec(format);
@@ -48,7 +50,6 @@ export class Option<T extends string = string, F = string> {
     this.description = config.description ?? '';
     this.required = format.indexOf('<') !== -1;
     this.default = config.default;
-    this.construct =
-      config.construct ?? ((text) => text ?? config.default ?? undefined);
+    this.construct = config.construct;
   }
 }

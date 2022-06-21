@@ -1,8 +1,8 @@
 import Breadc from '../src';
 
 const cli = Breadc('echo', { version: '1.0.0' })
-  .option('--host <host>')
-  .option('--port <port>');
+  .option('--host <host>', { default: 'localhost' })
+  .option('--port <port>', { construct: (port) => (port ? +port : 3000) });
 
 cli.command('[message]').action((message, option) => {
   console.log(message ?? 'You can say anything!');

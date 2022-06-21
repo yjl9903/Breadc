@@ -361,6 +361,38 @@ describe('Run', () => {
       cli.run(['--no-fst']);
     }
   });
+
+  it('should run with construct option', () => {
+    {
+      const cli = Breadc('echo', { version: '1.0.0' })
+        .option('--host <host>', { default: 'localhost' })
+        .option('--port <port>', {
+          construct: (port) => (port ? +port : 3000)
+        });
+
+      cli.command('[message]').action((_message, option) => {
+        expect(option.host).toBe('localhost');
+        expect(option.port).toBe(3000);
+      });
+
+      cli.run([]);
+      cli.run(['--port', '3000']);
+    }
+    {
+      const cli = Breadc('echo', { version: '1.0.0' })
+        .option('--host <host>', { default: 'localhost' })
+        .option('--port <port>', {
+          construct: (port) => (port ? +port : 3000)
+        });
+
+      cli.command('[message]').action((_message, option) => {
+        expect(option.host).toBe('ip');
+        expect(option.port).toBe(3001);
+      });
+
+      cli.run(['--host', 'ip', '--port', '3001']);
+    }
+  });
 });
 
 describe('Common commands', () => {

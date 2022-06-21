@@ -36,8 +36,8 @@ export interface ParseResult {
   options: Record<string, string>;
 }
 
-export type ExtractOption<T extends string> = {
-  [k in ExtractOptionName<T>]: ExtractOptionType<T>;
+export type ExtractOption<T extends string, D = undefined> = {
+  [k in ExtractOptionName<T>]: D extends undefined ? ExtractOptionType<T> : D;
 };
 
 /**
