@@ -4,7 +4,7 @@ const cli = Breadc('echo', { version: '1.0.0' })
   .option('--host <host>', { default: 'localhost' })
   .option('--port <port>', { construct: (port) => (port ? +port : 3000) });
 
-cli.command('[message]').action((message, option) => {
+cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(message ?? 'You can say anything!');
   const host = option.host;
   const port = option.port;

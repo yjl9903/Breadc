@@ -4,6 +4,12 @@
 
 Yet another Command Line Application Framework powered by [minimist](https://www.npmjs.com/package/minimist), but with fully strong [TypeScript](https://www.typescriptlang.org/) support.
 
+## Features
+
++ ⚡️ **Light-weight**: Only 61 kB.
++ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 4 APIs for building a CLI application: `command`, `option`, `action`, `run`.
++ 💻 **TypeScript Infer**: IDE will automatically infer the type of your command action function.
+
 ## Installation
 
 ```bash
@@ -22,7 +28,7 @@ const cli = Breadc('echo', { version: '1.0.0' })
   .option('--port <port>', { construct: (port) => (port ? +port : 3000) });
 
 cli
-  .command('[message]')
+  .command('[message]', 'Say something!')
   .action((message, option) => {
     const host = option.host;
     const port = option.port;
