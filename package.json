@@ -6,7 +6,8 @@
     "cli",
     "framework",
     "command-line",
-    "minimist"
+    "minimist",
+    "typescript"
   ],
   "homepage": "https://github.com/yjl9903/Breadc#readme",
   "bugs": {
