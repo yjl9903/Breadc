@@ -34,7 +34,7 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "format": "prettier --write src/**/*.ts",
+    "format": "prettier --write src/**/*.ts test/*.ts examples/*.ts scripts/*.ts",
     "release": "bumpp --commit --push --tag && pnpm publish",
     "test": "vitest",
     "typecheck": "tsc --noEmit",

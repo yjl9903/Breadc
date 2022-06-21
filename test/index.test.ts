@@ -7,7 +7,8 @@ describe('Parse', () => {
   const logger = () => {};
 
   it('should parse', () => {
-    expect(Breadc('cli', { logger }).parse(['hello', 'world'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['hello', 'world']))
+      .toMatchInlineSnapshot(`
       {
         "arguments": [
           "hello",
@@ -28,7 +29,8 @@ describe('Parse', () => {
       }
     `);
 
-    expect(Breadc('cli', { logger }).parse(['--root', 'folder'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['--root', 'folder']))
+      .toMatchInlineSnapshot(`
       {
         "arguments": [],
         "command": undefined,
@@ -36,7 +38,8 @@ describe('Parse', () => {
       }
     `);
 
-    expect(Breadc('cli', { logger }).parse(['--root', 'folder', 'text'])).toMatchInlineSnapshot(`
+    expect(Breadc('cli', { logger }).parse(['--root', 'folder', 'text']))
+      .toMatchInlineSnapshot(`
       {
         "arguments": [
           "text",
@@ -155,7 +158,9 @@ describe('Parse', () => {
     };
     Breadc('cli', { logger }).option('invalid');
 
-    expect(output[0]).toMatchInlineSnapshot('"Can not parse option format from \\"invalid\\""');
+    expect(output[0]).toMatchInlineSnapshot(
+      '"Can not parse option format from \\"invalid\\""'
+    );
   });
 });
 
@@ -373,7 +378,11 @@ describe('Common commands', () => {
     const logger = createDefaultLogger('cli');
     logger.println = (text: string) => output.push(text);
 
-    const cli = Breadc('cli', { version: '1.0.0', description: 'This is a cli app.', logger });
+    const cli = Breadc('cli', {
+      version: '1.0.0',
+      description: 'This is a cli app.',
+      logger
+    });
     cli.command('[root]', 'Start dev server');
     cli.command('build [root]', 'Build static site');
 
@@ -422,7 +431,11 @@ describe('Common commands', () => {
     const logger = createDefaultLogger('cli');
     logger.println = (text: string) => output.push(text);
 
-    const cli = Breadc('cli', { version: '1.0.0', description: 'This is a cli app.', logger });
+    const cli = Breadc('cli', {
+      version: '1.0.0',
+      description: 'This is a cli app.',
+      logger
+    });
     cli.command('[root]', 'Start dev server');
     cli.command('build [root]', 'Build static site');
 

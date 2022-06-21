@@ -17,7 +17,10 @@ export interface CommandConfig {
   description?: string;
 }
 
-export class Command<F extends string = string, CommandOption extends object = {}> {
+export class Command<
+  F extends string = string,
+  CommandOption extends object = {}
+> {
   private static MaxDep = 5;
 
   private readonly conditionFn?: ConditionFn;
@@ -30,7 +33,10 @@ export class Command<F extends string = string, CommandOption extends object = {
 
   private actionFn?: ActionFn<ExtractCommand<F>, CommandOption>;
 
-  constructor(format: F, config: CommandConfig & { condition?: ConditionFn; logger: Logger }) {
+  constructor(
+    format: F,
+    config: CommandConfig & { condition?: ConditionFn; logger: Logger }
+  ) {
     this.format = config.condition
       ? [format]
       : format
@@ -39,7 +45,9 @@ export class Command<F extends string = string, CommandOption extends object = {
           .filter(Boolean);
 
     this.default =
-      this.format.length === 0 || this.format[0][0] === '[' || this.format[0][0] === '<';
+      this.format.length === 0 ||
+      this.format[0][0] === '[' ||
+      this.format[0][0] === '<';
     this.description = config.description ?? '';
     this.conditionFn = config.condition;
     this.logger = config.logger;
@@ -128,7 +136,9 @@ export class Command<F extends string = string, CommandOption extends object = {
         }
       } else {
         if (this.format[i].startsWith('<')) {
-          this.logger.warn(`You should provide the argument "${this.format[i]}"`);
+          this.logger.warn(
+            `You should provide the argument "${this.format[i]}"`
+          );
           argumentss.push(undefined);
         } else if (this.format[i].startsWith('[...')) {
           argumentss.push([]);

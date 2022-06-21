@@ -47,33 +47,35 @@ export type ExtractOption<T extends string> = {
  * + const t1: ExtractOption<'--option' | '--hello'> = 'hello'
  * + const t2: ExtractOption<'-r, --root'> = 'root'
  */
-export type ExtractOptionName<T extends string> = T extends `-${Letter}, --${infer R} [${infer U}]`
-  ? R
-  : T extends `-${Letter}, --${infer R} <${infer U}>`
-  ? R
-  : T extends `-${Letter}, --${infer R}`
-  ? R
-  : T extends `--${infer R} [${infer U}]`
-  ? R
-  : T extends `--${infer R} <${infer U}>`
-  ? R
-  : T extends `--${infer R}`
-  ? R
-  : never;
+export type ExtractOptionName<T extends string> =
+  T extends `-${Letter}, --${infer R} [${infer U}]`
+    ? R
+    : T extends `-${Letter}, --${infer R} <${infer U}>`
+    ? R
+    : T extends `-${Letter}, --${infer R}`
+    ? R
+    : T extends `--${infer R} [${infer U}]`
+    ? R
+    : T extends `--${infer R} <${infer U}>`
+    ? R
+    : T extends `--${infer R}`
+    ? R
+    : never;
 
-export type ExtractOptionType<T extends string> = T extends `-${Letter}, --${infer R} [${infer U}]`
-  ? string | undefined
-  : T extends `-${Letter}, --${infer R} <${infer U}>`
-  ? string | boolean
-  : T extends `-${Letter}, --${infer R}`
-  ? boolean
-  : T extends `--${infer R} [${infer U}]`
-  ? string | undefined
-  : T extends `--${infer R} <${infer U}>`
-  ? string | boolean
-  : T extends `--${infer R}`
-  ? boolean
-  : never;
+export type ExtractOptionType<T extends string> =
+  T extends `-${Letter}, --${infer R} [${infer U}]`
+    ? string | undefined
+    : T extends `-${Letter}, --${infer R} <${infer U}>`
+    ? string | boolean
+    : T extends `-${Letter}, --${infer R}`
+    ? boolean
+    : T extends `--${infer R} [${infer U}]`
+    ? string | undefined
+    : T extends `--${infer R} <${infer U}>`
+    ? string | boolean
+    : T extends `--${infer R}`
+    ? boolean
+    : never;
 
 type Digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 

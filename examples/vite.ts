@@ -1,6 +1,9 @@
 import Breadc from '../src';
 
-const vite = Breadc('vite', { version: '1.0.0', description: 'Next generation frontend tooling.' })
+const vite = Breadc('vite', {
+  version: '1.0.0',
+  description: 'Next generation frontend tooling.'
+})
   .option('-c, --config <file>', `[string] use specified config file`)
   .option('--base <path>', `[string] public base path (default: /)`)
   .option('-l, --logLevel <level>', `[string] info | warn | error | silent`)
@@ -17,7 +20,10 @@ vite
   .option('--open [path]', `[boolean | string] open browser on startup`)
   .option('--cors', `[boolean] enable CORS`)
   .option('--strictPort', `[boolean] exit if specified port is already in use`)
-  .option('--force', `[boolean] force the optimizer to ignore the cache and re-bundle`)
+  .option(
+    '--force',
+    `[boolean] force the optimizer to ignore the cache and re-bundle`
+  )
   .action(async (root, option) => {
     console.log(`Root: ${root}`);
     console.log(`Option:`);

@@ -29,7 +29,8 @@ for (let dep = maxDep; dep >= 1; dep--) {
     q.splice(0);
     q.push(
       ...nQ.filter((args) => {
-        if (commandDep < args.length && args[commandDep][0] === '$') return false;
+        if (commandDep < args.length && args[commandDep][0] === '$')
+          return false;
         else return true;
       })
     );

@@ -4,7 +4,12 @@ import minimist from 'minimist';
 
 import { createDefaultLogger } from './logger';
 import { Option, OptionConfig } from './option';
-import { Command, CommandConfig, createHelpCommand, createVersionCommand } from './command';
+import {
+  Command,
+  CommandConfig,
+  createHelpCommand,
+  createVersionCommand
+} from './command';
 
 export class Breadc<GlobalOption extends object = {}> {
   private readonly name: string;
@@ -79,7 +84,13 @@ export class Breadc<GlobalOption extends object = {}> {
       println(`Commands:`);
       const commandHelps = this.commands
         .filter((c) => !c.hasConditionFn)
-        .map((c) => [`  $ ${this.name} ${c.format.join(' ')}`, c.description] as [string, string]);
+        .map(
+          (c) =>
+            [`  $ ${this.name} ${c.format.join(' ')}`, c.description] as [
+              string,
+              string
+            ]
+        );
       for (const line of twoColumn(commandHelps)) {
         println(line);
       }
@@ -89,9 +100,13 @@ export class Breadc<GlobalOption extends object = {}> {
     println(`Options:`);
     const optionHelps = ([] as Array<[string, string]>).concat([
       ...(command
-        ? command.options.map((o) => [`  ${o.format}`, o.description] as [string, string])
+        ? command.options.map(
+            (o) => [`  ${o.format}`, o.description] as [string, string]
+          )
         : []),
-      ...this.options.map((o) => [`  ${o.format}`, o.description] as [string, string]),
+      ...this.options.map(
+        (o) => [`  ${o.format}`, o.description] as [string, string]
+      ),
       [`  -h, --help`, `Display this message`],
       [`  -v, --version`, `Display version number`]
     ]);
@@ -139,7 +154,10 @@ export class Breadc<GlobalOption extends object = {}> {
     config?: Omit<CommandConfig, 'description'>
   ): Command<F, GlobalOption>;
 
-  command<F extends string>(format: F, config?: CommandConfig): Command<F, GlobalOption>;
+  command<F extends string>(
+    format: F,
+    config?: CommandConfig
+  ): Command<F, GlobalOption>;
 
   command<F extends string>(
     format: F,
@@ -163,7 +181,10 @@ export class Breadc<GlobalOption extends object = {}> {
   }
 
   parse(args: string[]): ParseResult {
-    const allowOptions: Option[] = [...this.options, ...this.commands.flatMap((c) => c.options)];
+    const allowOptions: Option[] = [
+      ...this.options,
+      ...this.commands.flatMap((c) => c.options)
+    ];
 
     const alias = allowOptions.reduce((map: Record<string, string>, o) => {
       if (o.shortcut) {
@@ -179,8 +200,12 @@ export class Breadc<GlobalOption extends object = {}> {
     }, {});
 
     const argv = minimist(args, {
-      string: allowOptions.filter((o) => o.type === 'string').map((o) => o.name),
-      boolean: allowOptions.filter((o) => o.type === 'boolean').map((o) => o.name),
+      string: allowOptions
+        .filter((o) => o.type === 'string')
+        .map((o) => o.name),
+      boolean: allowOptions
+        .filter((o) => o.type === 'boolean')
+        .map((o) => o.name),
       alias,
       default: defaults,
       unknown: (t) => {
@@ -236,6 +261,8 @@ function twoColumn(texts: Array<[string, string]>, split = '  ') {
 }
 
 function padRight(texts: string[], fill = ' '): string[] {
-  const length = texts.map((t) => t.length).reduce((max, l) => Math.max(max, l), 0);
+  const length = texts
+    .map((t) => t.length)
+    .reduce((max, l) => Math.max(max, l), 0);
   return texts.map((t) => t + fill.repeat(length - t.length));
 }

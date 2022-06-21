@@ -3,7 +3,10 @@ import type { Logger, LoggerFn } from './types';
 import createDebug from 'debug';
 import { blue, red, yellow } from 'kolorist';
 
-export function createDefaultLogger(name: string, logger?: Logger | LoggerFn): Logger {
+export function createDefaultLogger(
+  name: string,
+  logger?: Logger | LoggerFn
+): Logger {
   if (!!logger && typeof logger === 'object') {
     return logger;
   }

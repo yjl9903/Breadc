@@ -14,7 +14,8 @@ export interface OptionConfig<T = string> {
  * + --option [arg]
  */
 export class Option<T extends string = string, F = string> {
-  private static OptionRE = /^(-[a-zA-Z], )?--([a-zA-Z.]+)( \[[a-zA-Z]+\]| <[a-zA-Z]+>)?$/;
+  private static OptionRE =
+    /^(-[a-zA-Z], )?--([a-zA-Z.]+)( \[[a-zA-Z]+\]| <[a-zA-Z]+>)?$/;
 
   readonly name: string;
   readonly shortcut?: string;
@@ -47,6 +48,7 @@ export class Option<T extends string = string, F = string> {
     this.description = config.description ?? '';
     this.required = format.indexOf('<') !== -1;
     this.default = config.default;
-    this.construct = config.construct ?? ((text) => text ?? config.default ?? undefined);
+    this.construct =
+      config.construct ?? ((text) => text ?? config.default ?? undefined);
   }
 }
