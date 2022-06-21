@@ -128,6 +128,7 @@ export class Command<
         }
       } else {
         if (this.format[i].startsWith('<')) {
+          this.logger.warn(`You should provide the argument "${this.format[i]}"`);
           argumentss.push(undefined);
         } else if (this.format[i].startsWith('[...')) {
           argumentss.push([]);
