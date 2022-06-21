@@ -1,7 +1,6 @@
 import type { Logger, LoggerFn } from './types';
 
-import createDebug from 'debug';
-import { blue, red, yellow } from 'kolorist';
+import { blue, gray, red, yellow } from 'kolorist';
 
 export function createDefaultLogger(
   name: string,
@@ -11,7 +10,6 @@ export function createDefaultLogger(
     return logger;
   }
 
-  const debug = createDebug(name + ':breadc');
   const println: LoggerFn =
     !!logger && typeof logger === 'function'
       ? logger
@@ -31,7 +29,7 @@ export function createDefaultLogger(
       println(`${red('ERROR')} ${message}`, ...args);
     },
     debug(message, ...args) {
-      debug(message, ...args);
+      println(`${gray(name)} ${message}`, ...args);
     }
   };
 }
