@@ -119,7 +119,23 @@ export class Breadc<GlobalOption extends string | never = never> {
     return this as Breadc<GlobalOption | ExtractOption<F>>;
   }
 
-  command<F extends string>(format: F, config: CommandConfig = {}): Command<F, GlobalOption> {
+  command<F extends string>(
+    format: F,
+    description: string,
+    config?: Omit<CommandConfig, 'description'>
+  ): Command<F, GlobalOption>;
+
+  command<F extends string>(format: F, config?: CommandConfig): Command<F, GlobalOption>;
+
+  command<F extends string>(
+    format: F,
+    configOrDescription: CommandConfig | string = '',
+    otherConfig: Omit<CommandConfig, 'description'> = {}
+  ): Command<F, GlobalOption> {
+    const config: CommandConfig = otherConfig;
+    if (typeof configOrDescription === 'string') {
+      config.description = configOrDescription;
+    }
     const command = new Command(format, { ...config, logger: this.logger });
     this.commands.push(command);
     return command as Command<F, GlobalOption>;

@@ -180,32 +180,49 @@ describe('Common commands', () => {
   it('should print help', async () => {
     const output: string[] = [];
     const logger = createDefaultLogger('cli');
-    const cli = Breadc('cli', { version: '1.0.0', logger });
     logger.println = (text: string) => output.push(text);
 
+    const cli = Breadc('cli', { version: '1.0.0', description: 'This is a cli app.', logger });
+    cli.command('[root]', 'Start dev server');
+    cli.command('build [root]', 'Build static site');
+
     await cli.run(['-h']);
-    expect(output).toMatchInlineSnapshot(`
-      [
-        "cli/1.0.0",
-        "",
-        "Options:",
-        "  -h, --help",
-        "  -v, --version",
-        "",
-      ]
+    expect(output.join('\n')).toMatchInlineSnapshot(`
+      "cli/1.0.0
+
+      This is a cli app.
+
+      Usage:
+        $ cli [root]
+
+      Commands:
+        $ cli [root]        Start dev server
+        $ cli build [root]  Build static site
+
+      Options:
+        -h, --help     Display this message
+        -v, --version  Display version number
+      "
     `);
     output.splice(0);
 
     await cli.run(['--help']);
-    expect(output).toMatchInlineSnapshot(`
-      [
-        "cli/1.0.0",
-        "",
-        "Options:",
-        "  -h, --help",
-        "  -v, --version",
-        "",
-      ]
+    expect(output.join('\n')).toMatchInlineSnapshot(`
+      "cli/1.0.0
+
+      This is a cli app.
+
+      Usage:
+        $ cli [root]
+
+      Commands:
+        $ cli [root]        Start dev server
+        $ cli build [root]  Build static site
+
+      Options:
+        -h, --help     Display this message
+        -v, --version  Display version number
+      "
     `);
   });
 });
