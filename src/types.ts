@@ -137,10 +137,12 @@ type Uppercase =
 
 type Letter = Lowercase | Uppercase;
 
-type Push<T extends any[], U> = [...T, U];
+type Push<T extends any[], U, R> = [...T, U, R];
+
+type Context = { logger: Logger };
 
 export type ActionFn<T extends any[], Option extends object = {}> = (
-  ...arg: Push<T, Option>
+  ...arg: Push<T, Option, Context>
 ) => void;
 
 /**
