@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import Breadc from '../src';
-import { createDefaultLogger } from '../src/logger';
 
 describe('Parse', () => {
   const logger = () => {};
@@ -152,14 +151,14 @@ describe('Parse', () => {
 
   it('should not parse wrong option', () => {
     const output: string[] = [];
-    const logger = createDefaultLogger('cli');
-    logger.warn = (message: string) => {
-      output.push(message);
-    };
-    Breadc('cli', { logger }).option('invalid');
+    Breadc('cli', {
+      logger: (message: string) => {
+        output.push(message);
+      }
+    }).option('invalid');
 
     expect(output[0]).toMatchInlineSnapshot(
-      '"Can not parse option format from \\"invalid\\""'
+      '"WARN Can not parse option format from \\"invalid\\""'
     );
   });
 });
@@ -362,9 +361,12 @@ describe('Run', () => {
 describe('Common commands', () => {
   it('should print version', async () => {
     const output: string[] = [];
-    const logger = createDefaultLogger('cli');
-    const cli = Breadc('cli', { version: '1.0.0', logger });
-    logger.println = (text: string) => output.push(text);
+    const cli = Breadc('cli', {
+      version: '1.0.0',
+      logger: (message: string) => {
+        output.push(message);
+      }
+    });
 
     await cli.run(['-v']);
     await cli.run(['--version']);
@@ -375,13 +377,13 @@ describe('Common commands', () => {
 
   it('should print help', async () => {
     const output: string[] = [];
-    const logger = createDefaultLogger('cli');
-    logger.println = (text: string) => output.push(text);
 
     const cli = Breadc('cli', {
       version: '1.0.0',
       description: 'This is a cli app.',
-      logger
+      logger: (message: string) => {
+        output.push(message);
+      }
     });
     cli.command('[root]', 'Start dev server');
     cli.command('build [root]', 'Build static site');
@@ -428,13 +430,13 @@ describe('Common commands', () => {
 
   it('should print command help', async () => {
     const output: string[] = [];
-    const logger = createDefaultLogger('cli');
-    logger.println = (text: string) => output.push(text);
 
     const cli = Breadc('cli', {
       version: '1.0.0',
       description: 'This is a cli app.',
-      logger
+      logger: (message: string) => {
+        output.push(message);
+      }
     });
     cli.command('[root]', 'Start dev server');
     cli.command('build [root]', 'Build static site');
