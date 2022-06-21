@@ -40,7 +40,7 @@ cli.run(process.argv.slice(2))
   .catch(err => cli.logger.error(err.message))
 ```
 
-If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), move your cursor to the parameter `option` in the default command, and then you will find the `option` is automatically typed with `{ host: string | boolean, port: string | boolean }`.
+If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), input something using `option`, and then you will find the `option` is automatically typed with `{ host: string, port: number }`. In the figure below, [Visual Studio Code](https://code.visualstudio.com/) automatically infer that the type of `option.host` is `string` and the type of `option.port` is `number`.
 
 ![vscode](./images/vscode.png)
 
