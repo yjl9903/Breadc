@@ -243,7 +243,7 @@ export class Breadc<GlobalOption extends object = {}> {
   async run(args: string[]) {
     const parsed = this.parse(args);
     if (parsed.command) {
-      parsed.command.run(...parsed.arguments, parsed.options);
+      return await parsed.command.run(...parsed.arguments, parsed.options);
     }
   }
 }

@@ -197,7 +197,7 @@ export class Command<
   async run(...args: any[]) {
     if (this.actionFn) {
       // @ts-ignore
-      this.actionFn(...args, { logger: this.logger });
+      return await this.actionFn(...args, { logger: this.logger });
     } else {
       this.logger.warn(`You may miss action function in "${this.format}"`);
     }

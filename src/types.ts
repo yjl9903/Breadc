@@ -141,9 +141,9 @@ type Push<T extends any[], U, R> = [...T, U, R];
 
 type Context = { logger: Logger };
 
-export type ActionFn<T extends any[], Option extends object = {}> = (
+export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
   ...arg: Push<T, Option, Context>
-) => void;
+) => R | Promise<R>;
 
 /**
  * Max Dep: 5
