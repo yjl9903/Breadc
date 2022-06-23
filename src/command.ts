@@ -180,6 +180,11 @@ export class Command<
         }
       }
     }
+    for (const key of Object.keys(options)) {
+      if (!fullOptions.has(key)) {
+        delete options[key];
+      }
+    }
 
     return {
       // @ts-ignore

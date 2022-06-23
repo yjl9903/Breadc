@@ -393,6 +393,32 @@ describe('Run', () => {
       cli.run(['--host', 'ip', '--port', '3001']);
     }
   });
+
+  it('has different options', () => {
+    const cli = Breadc('cli');
+    cli
+      .command('a')
+      .option('--host')
+      .action((option) => {
+        expect(option).toMatchInlineSnapshot(`
+          {
+            "host": true,
+          }
+        `);
+      });
+    cli
+      .command('b')
+      .option('--port')
+      .action((option) => {
+        expect(option).toMatchInlineSnapshot(`
+          {
+            "port": true,
+          }
+        `);
+      });
+    cli.run(['a', '--host']);
+    cli.run(['b', '--port']);
+  });
 });
 
 describe('Common commands', () => {
