@@ -240,10 +240,32 @@ export class Breadc<GlobalOption extends object = {}> {
     };
   }
 
+  private readonly callbacks = {
+    pre: [] as Array<(option: GlobalOption) => void | Promise<void>>,
+    post: [] as Array<(option: GlobalOption) => void | Promise<void>>
+  };
+
+  on(
+    event: 'pre' | 'post',
+    fn: (option: GlobalOption) => void | Promise<void>
+  ) {
+    this.callbacks[event].push(fn);
+  }
+
   async run(args: string[]) {
     const parsed = this.parse(args);
     if (parsed.command) {
-      return await parsed.command.run(...parsed.arguments, parsed.options);
+      await Promise.all(
+        this.callbacks.pre.map((fn) => fn(parsed.options as any))
+      );
+      const returnValue = await parsed.command.run(
+        ...parsed.arguments,
+        parsed.options
+      );
+      await Promise.all(
+        this.callbacks.post.map((fn) => fn(parsed.options as any))
+      );
+      return returnValue;
     }
   }
 }
