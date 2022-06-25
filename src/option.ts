@@ -17,7 +17,7 @@ export interface OptionConfig<F extends string, T = never> {
  */
 export class Option<T extends string = string, F = string> {
   private static OptionRE =
-    /^(-[a-zA-Z], )?--([a-zA-Z]+)( \[[a-zA-Z]+\]| <[a-zA-Z]+>)?$/;
+    /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
 
   readonly name: string;
   readonly shortcut?: string;
