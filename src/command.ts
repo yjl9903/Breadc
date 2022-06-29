@@ -1,15 +1,14 @@
 import type { ParsedArgs } from 'minimist';
 
-import { Option, OptionConfig } from './option';
-
 import type {
   ActionFn,
   ExtractCommand,
   ExtractOption,
-  IBreadc,
   Logger,
   ParseResult
 } from './types';
+
+import { Option, OptionConfig } from './option';
 
 export type ConditionFn = (args: ParsedArgs) => boolean;
 
@@ -91,6 +90,25 @@ export class Command<
     return !!this.conditionFn;
   }
 
+  hasPrefix(args: ParsedArgs) {
+    if (this.conditionFn) {
+      return false;
+    } else {
+      const argv = args['_'];
+      if (argv.length === 0) {
+        return this.default;
+      } else {
+        const fmt = this.format[0];
+        return (
+          this.format.length > 0 &&
+          fmt[0] !== '[' &&
+          fmt[0] !== '<' &&
+          fmt === argv[0]
+        );
+      }
+    }
+  }
+
   shouldRun(args: ParsedArgs) {
     if (this.conditionFn) {
       return this.conditionFn(args);
@@ -114,6 +132,8 @@ export class Command<
       const argumentss: any[] = args['_'];
       const options: Record<string, string> = args;
       delete options['_'];
+      delete options['help'];
+      delete options['version'];
 
       return {
         // @ts-ignore
@@ -207,50 +227,4 @@ export class Command<
       this.logger.warn(`You may miss action function in "${this.format}"`);
     }
   }
-}
-
-export function createHelpCommand(breadc: IBreadc): Command {
-  let helpCommand: Command | undefined = undefined;
-
-  return new Command('-h, --help', {
-    condition(args) {
-      const isEmpty = !args['--']?.length;
-      if ((args.help || args.h) && isEmpty) {
-        if (args['_'].length > 0) {
-          for (const cmd of breadc.commands) {
-            if (!cmd.hasConditionFn && !cmd.default && cmd.shouldRun(args)) {
-              helpCommand = cmd;
-              return true;
-            }
-          }
-        }
-        return true;
-      } else {
-        return false;
-      }
-    },
-    logger: breadc.logger
-  }).action(() => {
-    for (const line of breadc.help(helpCommand)) {
-      breadc.logger.println(line);
-    }
-  });
-}
-
-export function createVersionCommand(breadc: IBreadc): Command {
-  return new Command('-v, --version', {
-    condition(args) {
-      const isEmpty = !args['_'].length && !args['--']?.length;
-      if (args.version && isEmpty) {
-        return true;
-      } else if (args.v && isEmpty) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    logger: breadc.logger
-  }).action(() => {
-    breadc.logger.println(breadc.version());
-  });
 }

@@ -1,15 +1,11 @@
-import type { AppOption, ExtractOption, Logger, ParseResult } from './types';
-
 import minimist from 'minimist';
 
+import type { AppOption, ExtractOption, Logger, ParseResult } from './types';
+
+import { twoColumn } from './utils';
 import { createDefaultLogger } from './logger';
 import { Option, OptionConfig } from './option';
-import {
-  Command,
-  CommandConfig,
-  createHelpCommand,
-  createVersionCommand
-} from './command';
+import { Command, CommandConfig } from './command';
 
 export class Breadc<GlobalOption extends object = {}> {
   private readonly name: string;
@@ -29,27 +25,19 @@ export class Breadc<GlobalOption extends object = {}> {
     this.description = option.description;
     this.logger = createDefaultLogger(name, option.logger);
 
-    const breadc = {
-      name: this.name,
-      version: () => this.version.call(this),
-      help: (command?: Command) => this.help.call(this, command),
-      logger: this.logger,
-      options: this.options,
-      commands: this.commands
-    };
-    this.commands.push(createVersionCommand(breadc), createHelpCommand(breadc));
+    this.commands.push(this.createVersionCommand(), this.createHelpCommand());
   }
 
   version() {
     return `${this.name}/${this._version}`;
   }
 
-  help(command?: Command) {
+  help(commands: Command[] = []) {
     const output: string[] = [];
     const println = (msg: string) => output.push(msg);
 
     println(this.version());
-    if (!command) {
+    if (commands.length === 0) {
       if (this.description) {
         println('');
         if (Array.isArray(this.description)) {
@@ -60,37 +48,39 @@ export class Breadc<GlobalOption extends object = {}> {
           println(this.description);
         }
       }
-    } else {
-      if (command.description) {
-        println('');
-        println(command.description);
-      }
-    }
 
-    if (!command) {
       if (this.defaultCommand) {
         println(``);
         println(`Usage:`);
         println(`  $ ${this.name} ${this.defaultCommand.format.join(' ')}`);
       }
-    } else {
+    } else if (commands.length === 1) {
+      const command = commands[0];
+      if (command.description) {
+        println('');
+        println(command.description);
+      }
+
       println(``);
       println(`Usage:`);
       println(`  $ ${this.name} ${command.format.join(' ')}`);
     }
 
-    if (!command && this.commands.length > 2) {
+    if (commands.length !== 1) {
+      const cmdList = (commands.length === 0 ? this.commands : commands).filter(
+        (c) => !c.hasConditionFn
+      );
+
       println(``);
       println(`Commands:`);
-      const commandHelps = this.commands
-        .filter((c) => !c.hasConditionFn)
-        .map(
-          (c) =>
-            [`  $ ${this.name} ${c.format.join(' ')}`, c.description] as [
-              string,
-              string
-            ]
-        );
+      const commandHelps = cmdList.map(
+        (c) =>
+          [`  $ ${this.name} ${c.format.join(' ')}`, c.description] as [
+            string,
+            string
+          ]
+      );
+
       for (const line of twoColumn(commandHelps)) {
         println(line);
       }
@@ -99,9 +89,11 @@ export class Breadc<GlobalOption extends object = {}> {
     println(``);
     println(`Options:`);
     const optionHelps = ([] as Array<[string, string]>).concat([
-      ...(command
-        ? command.options.map(
-            (o) => [`  ${o.format}`, o.description] as [string, string]
+      ...(commands.length > 0
+        ? commands.flatMap((cmd) =>
+            cmd.options.map(
+              (o) => [`  ${o.format}`, o.description] as [string, string]
+            )
           )
         : []),
       ...this.options.map(
@@ -110,12 +102,68 @@ export class Breadc<GlobalOption extends object = {}> {
       [`  -h, --help`, `Display this message`],
       [`  -v, --version`, `Display version number`]
     ]);
+
     for (const line of twoColumn(optionHelps)) {
       println(line);
     }
+
     println(``);
 
     return output;
+  }
+
+  private createVersionCommand(): Command {
+    return new Command('-v, --version', {
+      condition(args) {
+        const isEmpty = !args['_'].length && !args['--']?.length;
+        if (args.version && isEmpty) {
+          return true;
+        } else if (args.v && isEmpty) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+      logger: this.logger
+    }).action(() => {
+      this.logger.println(this.version());
+    });
+  }
+
+  private createHelpCommand(): Command {
+    const shouldRuns: Command[] = [];
+    const helpCommands: Command[] = [];
+    const commands = this.commands;
+
+    return new Command('-h, --help', {
+      condition(args) {
+        const isEmpty = !args['--']?.length;
+        if ((args.help || args.h) && isEmpty) {
+          if (args['_'].length > 0) {
+            for (const cmd of commands) {
+              if (!cmd.default && !cmd.hasConditionFn) {
+                if (cmd.shouldRun(args)) {
+                  shouldRuns.push(cmd);
+                } else if (cmd.hasPrefix(args)) {
+                  helpCommands.push(cmd);
+                }
+              }
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
+      },
+      logger: this.logger
+    }).action(() => {
+      const shouldHelp = shouldRuns.length > 0 ? shouldRuns : helpCommands;
+      for (const line of this.help(shouldHelp)) {
+        this.logger.println(line);
+      }
+      shouldRuns.splice(0);
+      helpCommands.splice(0);
+    });
   }
 
   option<F extends string, T = undefined>(
@@ -186,12 +234,15 @@ export class Breadc<GlobalOption extends object = {}> {
       ...this.commands.flatMap((c) => c.options)
     ];
 
-    const alias = allowOptions.reduce((map: Record<string, string>, o) => {
-      if (o.shortcut) {
-        map[o.shortcut] = o.name;
-      }
-      return map;
-    }, {});
+    const alias = allowOptions.reduce(
+      (map: Record<string, string>, o) => {
+        if (o.shortcut) {
+          map[o.shortcut] = o.name;
+        }
+        return map;
+      },
+      { h: 'help', v: 'version' }
+    );
 
     const argv = minimist(args, {
       string: allowOptions
@@ -199,7 +250,8 @@ export class Breadc<GlobalOption extends object = {}> {
         .map((o) => o.name),
       boolean: allowOptions
         .filter((o) => o.type === 'boolean')
-        .map((o) => o.name),
+        .map((o) => o.name)
+        .concat(['help', 'version']),
       alias,
       unknown: (t) => {
         if (t[0] !== '-') return true;
@@ -232,6 +284,8 @@ export class Breadc<GlobalOption extends object = {}> {
     const argumentss = argv['_'];
     const options: Record<string, string> = argv;
     delete options['_'];
+    delete options['help'];
+    delete options['version'];
 
     return {
       command: undefined,
@@ -268,16 +322,4 @@ export class Breadc<GlobalOption extends object = {}> {
       return returnValue;
     }
   }
-}
-
-function twoColumn(texts: Array<[string, string]>, split = '  ') {
-  const left = padRight(texts.map((t) => t[0]));
-  return left.map((l, idx) => l + split + texts[idx][1]);
-}
-
-function padRight(texts: string[], fill = ' '): string[] {
-  const length = texts
-    .map((t) => t.length)
-    .reduce((max, l) => Math.max(max, l), 0);
-  return texts.map((t) => t + fill.repeat(length - t.length));
 }

@@ -519,6 +519,53 @@ describe('Common commands', () => {
       "
     `);
   });
+
+  it('should print subcommands help', async () => {
+    const output: string[] = [];
+
+    const cli = Breadc('cli', {
+      version: '1.0.0',
+      description: 'This is a cli app.',
+      logger: (message: string) => {
+        output.push(message);
+      }
+    });
+    cli.command('file info [path]', 'Get file info');
+    cli.command('store ls [path]', 'List path');
+    cli.command('store rm [path]', 'Remove path');
+    cli.command('store put [path]', 'Put path');
+
+    await cli.run(['store', '-h']);
+    expect(output.join('\n')).toMatchInlineSnapshot(`
+      "cli/1.0.0
+
+      Commands:
+        $ cli store ls [path]   List path
+        $ cli store rm [path]   Remove path
+        $ cli store put [path]  Put path
+
+      Options:
+        -h, --help     Display this message
+        -v, --version  Display version number
+      "
+    `);
+
+    output.splice(0);
+    await cli.run(['--help', 'store', 'ls']);
+    expect(output.join('\n')).toMatchInlineSnapshot(`
+      "cli/1.0.0
+
+      List path
+
+      Usage:
+        $ cli store ls [path]
+
+      Options:
+        -h, --help     Display this message
+        -v, --version  Display version number
+      "
+    `);
+  });
 });
 
 describe('Infer type', () => {

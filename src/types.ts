@@ -1,14 +1,4 @@
 import type { Command } from './command';
-import type { Option } from './option';
-
-export interface IBreadc {
-  name: string;
-  version: () => string;
-  help: (command?: Command) => string[];
-  logger: Logger;
-  options: Option[];
-  commands: Command[];
-}
 
 export interface AppOption {
   version?: string;
