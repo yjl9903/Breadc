@@ -259,28 +259,32 @@ describe('Warnings', () => {
   it('should find option conflict', async () => {
     const output: string[] = [];
     const cli = Breadc('cli', {
-      logger(message: string) {
-        output.push(message);
+      logger: {
+        warn(message: string) {
+          output.push(message);
+        }
       }
     }).option('--host [string]');
     cli.command('').option('--host');
     await cli.run([]);
     expect(output[0]).toMatchInlineSnapshot(
-      '"WARN Option \\"host\\" encounters conflict"'
+      '"Option \\"host\\" encounters conflict"'
     );
   });
 
   it('should not find option conflict', async () => {
     const output: string[] = [];
     const cli = Breadc('cli', {
-      logger(message: string) {
-        output.push(message);
+      logger: {
+        warn(message: string) {
+          output.push(message);
+        }
       }
     }).option('--host');
     cli.command('').option('--host');
     await cli.run([]);
     expect(output[0]).toMatchInlineSnapshot(
-      '"WARN You may miss action function in <default command>"'
+      '"You may miss action function in <default command>"'
     );
   });
 });
