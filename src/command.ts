@@ -40,10 +40,9 @@ export class Command<
       .map((t) => t.trim())
       .filter(Boolean);
     const prefix = pieces.filter((p) => !isArg(p));
-    this.prefix = [prefix];
-    this.arguments = pieces.filter(isArg);
-
     this.default = prefix.length === 0;
+    this.prefix = this.default ? [] : [prefix];
+    this.arguments = pieces.filter(isArg);
 
     this.description = config.description ?? '';
     this.logger = config.logger;

@@ -223,6 +223,8 @@ export class Breadc<GlobalOption extends object = {}> {
     }
     // Then try default command
     if (this.defaultCommand) {
+      // Fix sideEffect
+      this.defaultCommand.shouldRun(argv);
       return this.defaultCommand.parseArgs(argv, this.options);
     }
 

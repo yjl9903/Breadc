@@ -2,6 +2,50 @@ import { describe, expect, it } from 'vitest';
 
 import Breadc from '../src';
 
+describe('Alias command', () => {
+  it('share alias', async () => {
+    const cli = Breadc('cli');
+    let cnt = 0;
+    cli
+      .command('echo')
+      .alias('say')
+      .action(() => {
+        cnt++;
+      });
+    await cli.run(['echo']);
+    await cli.run(['say']);
+    expect(cnt).toBe(2);
+  });
+
+  it('share alias with default command', async () => {
+    const cli = Breadc('cli');
+    let cnt = 0;
+    cli
+      .command('')
+      .alias('echo')
+      .action(() => {
+        cnt++;
+      });
+    await cli.run(['']);
+    await cli.run(['echo']);
+    expect(cnt).toBe(2);
+  });
+
+  it.only('share alias with default command and arguments', async () => {
+    const cli = Breadc('cli');
+    let text = '';
+    cli
+      .command('[message]')
+      .alias('echo')
+      .action((message) => {
+        text += message;
+      });
+    await cli.run(['hello']);
+    await cli.run(['echo', ' world']);
+    expect(text).toBe('hello world');
+  });
+});
+
 describe('Version command', () => {
   it('should print version', async () => {
     const output: string[] = [];
