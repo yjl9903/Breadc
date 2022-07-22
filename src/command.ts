@@ -174,13 +174,14 @@ export class Command<
           options[name] = undefined;
         }
       }
-      if (rawOption.construct) {
-        // @ts-ignore
-        options[name] = rawOption.construct(options[name]);
-      } else if (rawOption.default) {
-        if (!options[name]) {
+      if (rawOption.default !== undefined) {
+        if (options[name] === undefined || options[name] === false) {
           options[name] = rawOption.default;
         }
+      }
+      if (rawOption.construct !== undefined) {
+        // @ts-ignore
+        options[name] = rawOption.construct(options[name]);
       }
     }
     for (const key of Object.keys(options)) {

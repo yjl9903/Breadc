@@ -1,8 +1,19 @@
 import type { ExtractOptionType } from './types';
 
 export interface OptionConfig<F extends string, T = never> {
+  /**
+   * Option description
+   */
   description?: string;
-  default?: T;
+
+  /**
+   * Option string default value
+   */
+  default?: string;
+
+  /**
+   * Transform option text
+   */
   construct?: (rawText: ExtractOptionType<F>) => T;
 }
 
@@ -21,7 +32,7 @@ export class Option<T extends string = string, F = string> {
 
   readonly name: string;
   readonly shortcut?: string;
-  readonly default?: F;
+  readonly default?: string;
   readonly format: string;
   readonly description: string;
   readonly type: 'string' | 'boolean';

@@ -31,7 +31,7 @@ describe('Alias command', () => {
     expect(cnt).toBe(2);
   });
 
-  it.only('share alias with default command and arguments', async () => {
+  it('share alias with default command and arguments', async () => {
     const cli = Breadc('cli');
     let text = '';
     cli
