@@ -4,7 +4,12 @@ const cli = Breadc('genType');
 
 cli
   .command('<maxDep>')
-  .option('--commandDep [number]', { default: 3 })
+  .option('--commandDep [number]', {
+    default: '3',
+    construct(t) {
+      return +t!;
+    }
+  })
   .action((_maxDep, { commandDep }) => {
     const maxDep = +_maxDep;
     const ans: string[][] = [];
