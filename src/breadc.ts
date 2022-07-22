@@ -179,6 +179,21 @@ export class Breadc<GlobalOption extends object = {}> {
       ...this.commands.flatMap((c) => c.options)
     ];
 
+    {
+      // Check option names conflict
+      const names = new Map<string, Option>();
+      for (const option of allowOptions) {
+        if (names.has(option.name)) {
+          const otherOption = names.get(option.name)!;
+          if (otherOption.type !== option.type) {
+            this.logger.warn(`Option "${option.name}" encounters conflict`);
+          }
+        } else {
+          names.set(option.name, option);
+        }
+      }
+    }
+
     const alias = allowOptions.reduce(
       (map: Record<string, string>, o) => {
         if (o.shortcut) {
