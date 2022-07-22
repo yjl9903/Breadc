@@ -1,5 +1,7 @@
 import type { ParsedArgs } from 'minimist';
 
+import kolorist from 'kolorist';
+
 import type {
   ActionFn,
   ExtractCommand,
@@ -205,9 +207,13 @@ export class Command<
   async run(...args: any[]) {
     if (this.actionFn) {
       // @ts-ignore
-      return await this.actionFn(...args, { logger: this.logger });
+      return await this.actionFn(...args, { logger: this.logger, color: kolorist });
     } else {
-      this.logger.warn(`You may miss action function in ${this.format ? `"${this.format}"` : '<default command>'}`);
+      this.logger.warn(
+        `You may miss action function in ${
+          this.format ? `"${this.format}"` : '<default command>'
+        }`
+      );
     }
   }
 }

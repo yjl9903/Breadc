@@ -1,3 +1,5 @@
+import kolorist from 'kolorist';
+
 import type { Command } from './command';
 
 export interface AppOption {
@@ -129,7 +131,7 @@ type Letter = Lowercase | Uppercase;
 
 type Push<T extends any[], U, R> = [...T, U, R];
 
-type Context = { logger: Logger };
+type Context = { logger: Logger; color: typeof kolorist };
 
 export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
   ...arg: Push<T, Option, Context>
