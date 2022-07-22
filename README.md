@@ -7,7 +7,7 @@ Yet another Command Line Application Framework powered by [minimist](https://www
 ## Features
 
 + ⚡️ **Light-weight**: Only 40 kB (Unpacked).
-+ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 4 APIs for building a CLI application: `command`, `option`, `action`, `run`.
++ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `Breadc`, `command`, `option`, `action`, `run`.
 + 💻 **TypeScript Infer**: IDE will automatically infer the type of your command action function.
 
 ## Installation
