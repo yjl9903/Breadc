@@ -142,7 +142,7 @@ export class Command<
           this.logger.warn(
             `You should provide the argument "${this.arguments[i]}"`
           );
-          argumentss.push(undefined);
+          argumentss.push('');
         } else if (this.arguments[i].startsWith('[...')) {
           argumentss.push([]);
         } else if (this.arguments[i].startsWith('[')) {
