@@ -279,6 +279,8 @@ describe('Warnings', () => {
     }).option('--host');
     cli.command('').option('--host');
     await cli.run([]);
-    expect(output[0]).toMatchInlineSnapshot('"WARN You may miss action function in <default command>"');
+    expect(output[0]).toMatchInlineSnapshot(
+      '"WARN You may miss action function in <default command>"'
+    );
   });
 });
