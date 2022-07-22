@@ -207,7 +207,7 @@ export class Command<
       // @ts-ignore
       return await this.actionFn(...args, { logger: this.logger });
     } else {
-      this.logger.warn(`You may miss action function in "${this.format}"`);
+      this.logger.warn(`You may miss action function in ${this.format ? `"${this.format}"` : '<default command>'}`);
     }
   }
 }
