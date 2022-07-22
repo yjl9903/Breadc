@@ -10,8 +10,6 @@ import type {
 
 import { Option, OptionConfig } from './option';
 
-export type ConditionFn = (args: ParsedArgs) => boolean;
-
 export interface CommandConfig {
   description?: string;
 }
@@ -20,40 +18,52 @@ export class Command<
   F extends string = string,
   CommandOption extends object = {}
 > {
-  private static MaxDep = 5;
+  protected static MaxDep = 5;
 
-  private readonly conditionFn?: ConditionFn;
-  private readonly logger: Logger;
+  protected readonly logger: Logger;
 
-  readonly format: string[];
-  readonly default: boolean;
+  readonly format: string;
   readonly description: string;
+
+  readonly prefix: string[][];
+  readonly arguments: string[];
+  readonly default: boolean;
   readonly options: Option[] = [];
 
   private actionFn?: ActionFn<ExtractCommand<F>, CommandOption>;
 
-  constructor(
-    format: F,
-    config: CommandConfig & { condition?: ConditionFn; logger: Logger }
-  ) {
-    this.format = config.condition
-      ? [format]
-      : format
-          .split(' ')
-          .map((t) => t.trim())
-          .filter(Boolean);
+  constructor(format: F, config: CommandConfig & { logger: Logger }) {
+    this.format = format;
 
-    this.default =
-      this.format.length === 0 ||
-      this.format[0][0] === '[' ||
-      this.format[0][0] === '<';
+    const pieces = format
+      .split(' ')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const prefix = pieces.filter((p) => !isArg(p));
+    this.prefix = [prefix];
+    this.arguments = pieces.filter(isArg);
+
+    this.default = prefix.length === 0;
+
     this.description = config.description ?? '';
-    this.conditionFn = config.condition;
     this.logger = config.logger;
 
-    if (this.format.length > Command.MaxDep) {
+    if (pieces.length > Command.MaxDep) {
       this.logger.warn(`Command format string "${format}" is too long`);
     }
+  }
+
+  get isInternal(): boolean {
+    return this instanceof InternalCommand;
+  }
+
+  alias(command: string) {
+    const pieces = command
+      .split(' ')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    this.prefix.push(pieces);
+    return this;
   }
 
   option<OF extends string, T = undefined>(
@@ -86,86 +96,60 @@ export class Command<
     return this as Command<F, CommandOption & ExtractOption<OF, T>>;
   }
 
-  get hasConditionFn(): boolean {
-    return !!this.conditionFn;
-  }
-
-  hasPrefix(args: ParsedArgs) {
-    if (this.conditionFn) {
-      return false;
+  hasPrefix(parsedArgs: ParsedArgs) {
+    const argv = parsedArgs['_'];
+    if (argv.length === 0) {
+      return this.default;
     } else {
-      const argv = args['_'];
-      if (argv.length === 0) {
-        return this.default;
-      } else {
-        const fmt = this.format[0];
-        return (
-          this.format.length > 0 &&
-          fmt[0] !== '[' &&
-          fmt[0] !== '<' &&
-          fmt === argv[0]
-        );
-      }
-    }
-  }
-
-  shouldRun(args: ParsedArgs) {
-    if (this.conditionFn) {
-      return this.conditionFn(args);
-    } else {
-      if (this.default) return true;
-      const isCmd = (t: string) => t[0] !== '[' && t[0] !== '<';
-      for (let i = 0; i < this.format.length; i++) {
-        if (!isCmd(this.format[i])) {
+      for (const prefix of this.prefix) {
+        if (prefix.length > 0 && prefix[0] === argv[0]) {
           return true;
         }
-        if (i >= args['_'].length || this.format[i] !== args['_'][i]) {
-          return false;
+      }
+      return false;
+    }
+  }
+
+  shouldRun(parsedArgs: ParsedArgs) {
+    const args = parsedArgs['_'];
+    for (const prefix of this.prefix) {
+      let match = true;
+      for (let i = 0; match && i < prefix.length; i++) {
+        if (args[i] !== prefix[i]) {
+          match = false;
         }
       }
-      return true;
+      if (match) {
+        // SideEffect: remove args prefix
+        args.splice(0, prefix.length);
+        return true;
+      }
     }
+    if (this.default) return true;
+    return false;
   }
 
   parseArgs(args: ParsedArgs, globalOptions: Option[]): ParseResult {
-    if (this.conditionFn) {
-      const argumentss: any[] = args['_'];
-      const options: Record<string, string> = args;
-      delete options['_'];
-      delete options['help'];
-      delete options['version'];
-
-      return {
-        // @ts-ignore
-        command: this,
-        arguments: argumentss,
-        options: args
-      };
-    }
-
-    const isCmd = (t: string) => t[0] !== '[' && t[0] !== '<';
-
     const argumentss: any[] = [];
-    for (let i = 0; i < this.format.length; i++) {
-      if (isCmd(this.format[i])) continue;
+    for (let i = 0; i < this.arguments.length; i++) {
       if (i < args['_'].length) {
-        if (this.format[i].startsWith('[...')) {
+        if (this.arguments[i].startsWith('[...')) {
           argumentss.push(args['_'].slice(i).map(String));
         } else {
           argumentss.push(String(args['_'][i]));
         }
       } else {
-        if (this.format[i].startsWith('<')) {
+        if (this.arguments[i].startsWith('<')) {
           this.logger.warn(
-            `You should provide the argument "${this.format[i]}"`
+            `You should provide the argument "${this.arguments[i]}"`
           );
           argumentss.push(undefined);
-        } else if (this.format[i].startsWith('[...')) {
+        } else if (this.arguments[i].startsWith('[...')) {
           argumentss.push([]);
-        } else if (this.format[i].startsWith('[')) {
+        } else if (this.arguments[i].startsWith('[')) {
           argumentss.push(undefined);
         } else {
-          this.logger.warn(`unknown format string ("${this.format[i]}")`);
+          this.logger.warn(`unknown format string ("${this.arguments[i]}")`);
         }
       }
     }
@@ -216,7 +200,6 @@ export class Command<
 
   action(fn: ActionFn<ExtractCommand<F>, CommandOption>) {
     this.actionFn = fn;
-    return this;
   }
 
   async run(...args: any[]) {
@@ -227,4 +210,102 @@ export class Command<
       this.logger.warn(`You may miss action function in "${this.format}"`);
     }
   }
+}
+
+class InternalCommand extends Command<string> {
+  hasPrefix(_args: ParsedArgs): boolean {
+    return false;
+  }
+
+  parseArgs(args: ParsedArgs, _globalOptions: Option[]): ParseResult {
+    const argumentss: any[] = args['_'];
+    const options: Record<string, string> = args;
+    delete options['_'];
+    delete options['help'];
+    delete options['version'];
+
+    return {
+      // @ts-ignore
+      command: this,
+      arguments: argumentss,
+      options: args
+    };
+  }
+}
+
+type HelpFn = (commands: Command[]) => string[];
+
+export class HelpCommand extends InternalCommand {
+  private readonly commands: Command[];
+  private readonly help: HelpFn;
+
+  private readonly runCommands: Command[] = [];
+  private readonly helpCommands: Command[] = [];
+
+  constructor(commands: Command[], help: HelpFn, logger: Logger) {
+    super('-h, --help', { description: 'Display this message', logger });
+    this.commands = commands;
+    this.help = help;
+  }
+
+  shouldRun(args: ParsedArgs) {
+    const isRestEmpty = !args['--']?.length;
+    if ((args.help || args.h) && isRestEmpty) {
+      if (args['_'].length > 0) {
+        for (const cmd of this.commands) {
+          if (!cmd.default && !cmd.isInternal) {
+            if (cmd.shouldRun(args)) {
+              this.runCommands.push(cmd);
+            } else if (cmd.hasPrefix(args)) {
+              this.helpCommands.push(cmd);
+            }
+          }
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async run() {
+    const shouldHelp =
+      this.runCommands.length > 0 ? this.runCommands : this.helpCommands;
+    for (const line of this.help(shouldHelp)) {
+      this.logger.println(line);
+    }
+    this.runCommands.splice(0);
+    this.helpCommands.splice(0);
+  }
+}
+
+export class VersionCommand extends InternalCommand {
+  private readonly version: string;
+
+  constructor(version: string, logger: Logger) {
+    super('-v, --version', { description: 'Display version number', logger });
+    this.version = version;
+  }
+
+  shouldRun(args: ParsedArgs) {
+    const isEmpty = !args['_'].length && !args['--']?.length;
+    if (args.version && isEmpty) {
+      return true;
+    } else if (args.v && isEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async run() {
+    this.logger.println(this.version);
+  }
+}
+
+function isArg(arg: string) {
+  return (
+    (arg[0] === '[' && arg[arg.length - 1] === ']') ||
+    (arg[0] === '<' && arg[arg.length - 1] === '>')
+  );
 }

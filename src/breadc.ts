@@ -5,19 +5,18 @@ import type { AppOption, ExtractOption, Logger, ParseResult } from './types';
 import { twoColumn } from './utils';
 import { createDefaultLogger } from './logger';
 import { Option, OptionConfig } from './option';
-import { Command, CommandConfig } from './command';
+import { Command, CommandConfig, VersionCommand, HelpCommand } from './command';
 
 export class Breadc<GlobalOption extends object = {}> {
   private readonly name: string;
   private readonly _version: string;
   private readonly description?: string | string[];
 
+  readonly logger: Logger;
+
   private readonly options: Option[] = [];
   private readonly commands: Command[] = [];
-
   private defaultCommand?: Command;
-
-  readonly logger: Logger;
 
   constructor(name: string, option: AppOption) {
     this.name = name;
@@ -25,7 +24,10 @@ export class Breadc<GlobalOption extends object = {}> {
     this.description = option.description;
     this.logger = createDefaultLogger(name, option.logger);
 
-    this.commands.push(this.createVersionCommand(), this.createHelpCommand());
+    this.commands.push(
+      new VersionCommand(this.version(), this.logger),
+      new HelpCommand(this.commands, this.help.bind(this), this.logger)
+    );
   }
 
   version() {
@@ -52,7 +54,7 @@ export class Breadc<GlobalOption extends object = {}> {
       if (this.defaultCommand) {
         println(``);
         println(`Usage:`);
-        println(`  $ ${this.name} ${this.defaultCommand.format.join(' ')}`);
+        println(`  $ ${this.name} ${this.defaultCommand.format}`);
       }
     } else if (commands.length === 1) {
       const command = commands[0];
@@ -63,22 +65,19 @@ export class Breadc<GlobalOption extends object = {}> {
 
       println(``);
       println(`Usage:`);
-      println(`  $ ${this.name} ${command.format.join(' ')}`);
+      println(`  $ ${this.name} ${command.format}`);
     }
 
     if (commands.length !== 1) {
       const cmdList = (commands.length === 0 ? this.commands : commands).filter(
-        (c) => !c.hasConditionFn
+        (c) => !c.isInternal
       );
 
       println(``);
       println(`Commands:`);
       const commandHelps = cmdList.map(
         (c) =>
-          [`  $ ${this.name} ${c.format.join(' ')}`, c.description] as [
-            string,
-            string
-          ]
+          [`  $ ${this.name} ${c.format}`, c.description] as [string, string]
       );
 
       for (const line of twoColumn(commandHelps)) {
@@ -110,60 +109,6 @@ export class Breadc<GlobalOption extends object = {}> {
     println(``);
 
     return output;
-  }
-
-  private createVersionCommand(): Command {
-    return new Command('-v, --version', {
-      condition(args) {
-        const isEmpty = !args['_'].length && !args['--']?.length;
-        if (args.version && isEmpty) {
-          return true;
-        } else if (args.v && isEmpty) {
-          return true;
-        } else {
-          return false;
-        }
-      },
-      logger: this.logger
-    }).action(() => {
-      this.logger.println(this.version());
-    });
-  }
-
-  private createHelpCommand(): Command {
-    const shouldRuns: Command[] = [];
-    const helpCommands: Command[] = [];
-    const commands = this.commands;
-
-    return new Command('-h, --help', {
-      condition(args) {
-        const isEmpty = !args['--']?.length;
-        if ((args.help || args.h) && isEmpty) {
-          if (args['_'].length > 0) {
-            for (const cmd of commands) {
-              if (!cmd.default && !cmd.hasConditionFn) {
-                if (cmd.shouldRun(args)) {
-                  shouldRuns.push(cmd);
-                } else if (cmd.hasPrefix(args)) {
-                  helpCommands.push(cmd);
-                }
-              }
-            }
-          }
-          return true;
-        } else {
-          return false;
-        }
-      },
-      logger: this.logger
-    }).action(() => {
-      const shouldHelp = shouldRuns.length > 0 ? shouldRuns : helpCommands;
-      for (const line of this.help(shouldHelp)) {
-        this.logger.println(line);
-      }
-      shouldRuns.splice(0);
-      helpCommands.splice(0);
-    });
   }
 
   option<F extends string, T = undefined>(
