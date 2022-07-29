@@ -49,8 +49,16 @@ export class Command<
     this.description = config.description ?? '';
     this.logger = config.logger;
 
-    if (pieces.length > Command.MaxDep) {
-      this.logger.warn(`Command format string "${format}" is too long`);
+    {
+      const restArgs = this.arguments.findIndex((a) => a.startsWith('[...'));
+      if (restArgs !== -1 && restArgs !== this.arguments.length - 1) {
+        this.logger.warn(
+          `Expand arguments ${this.arguments[restArgs]} should be placed at the last position`
+        );
+      }
+      if (pieces.length > Command.MaxDep) {
+        this.logger.warn(`Command format string "${format}" is too long`);
+      }
     }
   }
 
@@ -130,25 +138,34 @@ export class Command<
     return false;
   }
 
-  parseArgs(args: ParsedArgs, globalOptions: Option[]): ParseResult {
-    const argumentss: any[] = [];
-    for (let i = 0; i < this.arguments.length; i++) {
-      if (i < args['_'].length) {
+  parseArgs(argv: ParsedArgs, globalOptions: Option[]): ParseResult {
+    const pieces = argv['_'];
+    const args: any[] = [];
+    const restArgs: any[] = [];
+
+    for (let i = 0, used = 0; i <= this.arguments.length; i++) {
+      if (i === this.arguments.length) {
+        // Pass the rest arguments
+        restArgs.push(...pieces.slice(used).map(String));
+        restArgs.push(...(argv['--'] ?? []).map(String));
+      } else if (i < pieces.length) {
         if (this.arguments[i].startsWith('[...')) {
-          argumentss.push(args['_'].slice(i).map(String));
+          args.push(pieces.slice(i).map(String));
+          used = pieces.length;
         } else {
-          argumentss.push(String(args['_'][i]));
+          args.push(String(pieces[i]));
+          used++;
         }
       } else {
         if (this.arguments[i].startsWith('<')) {
           this.logger.warn(
             `You should provide the argument "${this.arguments[i]}"`
           );
-          argumentss.push('');
+          args.push('');
         } else if (this.arguments[i].startsWith('[...')) {
-          argumentss.push([]);
+          args.push([]);
         } else if (this.arguments[i].startsWith('[')) {
-          argumentss.push(undefined);
+          args.push(undefined);
         } else {
           this.logger.warn(`unknown format string ("${this.arguments[i]}")`);
         }
@@ -159,7 +176,7 @@ export class Command<
       map.set(o.name, o);
       return map;
     }, new Map<string, Option>());
-    const options: Record<string, any> = args;
+    const options: Record<string, any> = argv;
     delete options['_'];
 
     for (const [name, rawOption] of fullOptions) {
@@ -195,8 +212,9 @@ export class Command<
     return {
       // @ts-ignore
       command: this,
-      arguments: argumentss,
-      options
+      arguments: args,
+      options,
+      '--': restArgs
     };
   }
 
@@ -207,13 +225,17 @@ export class Command<
   async run(...args: any[]) {
     if (this.actionFn) {
       // @ts-ignore
-      return await this.actionFn(...args, { logger: this.logger, color: kolorist });
+      return await this.actionFn(...args, {
+        logger: this.logger,
+        color: kolorist
+      });
     } else {
       this.logger.warn(
         `You may miss action function in ${
           this.format ? `"${this.format}"` : '<default command>'
         }`
       );
+      return undefined;
     }
   }
 }
@@ -234,7 +256,8 @@ class InternalCommand extends Command<string> {
       // @ts-ignore
       command: this,
       arguments: argumentss,
-      options: args
+      options: args,
+      '--': []
     };
   }
 }

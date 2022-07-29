@@ -213,6 +213,7 @@ export class Breadc<GlobalOption extends object = {}> {
         .map((o) => o.name)
         .concat(['help', 'version']),
       alias,
+      '--': true,
       unknown: (t) => {
         if (t[0] !== '-') return true;
         else {
@@ -246,13 +247,15 @@ export class Breadc<GlobalOption extends object = {}> {
     const argumentss = argv['_'];
     const options: Record<string, string> = argv;
     delete options['_'];
+    delete options['--'];
     delete options['help'];
     delete options['version'];
 
     return {
       command: undefined,
       arguments: argumentss,
-      options
+      options,
+      '--': []
     };
   }
 
@@ -268,20 +271,22 @@ export class Breadc<GlobalOption extends object = {}> {
     this.callbacks[event].push(fn);
   }
 
-  async run(args: string[]) {
+  async run<T>(args: string[]): Promise<T | undefined> {
     const parsed = this.parse(args);
     if (parsed.command) {
       await Promise.all(
         this.callbacks.pre.map((fn) => fn(parsed.options as any))
       );
-      const returnValue = await parsed.command.run(
-        ...parsed.arguments,
-        parsed.options
-      );
+      const returnValue = await parsed.command.run(...parsed.arguments, {
+        '--': parsed['--'],
+        ...parsed.options
+      });
       await Promise.all(
         this.callbacks.post.map((fn) => fn(parsed.options as any))
       );
       return returnValue;
+    } else {
+      return undefined;
     }
   }
 }

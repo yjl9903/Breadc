@@ -9,6 +9,7 @@ describe('Parse', () => {
     expect(Breadc('cli', { logger }).parse(['hello', 'world']))
       .toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "hello",
           "world",
@@ -22,6 +23,7 @@ describe('Parse', () => {
   it('should parse boolean option', () => {
     expect(Breadc('cli', { logger }).parse(['--root'])).toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [],
         "command": undefined,
         "options": {},
@@ -31,6 +33,7 @@ describe('Parse', () => {
     expect(Breadc('cli', { logger }).parse(['--root', 'folder']))
       .toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [],
         "command": undefined,
         "options": {},
@@ -40,6 +43,7 @@ describe('Parse', () => {
     expect(Breadc('cli', { logger }).parse(['--root', 'folder', 'text']))
       .toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "text",
         ],
@@ -51,6 +55,7 @@ describe('Parse', () => {
     expect(Breadc('cli').option('--root').parse(['--root', 'folder', 'text']))
       .toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "folder",
           "text",
@@ -65,6 +70,7 @@ describe('Parse', () => {
     expect(Breadc('cli').option('--root').parse(['folder', '--root', 'text']))
       .toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "folder",
           "text",
@@ -79,6 +85,7 @@ describe('Parse', () => {
     expect(Breadc('cli').option('--root').parse(['folder', 'text', '--root']))
       .toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "folder",
           "text",
@@ -96,6 +103,7 @@ describe('Parse', () => {
 
     expect(parser.parse([])).toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [],
         "command": undefined,
         "options": {
@@ -106,6 +114,7 @@ describe('Parse', () => {
 
     expect(parser.parse(['--root'])).toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [],
         "command": undefined,
         "options": {
@@ -116,6 +125,7 @@ describe('Parse', () => {
 
     expect(parser.parse(['-r'])).toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [],
         "command": undefined,
         "options": {
@@ -126,6 +136,7 @@ describe('Parse', () => {
 
     expect(parser.parse(['-r', 'root'])).toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "root",
         ],
@@ -138,6 +149,7 @@ describe('Parse', () => {
 
     expect(parser.parse(['root', '-r'])).toMatchInlineSnapshot(`
       {
+        "--": [],
         "arguments": [
           "root",
         ],
@@ -166,6 +178,50 @@ describe('Parse', () => {
       '"Can not parse option format from \\"invalid\\""'
     );
   });
+
+  it('should receive rest arguments', async () => {
+    const cli = Breadc('cli');
+
+    cli.command('').action((option) => option['--']);
+    cli.command('echo [msg]').action((msg, option) => [msg, option['--']]);
+
+    expect(await cli.run(['a', 'b', 'c'])).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+        "c",
+      ]
+    `);
+
+    expect(await cli.run(['echo', 'hello', 'world'])).toMatchInlineSnapshot(`
+      [
+        "hello",
+        [
+          "world",
+        ],
+      ]
+    `);
+
+    expect(await cli.run(['echo', '--', 'hello', 'world']))
+      .toMatchInlineSnapshot(`
+      [
+        undefined,
+        [
+          "hello",
+          "world",
+        ],
+      ]
+    `);
+
+    expect(await cli.run(['--', 'echo', 'hello', 'world']))
+      .toMatchInlineSnapshot(`
+      [
+        "echo",
+        "hello",
+        "world",
+      ]
+    `);
+  });
 });
 
 describe('Infer type', () => {
@@ -173,61 +229,62 @@ describe('Infer type', () => {
     const cliWithOption = Breadc('cli').option('--root');
     const cmd = cliWithOption.command('dev');
 
-    cmd.action((option) => {
-      expect(option).toMatchInlineSnapshot(`
-        {
-          "root": true,
-        }
-      `);
-    });
+    cmd.action((option) => option);
 
-    await cliWithOption.run(['dev', '--root']);
+    expect(await cliWithOption.run(['dev', '--root'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "root": true,
+      }
+    `);
   });
 
   it('should have no type', async () => {
     const cliWithOption = Breadc('cli').option('--root');
     const cmd = cliWithOption.command('dev');
 
-    cmd.action((option) => {
-      expect(option).toMatchInlineSnapshot(`
-        {
-          "root": true,
-        }
-      `);
-    });
+    cmd.action((option) => option);
 
-    await cliWithOption.run(['dev', '--root']);
+    expect(await cliWithOption.run(['dev', '--root'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "root": true,
+      }
+    `);
   });
 
   it('should have one type (string | undefined)', async () => {
     const cliWithOption = Breadc('cli').option('--root');
     const cmd = cliWithOption.command('dev [root]');
 
-    cmd.action((root, option) => {
-      expect(root).toMatchInlineSnapshot('undefined');
-      expect(option).toMatchInlineSnapshot(`
-        {
-          "root": true,
-        }
-      `);
-    });
+    cmd.action((root, option) => [root, option]);
 
-    await cliWithOption.run(['dev', '--root']);
+    expect(await cliWithOption.run(['dev', '--root'])).toMatchInlineSnapshot(`
+      [
+        undefined,
+        {
+          "--": [],
+          "root": true,
+        },
+      ]
+    `);
   });
 
   it('should have one type (string)', async () => {
     const cliWithOption = Breadc('cli').option('--root');
     const cmd = cliWithOption.command('dev <root>');
 
-    cmd.action((root, option) => {
-      expect(root).toMatchInlineSnapshot('"."');
-      expect(option).toMatchInlineSnapshot(`
-        {
-          "root": true,
-        }
-      `);
-    });
+    cmd.action((root, option) => [root, option]);
 
-    await cliWithOption.run(['dev', '.', '--root']);
+    expect(await cliWithOption.run(['dev', '.', '--root']))
+      .toMatchInlineSnapshot(`
+      [
+        ".",
+        {
+          "--": [],
+          "root": true,
+        },
+      ]
+    `);
   });
 });

@@ -26,6 +26,7 @@ export interface ParseResult {
   command: Command | undefined;
   arguments: any[];
   options: Record<string, string>;
+  '--': string[];
 }
 
 export type ExtractOption<T extends string, D = undefined> = {
@@ -134,7 +135,7 @@ type Push<T extends any[], U, R> = [...T, U, R];
 type Context = { logger: Logger; color: typeof kolorist };
 
 export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
-  ...arg: Push<T, Option, Context>
+  ...arg: Push<T, Option & { '--': string[] }, Context>
 ) => R | Promise<R>;
 
 /**

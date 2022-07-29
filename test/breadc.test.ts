@@ -3,40 +3,38 @@ import { describe, expect, it } from 'vitest';
 import Breadc from '../src';
 
 describe('Run Breadc', () => {
-  it('should run sub commands', () => {
+  it('should run sub commands', async () => {
     const cli = Breadc('cli');
     cli.command('pages build');
-    cli.command('pages dev [...files]').action((files) => {
-      expect(files).toMatchInlineSnapshot(`
-        [
-          "a",
-          "b",
-          "c",
-          "d",
-          "e",
-        ]
-      `);
-    });
-    cli.run(['pages', 'dev', 'a', 'b', 'c', 'd', 'e']);
+    cli.command('pages dev [...files]').action((files) => files);
+
+    expect(await cli.run(['pages', 'dev', 'a', 'b', 'c', 'd', 'e']))
+      .toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+      ]
+    `);
   });
 
-  it('should parse rest arguments', () => {
+  it('should parse rest arguments', async () => {
     const cli = Breadc('cli');
-    cli.command('[...]').action((files) => {
-      expect(files).toMatchInlineSnapshot(`
-        [
-          "a",
-          "b",
-          "c",
-          "d",
-          "e",
-        ]
-      `);
-    });
-    cli.run(['a', 'b', 'c', 'd', 'e']);
+    cli.command('[...]').action((files) => files);
+    expect(await cli.run(['a', 'b', 'c', 'd', 'e'])).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+      ]
+    `);
   });
 
-  it('should parse one argument and rest arguments', () => {
+  it('should parse one argument and rest arguments', async () => {
     const cli = Breadc('cli');
     cli.command('<root> [...]').action((root, files) => {
       expect(root).toMatchInlineSnapshot('"a"');
@@ -49,7 +47,7 @@ describe('Run Breadc', () => {
         ]
       `);
     });
-    cli.run(['a', 'b', 'c', 'd', 'e']);
+    await cli.run(['a', 'b', 'c', 'd', 'e']);
   });
 
   it('should run number argument', () => {
@@ -94,7 +92,7 @@ describe('Run Breadc', () => {
     cli.run(['minus', '1', '2', '--no-minus']);
   });
 
-  it('should run with required option', () => {
+  it('should run with required option', async () => {
     {
       const cli = Breadc('cal');
       cli
@@ -105,7 +103,7 @@ describe('Run Breadc', () => {
           expect(option.fst).toBe('1');
           expect(option.snd).toBe('2');
         });
-      cli.run(['--fst', '1', '--snd', '2']);
+      await cli.run(['--fst', '1', '--snd', '2']);
     }
     {
       const cli = Breadc('cal');
@@ -117,7 +115,7 @@ describe('Run Breadc', () => {
           expect(option.fst).toBeTruthy();
           expect(option.snd).toBeTruthy();
         });
-      cli.run(['--fst', '--snd']);
+      await cli.run(['--fst', '--snd']);
     }
     {
       const cli = Breadc('cal');
@@ -129,7 +127,7 @@ describe('Run Breadc', () => {
           expect(option.fst).toBeTruthy();
           expect(option.snd).toBeFalsy();
         });
-      cli.run(['--fst']);
+      await cli.run(['--fst']);
     }
     {
       const cli = Breadc('cal');
@@ -141,11 +139,11 @@ describe('Run Breadc', () => {
           expect(option.fst).toBeFalsy();
           expect(option.snd).toBeFalsy();
         });
-      cli.run(['--no-fst']);
+      await cli.run(['--no-fst']);
     }
   });
 
-  it('should run with non-required option', () => {
+  it('should run with non-required option', async () => {
     {
       const cli = Breadc('cal');
       cli
@@ -156,7 +154,7 @@ describe('Run Breadc', () => {
           expect(option.fst).toBe('1');
           expect(option.snd).toBe('2');
         });
-      cli.run(['--fst', '1', '--snd', '2']);
+      await cli.run(['--fst', '1', '--snd', '2']);
     }
     {
       const cli = Breadc('cal');
@@ -168,7 +166,7 @@ describe('Run Breadc', () => {
           expect(option.fst).toBe('');
           expect(option.snd).toBe('');
         });
-      cli.run(['--fst', '--snd']);
+      await cli.run(['--fst', '--snd']);
     }
     {
       const cli = Breadc('cal');
@@ -180,7 +178,7 @@ describe('Run Breadc', () => {
           expect(option.fst).toBe('');
           expect(option.snd).toBeUndefined();
         });
-      cli.run(['--fst']);
+      await cli.run(['--fst']);
     }
     {
       const cli = Breadc('cal');
@@ -192,11 +190,11 @@ describe('Run Breadc', () => {
           expect(option.fst).toBeUndefined();
           expect(option.snd).toBeUndefined();
         });
-      cli.run(['--no-fst']);
+      await cli.run(['--no-fst']);
     }
   });
 
-  it('should run with construct option', () => {
+  it('should run with construct option', async () => {
     {
       const cli = Breadc('echo', { version: '1.0.0' })
         .option('--host <host>', { default: 'localhost' })
@@ -209,8 +207,8 @@ describe('Run Breadc', () => {
         expect(option.port).toBe(3000);
       });
 
-      cli.run([]);
-      cli.run(['--port', '3000']);
+      await cli.run([]);
+      await cli.run(['--port', '3000']);
     }
     {
       const cli = Breadc('echo', { version: '1.0.0' })
@@ -224,11 +222,11 @@ describe('Run Breadc', () => {
         expect(option.port).toBe(3001);
       });
 
-      cli.run(['--host', 'ip', '--port', '3001']);
+      await cli.run(['--host', 'ip', '--port', '3001']);
     }
   });
 
-  it('has different options', () => {
+  it('has different options', async () => {
     const cli = Breadc('cli');
     cli
       .command('a')
@@ -236,6 +234,7 @@ describe('Run Breadc', () => {
       .action((option) => {
         expect(option).toMatchInlineSnapshot(`
           {
+            "--": [],
             "host": true,
           }
         `);
@@ -246,12 +245,14 @@ describe('Run Breadc', () => {
       .action((option) => {
         expect(option).toMatchInlineSnapshot(`
           {
+            "--": [],
             "port": true,
           }
         `);
       });
-    cli.run(['a', '--host']);
-    cli.run(['b', '--port']);
+
+    await cli.run(['a', '--host']);
+    await cli.run(['b', '--port']);
   });
 });
 
@@ -266,7 +267,9 @@ describe('Warnings', () => {
       }
     }).option('--host [string]');
     cli.command('').option('--host');
+
     await cli.run([]);
+
     expect(output[0]).toMatchInlineSnapshot(
       '"Option \\"host\\" encounters conflict"'
     );
@@ -282,7 +285,9 @@ describe('Warnings', () => {
       }
     }).option('--host');
     cli.command('').option('--host');
+
     await cli.run([]);
+
     expect(output[0]).toMatchInlineSnapshot(
       '"You may miss action function in <default command>"'
     );
