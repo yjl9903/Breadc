@@ -1,14 +1,13 @@
 {
-  "name": "breadc",
+  "name": "@breadc/autocompletion",
   "version": "0.6.2",
-  "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
+  "description": "Autocompletion support for Breadc",
   "keywords": [
     "breadc",
+    "autocompletion",
+    "complete",
     "cli",
-    "framework",
-    "command-line",
-    "minimist",
-    "typescript"
+    "command-line"
   ],
   "homepage": "https://github.com/yjl9903/Breadc#readme",
   "bugs": {
@@ -36,24 +35,22 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "format": "prettier --write src/**/*.ts test/*.ts examples/*.ts",
-    "release": "bumpp --commit --push --tag && pnpm publish",
     "test": "vitest",
-    "typecheck": "tsc --noEmit",
-    "preversion": "pnpm typecheck && pnpm build"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "kolorist": "^1.5.1",
-    "minimist": "^1.2.6"
+    "omelette": "^0.4.17"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.2",
     "@types/node": "^18.0.0",
+    "breadc": "workspace:*",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4",
     "unbuild": "^0.7.6",
     "vite": "^3.0.4",
     "vitest": "^0.19.1"
   },
-  "packageManager": "pnpm@7.5.2"
+  "peerDependencies": {
+    "breadc": "workspace:*"
+  }
 }
