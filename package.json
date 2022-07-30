@@ -38,7 +38,7 @@
     "build": "unbuild",
     "build:all": "unbuild && pnpm -r build",
     "format": "prettier --write src/**/*.ts test/*.ts examples/*.ts",
-    "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm publish && pnpm publish --access public --filter packages/*",
+    "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm publish && pnpm -r publish --access public",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "typecheck:all": "tsc --noEmit && pnpm -r typecheck",
