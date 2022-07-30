@@ -1,6 +1,6 @@
 {
   "name": "breadc",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
   "keywords": [
     "breadc",
@@ -36,11 +36,13 @@
   ],
   "scripts": {
     "build": "unbuild",
+    "build:all": "unbuild && pnpm -r build",
     "format": "prettier --write src/**/*.ts test/*.ts examples/*.ts",
-    "release": "bumpp --commit --push --tag && pnpm publish",
+    "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm publish && pnpm publish --access public --filter packages/*",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "preversion": "pnpm typecheck && pnpm build"
+    "typecheck:all": "tsc --noEmit && pnpm -r typecheck",
+    "preversion": "pnpm typecheck:all && pnpm build:all"
   },
   "dependencies": {
     "kolorist": "^1.5.1",
