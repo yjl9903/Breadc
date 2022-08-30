@@ -180,6 +180,8 @@ export class Command<
     delete options['_'];
 
     for (const [name, rawOption] of fullOptions) {
+      if (rawOption.type === 'boolean') continue;
+
       if (rawOption.required) {
         if (options[name] === undefined) {
           options[name] = false;
@@ -193,14 +195,18 @@ export class Command<
           options[name] = undefined;
         }
       }
-      if (rawOption.default !== undefined) {
-        if (options[name] === undefined || options[name] === false) {
-          options[name] = rawOption.default;
-        }
-      }
+
       if (rawOption.construct !== undefined) {
         // @ts-ignore
         options[name] = rawOption.construct(options[name]);
+      } else if (rawOption.default !== undefined) {
+        if (
+          options[name] === undefined ||
+          options[name] === false ||
+          options[name] === ''
+        ) {
+          options[name] = rawOption.default;
+        }
       }
     }
     for (const key of Object.keys(options)) {

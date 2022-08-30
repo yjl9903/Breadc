@@ -203,6 +203,18 @@ export class Breadc<GlobalOption extends object = {}> {
       },
       { h: 'help', v: 'version' }
     );
+    const defaultValue = allowOptions
+      .filter(
+        (o) =>
+          o.type === 'boolean' &&
+          o.default !== undefined &&
+          o.default !== null &&
+          typeof o.default === 'boolean'
+      )
+      .reduce((map: Record<string, any>, o) => {
+        map[o.name] = o.default;
+        return map;
+      }, {});
 
     const argv = minimist(args, {
       string: allowOptions
@@ -212,6 +224,7 @@ export class Breadc<GlobalOption extends object = {}> {
         .filter((o) => o.type === 'boolean')
         .map((o) => o.name)
         .concat(['help', 'version']),
+      default: defaultValue,
       alias,
       '--': true,
       unknown: (t) => {

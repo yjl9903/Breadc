@@ -1,6 +1,10 @@
 import type { ExtractOptionType } from './types';
 
-export interface OptionConfig<F extends string, T = never> {
+export interface OptionConfig<
+  F extends string,
+  T = never,
+  O = ExtractOptionType<F>
+> {
   /**
    * Option description
    */
@@ -9,7 +13,7 @@ export interface OptionConfig<F extends string, T = never> {
   /**
    * Option string default value
    */
-  default?: string;
+  default?: O extends boolean ? boolean : string;
 
   /**
    * Transform option text
@@ -26,21 +30,25 @@ export interface OptionConfig<F extends string, T = never> {
  * + --option <arg>
  * + --option [arg]
  */
-export class Option<T extends string = string, F = string> {
+export class Option<
+  F extends string = string,
+  T = string,
+  O = ExtractOptionType<F>
+> {
   private static OptionRE =
     /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
 
   readonly name: string;
   readonly shortcut?: string;
-  readonly default?: string;
+  readonly default?: O extends boolean ? boolean : string;
   readonly format: string;
   readonly description: string;
   readonly type: 'string' | 'boolean';
   readonly required: boolean;
 
-  readonly construct?: (rawText: ExtractOptionType<T>) => F;
+  readonly construct?: (rawText: ExtractOptionType<F>) => T;
 
-  constructor(format: T, config: OptionConfig<T, F> = {}) {
+  constructor(format: F, config: OptionConfig<F, T, O> = {}) {
     this.format = format;
 
     const match = Option.OptionRE.exec(format);

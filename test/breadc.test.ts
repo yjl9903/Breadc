@@ -254,6 +254,54 @@ describe('Run Breadc', () => {
     await cli.run(['a', '--host']);
     await cli.run(['b', '--port']);
   });
+
+  it('should run with default true boolean option value', async () => {
+    const cli = Breadc('cli');
+    cli
+      .option('--flag', { default: true })
+      .command('')
+      .action((option) => option.flag);
+    expect(await cli.run([])).toBe(true);
+    expect(await cli.run(['--flag'])).toBe(true);
+    expect(await cli.run(['--no-flag'])).toBe(false);
+  });
+
+  it('should run with default false boolean option value', async () => {
+    const cli = Breadc('cli');
+    cli
+      .option('--flag', { default: false })
+      .command('')
+      .action((option) => option.flag);
+    expect(await cli.run([])).toBe(false);
+    expect(await cli.run(['--flag'])).toBe(true);
+    expect(await cli.run(['--no-flag'])).toBe(false);
+  });
+
+  it('should run with default string option value', async () => {
+    const cli = Breadc('cli');
+    cli
+      .option('--flag [value]', { default: 'true' })
+      .command('')
+      .action((option) => option.flag);
+    expect(await cli.run([])).toBe('true');
+    expect(await cli.run(['--flag'])).toBe('true');
+    // TODO: fix this behaivor
+    expect(await cli.run(['--no-flag'])).toBe('true');
+  });
+
+  it('should run with default string required value', async () => {
+    const cli = Breadc('cli');
+    cli
+      .option('--flag <value>', { default: 'true' })
+      .option('--open <value>', { default: true })
+      .command('')
+      .action((option) => option.flag);
+    expect(await cli.run([])).toBe('true');
+    expect(await cli.run(['--flag'])).toBe(true);
+    expect(await cli.run(['--flag', 'text'])).toBe('text');
+    // TODO: fix this behaivor
+    expect(await cli.run(['--no-flag'])).toBe('true');
+  });
 });
 
 describe('Warnings', () => {
