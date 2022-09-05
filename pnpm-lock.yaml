@@ -11,7 +11,7 @@ importers:
       prettier: ^2.7.1
       typescript: ^4.8.2
       unbuild: ^0.8.10
-      vite: ^3.0.9
+      vite: ^3.1.0
       vitest: ^0.23.1
     dependencies:
       kolorist: 1.5.1
@@ -22,7 +22,7 @@ importers:
       prettier: 2.7.1
       typescript: 4.8.2
       unbuild: 0.8.10
-      vite: 3.0.9
+      vite: 3.1.0
       vitest: 0.23.1
 
   packages/autocompletion:
@@ -33,7 +33,7 @@ importers:
       prettier: ^2.7.1
       typescript: ^4.8.2
       unbuild: ^0.8.10
-      vite: ^3.0.9
+      vite: ^3.1.0
       vitest: ^0.23.1
     dependencies:
       omelette: 0.4.17
@@ -43,7 +43,7 @@ importers:
       prettier: 2.7.1
       typescript: 4.8.2
       unbuild: 0.8.10
-      vite: 3.0.9
+      vite: 3.1.0
       vitest: 0.23.1
 
 packages:
@@ -1476,8 +1476,8 @@ packages:
       - supports-color
     dev: true
 
-  /rollup/2.77.2:
-    resolution: {integrity: sha512-m/4YzYgLcpMQbxX3NmAqDvwLATZzxt8bIegO78FZLl+lAgKJBd1DRAOeEiZcKOIOPjxE6ewHWHNgGEalFXuz1g==}
+  /rollup/2.78.1:
+    resolution: {integrity: sha512-VeeCgtGi4P+o9hIg+xz4qQpRl6R401LWEXBmxYKOV4zlF82lyhgh2hTZnheFUbANE8l2A41F458iwj2vEYaXJg==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     optionalDependencies:
@@ -1642,8 +1642,8 @@ packages:
       - supports-color
     dev: true
 
-  /vite/3.0.9:
-    resolution: {integrity: sha512-waYABTM+G6DBTCpYAxvevpG50UOlZuynR0ckTK5PawNVt7ebX6X7wNXHaGIO6wYYFXSM7/WcuFuO2QzhBB6aMw==}
+  /vite/3.1.0:
+    resolution: {integrity: sha512-YBg3dUicDpDWFCGttmvMbVyS9ydjntwEjwXRj2KBFwSB8SxmGcudo1yb8FW5+M/G86aS8x828ujnzUVdsLjs9g==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -1661,10 +1661,10 @@ packages:
       terser:
         optional: true
     dependencies:
-      esbuild: 0.14.49
+      esbuild: 0.15.6
       postcss: 8.4.16
       resolve: 1.22.1
-      rollup: 2.77.2
+      rollup: 2.78.1
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
@@ -1701,7 +1701,7 @@ packages:
       tinybench: 2.1.4
       tinypool: 0.2.4
       tinyspy: 1.0.2
-      vite: 3.0.9
+      vite: 3.1.0
     transitivePeerDependencies:
       - less
       - sass
