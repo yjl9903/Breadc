@@ -40,6 +40,7 @@
     "format": "prettier --write src/**/*.ts test/*.ts examples/*.ts",
     "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm publish && pnpm -r publish --access public",
     "test": "vitest",
+    "test:bench": "vitest bench",
     "typecheck": "tsc --noEmit",
     "typecheck:all": "tsc --noEmit && pnpm -r typecheck",
     "preversion": "pnpm typecheck:all && pnpm build:all"
@@ -51,6 +52,7 @@
   "devDependencies": {
     "@types/minimist": "^1.2.2",
     "@types/node": "^18.0.0",
+    "cac": "^6.7.14",
     "prettier": "^2.7.1",
     "typescript": "^4.8.3",
     "unbuild": "^0.8.10",
