@@ -1,6 +1,6 @@
 import type { ParsedArgs } from 'minimist';
 
-import kolorist from 'kolorist';
+import * as kolorist from 'kolorist';
 
 import type {
   ActionFn,
