@@ -45,7 +45,7 @@
     "preversion": "pnpm typecheck:all && pnpm build:all"
   },
   "dependencies": {
-    "kolorist": "^1.5.1",
+    "kolorist": "^1.6.0",
     "minimist": "^1.2.6"
   },
   "devDependencies": {
