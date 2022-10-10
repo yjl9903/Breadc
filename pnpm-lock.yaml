@@ -13,7 +13,7 @@ importers:
       typescript: ^4.8.4
       unbuild: ^0.8.11
       vite: ^3.1.7
-      vitest: ^0.24.0
+      vitest: ^0.24.1
     dependencies:
       kolorist: 1.6.0
       minimist: 1.2.6
@@ -25,7 +25,7 @@ importers:
       typescript: 4.8.4
       unbuild: 0.8.11
       vite: 3.1.7
-      vitest: 0.24.0
+      vitest: 0.24.1
 
   packages/autocompletion:
     specifiers:
@@ -36,7 +36,7 @@ importers:
       typescript: ^4.8.4
       unbuild: ^0.8.11
       vite: ^3.1.7
-      vitest: ^0.24.0
+      vitest: ^0.24.1
     dependencies:
       omelette: 0.4.17
     devDependencies:
@@ -46,7 +46,7 @@ importers:
       typescript: 4.8.4
       unbuild: 0.8.11
       vite: 3.1.7
-      vitest: 0.24.0
+      vitest: 0.24.1
 
 packages:
 
@@ -1903,8 +1903,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitest/0.24.0:
-    resolution: {integrity: sha512-k5j3FPTor+MJx2x0pDW2gtVk+s9VC6nSHT3SoqOIk9Je5fFpPgict+Xy2eAVXUogvSixs45Ya1oZk+oK93BO0w==}
+  /vitest/0.24.1:
+    resolution: {integrity: sha512-NKkK1xnDIOOr42pKBfGQQl6b6IWdFVBpG6ZS1T+nUlJuqcOiZ7lxjVwHy9wrtTYpJ0BWww9y6bSGYXubD29Nag==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
