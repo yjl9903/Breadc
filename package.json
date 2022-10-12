@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "kolorist": "^1.6.0",
-    "minimist": "^1.2.6"
+    "minimist": "^1.2.7"
   },
   "devDependencies": {
     "@types/minimist": "^1.2.2",

@@ -8,7 +8,7 @@ importers:
       '@types/node': ^18.0.0
       cac: ^6.7.14
       kolorist: ^1.6.0
-      minimist: ^1.2.6
+      minimist: ^1.2.7
       prettier: ^2.7.1
       typescript: ^4.8.4
       unbuild: ^0.8.11
@@ -16,7 +16,7 @@ importers:
       vitest: ^0.24.1
     dependencies:
       kolorist: 1.6.0
-      minimist: 1.2.6
+      minimist: 1.2.7
     devDependencies:
       '@types/minimist': 1.2.2
       '@types/node': 18.0.0
@@ -1523,8 +1523,8 @@ packages:
       brace-expansion: 1.1.11
     dev: true
 
-  /minimist/1.2.6:
-    resolution: {integrity: sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==}
+  /minimist/1.2.7:
+    resolution: {integrity: sha512-bzfL1YUZsP41gmu/qjrEk0Q6i2ix/cVeAhbCbqH9u3zYutS1cLg00qhrD0M2MVdCcx4Sc0UpP2eBWo9rotpq6g==}
     dev: false
 
   /mkdirp/1.0.4:
