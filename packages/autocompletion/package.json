@@ -42,7 +42,7 @@
     "omelette": "^0.4.17"
   },
   "devDependencies": {
-    "@types/node": "^18.11.7",
+    "@types/node": "^18.11.8",
     "breadc": "workspace:*",
     "prettier": "^2.7.1",
     "typescript": "^4.8.4",
