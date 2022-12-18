@@ -12,7 +12,7 @@ importers:
       prettier: ^2.8.1
       typescript: ^4.9.4
       unbuild: ^1.0.2
-      vite: ^4.0.1
+      vite: ^4.0.2
       vitest: ^0.25.8
     dependencies:
       kolorist: 1.6.0
@@ -24,7 +24,7 @@ importers:
       prettier: 2.8.1
       typescript: 4.9.4
       unbuild: 1.0.2
-      vite: 4.0.1_@types+node@18.11.17
+      vite: 4.0.2_@types+node@18.11.17
       vitest: 0.25.8
 
   packages/autocompletion:
@@ -35,7 +35,7 @@ importers:
       prettier: ^2.8.1
       typescript: ^4.9.4
       unbuild: ^1.0.2
-      vite: ^4.0.1
+      vite: ^4.0.2
       vitest: ^0.25.8
     dependencies:
       omelette: 0.4.17
@@ -45,7 +45,7 @@ importers:
       prettier: 2.8.1
       typescript: 4.9.4
       unbuild: 1.0.2
-      vite: 4.0.1_@types+node@18.11.17
+      vite: 4.0.2_@types+node@18.11.17
       vitest: 0.25.8
 
 packages:
@@ -1675,8 +1675,8 @@ packages:
       picocolors: 1.0.0
     dev: true
 
-  /vite/4.0.1_@types+node@18.11.17:
-    resolution: {integrity: sha512-kZQPzbDau35iWOhy3CpkrRC7It+HIHtulAzBhMqzGHKRf/4+vmh8rPDDdv98SWQrFWo6//3ozwsRmwQIPZsK9g==}
+  /vite/4.0.2_@types+node@18.11.17:
+    resolution: {integrity: sha512-QJaY3R+tFlTagH0exVqbgkkw45B+/bXVBzF2ZD1KB5Z8RiAoiKo60vSUf6/r4c2Vh9jfGBKM4oBI9b4/1ZJYng==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -1744,7 +1744,7 @@ packages:
       tinybench: 2.3.1
       tinypool: 0.3.0
       tinyspy: 1.0.2
-      vite: 4.0.1_@types+node@18.11.17
+      vite: 4.0.2_@types+node@18.11.17
     transitivePeerDependencies:
       - less
       - sass
