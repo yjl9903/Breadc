@@ -1,61 +1,22 @@
 {
-  "name": "breadc",
+  "name": "@breadc/monorepo",
   "version": "0.7.0",
-  "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
-  "keywords": [
-    "breadc",
-    "cli",
-    "framework",
-    "command-line",
-    "minimist",
-    "typescript"
-  ],
-  "homepage": "https://github.com/yjl9903/Breadc#readme",
-  "bugs": {
-    "url": "https://github.com/yjl9903/Breadc/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yjl9903/Breadc.git"
-  },
-  "license": "MIT",
-  "author": "XLor",
-  "sideEffects": false,
-  "exports": {
-    ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "private": true,
   "scripts": {
-    "build": "unbuild",
-    "build:all": "unbuild && pnpm -r build",
-    "format": "prettier --write src/**/*.ts test/*.ts examples/*.ts",
-    "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm publish && pnpm -r publish --access public",
-    "test": "vitest",
-    "test:bench": "vitest bench",
-    "typecheck": "tsc --noEmit",
-    "typecheck:all": "tsc --noEmit && pnpm -r typecheck",
-    "preversion": "pnpm typecheck:all && pnpm build:all"
-  },
-  "dependencies": {
-    "kolorist": "^1.6.0",
-    "minimist": "^1.2.7"
+    "build": "turbo run build",
+    "format": "turbo run format",
+    "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm -r publish --access public",
+    "test": "turbo run test:ci",
+    "test:bench": "pnpm -C packages/breadc bench",
+    "typecheck": "turbo run typecheck",
+    "preversion": "pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.2",
     "@types/node": "^18.11.18",
-    "cac": "^6.7.14",
-    "prettier": "^2.8.3",
+    "bumpp": "latest",
+    "turbo": "latest",
     "typescript": "^4.9.5",
-    "unbuild": "^1.1.1",
+    "unbuild": "latest",
     "vite": "^4.0.4",
     "vitest": "^0.28.3"
   },

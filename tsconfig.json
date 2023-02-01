@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2018",
     "module": "esnext",
     "lib": ["esnext"],
     "moduleResolution": "node",
@@ -10,5 +10,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true
-  }
+  },
+  "exclude": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "./examples/*.ts"
+  ]
 }

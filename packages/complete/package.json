@@ -1,0 +1,55 @@
+{
+  "name": "@breadc/complete",
+  "version": "0.7.0",
+  "description": "Autocompletion generation support for Breadc",
+  "keywords": [
+    "breadc",
+    "autocompletion",
+    "complete",
+    "cli",
+    "command-line"
+  ],
+  "homepage": "https://github.com/yjl9903/Breadc#readme",
+  "bugs": {
+    "url": "https://github.com/yjl9903/Breadc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yjl9903/Breadc.git"
+  },
+  "license": "MIT",
+  "author": "XLor",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "format": "prettier --write src/**/*.ts test/*.ts",
+    "test": "vitest",
+    "test:ci": "vitest --run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "omelette": "^0.4.17"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "breadc": "workspace:*",
+    "vite": "^4.0.4",
+    "vitest": "^0.28.3"
+  },
+  "peerDependencies": {
+    "breadc": "workspace:*"
+  }
+}
