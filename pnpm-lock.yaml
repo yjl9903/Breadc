@@ -54,6 +54,16 @@ importers:
       vite: 4.0.4_@types+node@18.11.18
       vitest: 0.28.3
 
+  packages/progress:
+    specifiers:
+      '@types/node': ^18.11.18
+      vite: ^4.0.4
+      vitest: ^0.28.3
+    devDependencies:
+      '@types/node': 18.11.18
+      vite: 4.0.4_@types+node@18.11.18
+      vitest: 0.28.3
+
 packages:
 
   /@ampproject/remapping/2.1.2:
