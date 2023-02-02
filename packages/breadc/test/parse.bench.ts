@@ -3,6 +3,8 @@ import { bench, describe } from 'vitest';
 import cac from 'cac';
 import Breadc from '../src';
 
+import { breadc } from '../src/parser';
+
 describe('Init empty cli', () => {
   bench('Breadc', () => {
     Breadc('cli', { version: '0.0.0', description: 'This is an empty cli' });
@@ -12,6 +14,10 @@ describe('Init empty cli', () => {
     const cli = cac('cli');
     cli.help();
     cli.version('0.0.0');
+  });
+
+  bench('Breadc Experimental', () => {
+    breadc('cli');
   });
 });
 
