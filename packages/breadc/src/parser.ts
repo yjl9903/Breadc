@@ -241,7 +241,13 @@ export function parse(root: TreeNode, args: string[]) {
   };
 }
 
-export function breadc(name: string) {
+export function breadc(
+  name: string,
+  config: {
+    version?: string;
+    description?: string | string[];
+  } = {}
+) {
   const allCommands: Command[] = [];
   const globalOptions: Option[] = [];
 
@@ -251,7 +257,7 @@ export function breadc(name: string) {
         option.type === 'boolean'
           ? false
           : option.type === 'string'
-          ? ''
+          ? option.default ?? ''
           : undefined;
       context.options.set(option.name, option);
       if (option.short) {
@@ -447,9 +453,12 @@ export function breadc(name: string) {
 type ActionFn = (...args: any[]) => any;
 
 interface Breadc {
-  option(text: string): Breadc;
+  option(
+    text: string,
+    option?: { description?: string; default?: string }
+  ): Breadc;
 
-  command(text: string): Command;
+  command(text: string, option?: { description?: string }): Command;
 
   parse(args: string[]): any;
 
@@ -463,16 +472,20 @@ interface Command {
 
   arguments: Argument[];
 
-  option(text: string): Command;
+  option(
+    text: string,
+    option?: { description?: string; default?: string }
+  ): Command;
 
   action(fn: ActionFn): Breadc;
 }
 
-interface Option<F extends string = string> {
+interface Option<F extends string = string, T extends string = string> {
   format: F;
   name: string;
   short?: string;
   type: 'boolean' | 'string';
+  default?: T;
   description: string;
 }
 
