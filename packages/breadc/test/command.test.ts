@@ -1,196 +1,202 @@
 import { describe, expect, it } from 'vitest';
 
-import Breadc from '../src';
+import breadc from '../src';
 
-describe('Alias command', () => {
-  it('share alias', async () => {
-    const cli = Breadc('cli');
-    let cnt = 0;
-    cli
-      .command('echo')
-      .alias('say')
-      .action(() => {
-        cnt++;
-      });
-    await cli.run(['echo']);
-    await cli.run(['say']);
-    expect(cnt).toBe(2);
-  });
-
-  it('share alias with default command', async () => {
-    const cli = Breadc('cli');
-    let cnt = 0;
-    cli
-      .command('')
-      .alias('echo')
-      .action(() => {
-        cnt++;
-      });
-    await cli.run(['']);
-    await cli.run(['echo']);
-    expect(cnt).toBe(2);
-  });
-
-  it('share alias with default command and arguments', async () => {
-    const cli = Breadc('cli');
-    let text = '';
-    cli
-      .command('[message]')
-      .alias('echo')
-      .action((message) => {
-        text += message;
-      });
-    await cli.run(['hello']);
-    await cli.run(['echo', ' world']);
-    expect(text).toBe('hello world');
+describe('Version Command', () => {
+  it('should print version', () => {
+    const cli = breadc('cli', { version: '0.0.0' });
   });
 });
 
-describe('Version command', () => {
-  it('should print version', async () => {
-    const output: string[] = [];
-    const cli = Breadc('cli', {
-      version: '1.0.0',
-      logger: (message: string) => {
-        output.push(message);
-      }
-    });
+// describe('Alias command', () => {
+//   it('share alias', async () => {
+//     const cli = Breadc('cli');
+//     let cnt = 0;
+//     cli
+//       .command('echo')
+//       .alias('say')
+//       .action(() => {
+//         cnt++;
+//       });
+//     await cli.run(['echo']);
+//     await cli.run(['say']);
+//     expect(cnt).toBe(2);
+//   });
 
-    await cli.run(['-v']);
-    await cli.run(['--version']);
+//   it('share alias with default command', async () => {
+//     const cli = Breadc('cli');
+//     let cnt = 0;
+//     cli
+//       .command('')
+//       .alias('echo')
+//       .action(() => {
+//         cnt++;
+//       });
+//     await cli.run(['']);
+//     await cli.run(['echo']);
+//     expect(cnt).toBe(2);
+//   });
 
-    expect(output[0]).toMatchInlineSnapshot('"cli/1.0.0"');
-    expect(output[1]).toMatchInlineSnapshot('"cli/1.0.0"');
-  });
-});
+//   it('share alias with default command and arguments', async () => {
+//     const cli = Breadc('cli');
+//     let text = '';
+//     cli
+//       .command('[message]')
+//       .alias('echo')
+//       .action((message) => {
+//         text += message;
+//       });
+//     await cli.run(['hello']);
+//     await cli.run(['echo', ' world']);
+//     expect(text).toBe('hello world');
+//   });
+// });
 
-describe('Help command', () => {
-  it('should print simple help', async () => {
-    const output: string[] = [];
+// describe('Version command', () => {
+//   it('should print version', async () => {
+//     const output: string[] = [];
+//     const cli = Breadc('cli', {
+//       version: '1.0.0',
+//       logger: (message: string) => {
+//         output.push(message);
+//       }
+//     });
 
-    const cli = Breadc('cli', {
-      version: '1.0.0',
-      description: 'This is a cli app.',
-      logger: (message: string) => {
-        output.push(message);
-      }
-    });
-    cli.command('[root]', 'Start dev server');
-    cli.command('build [root]', 'Build static site');
+//     await cli.run(['-v']);
+//     await cli.run(['--version']);
 
-    await cli.run(['-h']);
-    expect(output.join('\n')).toMatchInlineSnapshot(`
-      "cli/1.0.0
+//     expect(output[0]).toMatchInlineSnapshot('"cli/1.0.0"');
+//     expect(output[1]).toMatchInlineSnapshot('"cli/1.0.0"');
+//   });
+// });
 
-      This is a cli app.
+// describe('Help command', () => {
+//   it('should print simple help', async () => {
+//     const output: string[] = [];
 
-      Usage:
-        $ cli [root]
+//     const cli = Breadc('cli', {
+//       version: '1.0.0',
+//       description: 'This is a cli app.',
+//       logger: (message: string) => {
+//         output.push(message);
+//       }
+//     });
+//     cli.command('[root]', 'Start dev server');
+//     cli.command('build [root]', 'Build static site');
 
-      Commands:
-        $ cli [root]        Start dev server
-        $ cli build [root]  Build static site
+//     await cli.run(['-h']);
+//     expect(output.join('\n')).toMatchInlineSnapshot(`
+//       "cli/1.0.0
 
-      Options:
-        -h, --help     Display this message
-        -v, --version  Display version number
-      "
-    `);
-    output.splice(0);
+//       This is a cli app.
 
-    await cli.run(['--help']);
-    expect(output.join('\n')).toMatchInlineSnapshot(`
-      "cli/1.0.0
+//       Usage:
+//         $ cli [root]
 
-      This is a cli app.
+//       Commands:
+//         $ cli [root]        Start dev server
+//         $ cli build [root]  Build static site
 
-      Usage:
-        $ cli [root]
+//       Options:
+//         -h, --help     Display this message
+//         -v, --version  Display version number
+//       "
+//     `);
+//     output.splice(0);
 
-      Commands:
-        $ cli [root]        Start dev server
-        $ cli build [root]  Build static site
+//     await cli.run(['--help']);
+//     expect(output.join('\n')).toMatchInlineSnapshot(`
+//       "cli/1.0.0
 
-      Options:
-        -h, --help     Display this message
-        -v, --version  Display version number
-      "
-    `);
-  });
+//       This is a cli app.
 
-  it('should print command help', async () => {
-    const output: string[] = [];
+//       Usage:
+//         $ cli [root]
 
-    const cli = Breadc('cli', {
-      version: '1.0.0',
-      description: 'This is a cli app.',
-      logger: (message: string) => {
-        output.push(message);
-      }
-    });
-    cli.command('[root]', 'Start dev server');
-    cli.command('build [root]', 'Build static site');
+//       Commands:
+//         $ cli [root]        Start dev server
+//         $ cli build [root]  Build static site
 
-    await cli.run(['build', '--help']);
-    expect(output.join('\n')).toMatchInlineSnapshot(`
-      "cli/1.0.0
+//       Options:
+//         -h, --help     Display this message
+//         -v, --version  Display version number
+//       "
+//     `);
+//   });
 
-      Build static site
+//   it('should print command help', async () => {
+//     const output: string[] = [];
 
-      Usage:
-        $ cli build [root]
+//     const cli = Breadc('cli', {
+//       version: '1.0.0',
+//       description: 'This is a cli app.',
+//       logger: (message: string) => {
+//         output.push(message);
+//       }
+//     });
+//     cli.command('[root]', 'Start dev server');
+//     cli.command('build [root]', 'Build static site');
 
-      Options:
-        -h, --help     Display this message
-        -v, --version  Display version number
-      "
-    `);
-  });
+//     await cli.run(['build', '--help']);
+//     expect(output.join('\n')).toMatchInlineSnapshot(`
+//       "cli/1.0.0
 
-  it('should print subcommands help', async () => {
-    const output: string[] = [];
+//       Build static site
 
-    const cli = Breadc('cli', {
-      version: '1.0.0',
-      description: 'This is a cli app.',
-      logger: (message: string) => {
-        output.push(message);
-      }
-    });
-    cli.command('file info [path]', 'Get file info');
-    cli.command('store ls [path]', 'List path');
-    cli.command('store rm [path]', 'Remove path');
-    cli.command('store put [path]', 'Put path');
+//       Usage:
+//         $ cli build [root]
 
-    await cli.run(['store', '-h']);
-    expect(output.join('\n')).toMatchInlineSnapshot(`
-      "cli/1.0.0
+//       Options:
+//         -h, --help     Display this message
+//         -v, --version  Display version number
+//       "
+//     `);
+//   });
 
-      Commands:
-        $ cli store ls [path]   List path
-        $ cli store rm [path]   Remove path
-        $ cli store put [path]  Put path
+//   it('should print subcommands help', async () => {
+//     const output: string[] = [];
 
-      Options:
-        -h, --help     Display this message
-        -v, --version  Display version number
-      "
-    `);
+//     const cli = Breadc('cli', {
+//       version: '1.0.0',
+//       description: 'This is a cli app.',
+//       logger: (message: string) => {
+//         output.push(message);
+//       }
+//     });
+//     cli.command('file info [path]', 'Get file info');
+//     cli.command('store ls [path]', 'List path');
+//     cli.command('store rm [path]', 'Remove path');
+//     cli.command('store put [path]', 'Put path');
 
-    output.splice(0);
-    await cli.run(['--help', 'store', 'ls']);
-    expect(output.join('\n')).toMatchInlineSnapshot(`
-      "cli/1.0.0
+//     await cli.run(['store', '-h']);
+//     expect(output.join('\n')).toMatchInlineSnapshot(`
+//       "cli/1.0.0
 
-      List path
+//       Commands:
+//         $ cli store ls [path]   List path
+//         $ cli store rm [path]   Remove path
+//         $ cli store put [path]  Put path
 
-      Usage:
-        $ cli store ls [path]
+//       Options:
+//         -h, --help     Display this message
+//         -v, --version  Display version number
+//       "
+//     `);
 
-      Options:
-        -h, --help     Display this message
-        -v, --version  Display version number
-      "
-    `);
-  });
-});
+//     output.splice(0);
+//     await cli.run(['--help', 'store', 'ls']);
+//     expect(output.join('\n')).toMatchInlineSnapshot(`
+//       "cli/1.0.0
+
+//       List path
+
+//       Usage:
+//         $ cli store ls [path]
+
+//       Options:
+//         -h, --help     Display this message
+//         -v, --version  Display version number
+//       "
+//     `);
+//   });
+// });

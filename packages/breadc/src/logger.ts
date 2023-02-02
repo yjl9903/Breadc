@@ -1,6 +1,14 @@
-import type { Logger, LoggerFn } from './types';
-
 import { blue, gray, red, yellow } from 'kolorist';
+
+export type LoggerFn = (message: string, ...args: any[]) => void;
+
+export interface Logger {
+  println: LoggerFn;
+  info: LoggerFn;
+  warn: LoggerFn;
+  error: LoggerFn;
+  debug: LoggerFn;
+}
 
 export function createDefaultLogger(
   name: string,
