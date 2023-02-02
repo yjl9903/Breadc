@@ -32,6 +32,11 @@ describe('Parse option', () => {
     .command('')
     .action(() => {});
 
+  const d = breadc('cli');
+  d.option('--flag')
+    .command('')
+    .action(() => {});
+
   const args = ['--flag'];
 
   bench('Breadc', () => {
@@ -40,6 +45,10 @@ describe('Parse option', () => {
 
   bench('cac', () => {
     c.parse(args);
+  });
+
+  bench('Breadc Experimental', () => {
+    d.parse(args);
   });
 });
 
@@ -50,6 +59,9 @@ describe('Parse array', () => {
   const c = cac('cli');
   c.command('[...files]').action(() => {});
 
+  const d = breadc('cli');
+  d.command('[...files]').action(() => {});
+
   const args = ['a', 'b', 'c', 'd'];
 
   bench('Breadc', () => {
@@ -58,5 +70,9 @@ describe('Parse array', () => {
 
   bench('cac', () => {
     c.parse(args);
+  });
+
+  bench('Breadc Experimental', () => {
+    d.parse(args);
   });
 });
