@@ -39,7 +39,9 @@ export interface Command {
 
   description: string;
 
-  arguments: Argument[];
+  _arguments: Argument[];
+
+  _options: Option[];
 
   option<
     F extends string = string,
@@ -49,7 +51,7 @@ export interface Command {
     option?: OptionOption<T>
   ): Command;
 
-  action(fn: ActionFn): Breadc;
+  action(fn: ActionFn): void;
 }
 
 export interface Argument {
