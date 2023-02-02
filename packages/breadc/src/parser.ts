@@ -141,6 +141,29 @@ export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
   return node;
 }
 
+export function parseOption(token: Token, context: Context) {
+  const o = token.option();
+  if (context.options.has(o)) {
+    const option = context.options.get(o)!;
+    if (option.type === 'boolean') {
+      context.result.options[option.name] = !o.startsWith('no-') ? true : false;
+    } else if (option.type === 'string') {
+      const value = context.lexer.next();
+      if (value !== undefined) {
+        context.result.options[option.name] = value.raw();
+      } else {
+        throw new ParseError(
+          `You should provide arguments for ${option.format}`
+        );
+      }
+    } else {
+      throw new ParseError('unimplemented');
+    }
+  } else {
+    throw new ParseError(`Unknown option ${token.raw()}`);
+  }
+}
+
 export function parse(root: TreeNode, args: string[]) {
   const lexer = new Lexer(args);
   const context: Context = {
@@ -160,26 +183,7 @@ export function parse(root: TreeNode, args: string[]) {
     if (token.type() === '--') {
       break;
     } else if (token.isOption()) {
-      const o = token.option();
-      if (context.options.has(o)) {
-        const option = context.options.get(o)!;
-        if (option.type === 'boolean') {
-          context.result.options[option.name] = true;
-        } else if (option.type === 'string') {
-          const value = lexer.next();
-          if (value !== undefined) {
-            context.result.options[option.name] = value.raw() ?? '';
-          } else {
-            throw new ParseError(
-              `You should provide arguments for ${option.format}`
-            );
-          }
-        } else {
-          throw new ParseError('unimplemented');
-        }
-      } else {
-        throw new ParseError(`Unknown option ${token.raw()}`);
-      }
+      parseOption(token, context);
     } else if (token.isText()) {
       const res = cursor.next(token, context);
       if (res === false) {

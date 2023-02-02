@@ -89,7 +89,7 @@ describe('Breadc', () => {
       });
     await cli.run(['--minus', '1', '2']);
     await cli.run(['minus', '1', '2']);
-    // await cli.run(['minus', '1', '2', '--no-minus']);
+    await cli.run(['minus', '1', '2', '--no-minus']);
   });
 
   it('should run with required option', async () => {

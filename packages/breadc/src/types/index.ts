@@ -1,3 +1,5 @@
+import { Letter } from './utils';
+
 export interface AppOption {
   version?: string;
 
@@ -44,16 +46,30 @@ export interface Command {
   action(fn: ActionFn): Breadc;
 }
 
-export interface Option<F extends string = string, T extends string = string> {
-  format: F;
-  name: string;
-  short?: string;
-  type: 'boolean' | 'string';
-  default?: T;
-  description: string;
-}
-
 export interface Argument {
   type: 'const' | 'require' | 'optional' | 'rest';
   name: string;
 }
+
+export interface Option<
+  F extends string = string,
+  T extends string | boolean = ExtractOptionType<F>
+> {
+  format: F;
+  name: string;
+  short?: string;
+  type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
+  value: T extends string ? string : T extends boolean ? boolean : never;
+  description: string;
+}
+
+export type ExtractOptionType<T extends string> =
+  T extends `-${Letter}, --${infer R} <${infer U}>`
+    ? string
+    : T extends `-${Letter}, --${infer R}`
+    ? boolean
+    : T extends `--${infer R} <${infer U}>`
+    ? string
+    : T extends `--${infer R}`
+    ? boolean
+    : string | boolean;
