@@ -1,74 +1,37 @@
-import type { ExtractOptionType } from './types';
+import type { Option } from './types';
 
-export interface OptionConfig<
-  F extends string,
-  T = never,
-  O = ExtractOptionType<F>
-> {
-  /**
-   * Option description
-   */
-  description?: string;
+import { BreadcError } from './error';
 
-  /**
-   * Option string default value
-   */
-  default?: O extends boolean ? boolean : string;
+// TODO: support --no-xxx
 
-  /**
-   * Transform option text
-   */
-  construct?: (rawText: ExtractOptionType<F>) => T;
-}
+const OptionRE =
+  /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[...[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
 
-/**
- * Option
- *
- * Option format must follow:
- * + --option
- * + -o, --option
- * + --option <arg>
- * + --option [arg]
- */
-export class Option<
-  F extends string = string,
-  T = string,
-  O = ExtractOptionType<F>
-> {
-  private static OptionRE =
-    /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
+export function makeOption<F extends string = string>(format: F): Option<F> {
+  let type: 'string' | 'boolean' = 'string';
+  let name = '';
+  let short = undefined;
 
-  readonly name: string;
-  readonly shortcut?: string;
-  readonly default?: O extends boolean ? boolean : string;
-  readonly format: string;
-  readonly description: string;
-  readonly type: 'string' | 'boolean';
-  readonly required: boolean;
-
-  readonly construct?: (rawText: ExtractOptionType<F>) => T;
-
-  constructor(format: F, config: OptionConfig<F, T, O> = {}) {
-    this.format = format;
-
-    const match = Option.OptionRE.exec(format);
-    if (match) {
-      if (match[3]) {
-        this.type = 'string';
-      } else {
-        this.type = 'boolean';
-      }
-      this.name = match[2];
-      if (match[1]) {
-        this.shortcut = match[1][1];
-      }
+  const match = OptionRE.exec(format);
+  if (match) {
+    if (match[3]) {
+      type = 'string';
     } else {
-      throw new Error(`Can not parse option format from "${format}"`);
+      type = 'boolean';
+    }
+    name = match[2];
+    if (match[1]) {
+      short = match[1][1];
     }
 
-    this.description = config.description ?? '';
-    this.required = format.indexOf('<') !== -1;
-    this.default = config.default;
-    this.construct = config.construct;
+    return {
+      format,
+      type,
+      name,
+      short,
+      description: ''
+    };
+  } else {
+    throw new BreadcError(`Can not parse option format from "${format}"`);
   }
 }

@@ -1,41 +1,6 @@
-export class Lexer {
-  private readonly rawArgs: string[];
+import type { ParseResult, Command, Option } from './types';
 
-  private cursor: number = 0;
-
-  constructor(rawArgs: string[]) {
-    this.rawArgs = rawArgs;
-  }
-
-  public next(): Token | undefined {
-    const value = this.rawArgs[this.cursor];
-    this.cursor += 1;
-    return value ? new Token(value) : undefined;
-  }
-
-  public hasNext(): boolean {
-    return this.cursor + 1 < this.rawArgs.length;
-  }
-
-  public peek(): Token | undefined {
-    const value = this.rawArgs[this.cursor];
-    return value ? new Token(value) : undefined;
-  }
-
-  [Symbol.iterator](): Iterator<Token, undefined> {
-    const that = this;
-    return {
-      next() {
-        const value = that.rawArgs[that.cursor];
-        that.cursor += 1;
-        return {
-          value: value ? new Token(value) : undefined,
-          done: that.cursor > that.rawArgs.length
-        } as IteratorYieldResult<Token> | IteratorReturnResult<undefined>;
-      }
-    };
-  }
-}
+import { ParseError } from './error';
 
 export type TokenType = '--' | '-' | 'number' | 'string' | 'long' | 'short';
 
@@ -96,23 +61,54 @@ export class Token {
   }
 }
 
-class BreadcError extends Error {}
+export class Lexer {
+  private readonly rawArgs: string[];
 
-class ParseError extends Error {}
+  private cursor: number = 0;
 
-interface Context {
+  constructor(rawArgs: string[]) {
+    this.rawArgs = rawArgs;
+  }
+
+  public next(): Token | undefined {
+    const value = this.rawArgs[this.cursor];
+    this.cursor += 1;
+    return value ? new Token(value) : undefined;
+  }
+
+  public hasNext(): boolean {
+    return this.cursor + 1 < this.rawArgs.length;
+  }
+
+  public peek(): Token | undefined {
+    const value = this.rawArgs[this.cursor];
+    return value ? new Token(value) : undefined;
+  }
+
+  [Symbol.iterator](): Iterator<Token, undefined> {
+    const that = this;
+    return {
+      next() {
+        const value = that.rawArgs[that.cursor];
+        that.cursor += 1;
+        return {
+          value: value ? new Token(value) : undefined,
+          done: that.cursor > that.rawArgs.length
+        } as IteratorYieldResult<Token> | IteratorReturnResult<undefined>;
+      }
+    };
+  }
+}
+
+export interface Context {
   lexer: Lexer;
 
   options: Map<string, Option>;
 
-  result: {
-    arguments: any[];
-    options: Record<string, any>;
-    '--': string[];
-  };
+  result: ParseResult;
 }
 
-interface TreeNode {
+export interface TreeNode {
   command?: Command;
 
   children: Map<string, TreeNode>;
@@ -124,7 +120,7 @@ interface TreeNode {
   finish(context: Context): void;
 }
 
-function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
+export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
   const node: TreeNode = {
     children: new Map(),
     init() {},
@@ -143,38 +139,6 @@ function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
     ...pnode
   };
   return node;
-}
-
-function makeOption<F extends string = string>(format: F): Option<F> {
-  const OptionRE =
-    /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[...[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
-
-  let type: 'string' | 'boolean' = 'string';
-  let name = '';
-  let short = undefined;
-
-  const match = OptionRE.exec(format);
-  if (match) {
-    if (match[3]) {
-      type = 'string';
-    } else {
-      type = 'boolean';
-    }
-    name = match[2];
-    if (match[1]) {
-      short = match[1][1];
-    }
-
-    return {
-      format,
-      type,
-      name,
-      short,
-      description: ''
-    };
-  } else {
-    throw new BreadcError(`Can not parse option format from "${format}"`);
-  }
 }
 
 export function parse(root: TreeNode, args: string[]) {
@@ -234,263 +198,9 @@ export function parse(root: TreeNode, args: string[]) {
   }
 
   return {
-    node: cursor,
+    command: cursor.command,
     arguments: context.result.arguments,
     options: context.result.options,
     '--': context.result['--']
   };
 }
-
-export function breadc(
-  name: string,
-  config: {
-    version?: string;
-    description?: string | string[];
-  } = {}
-) {
-  const allCommands: Command[] = [];
-  const globalOptions: Option[] = [];
-
-  const initContextOptions = (options: Option[], context: Context) => {
-    for (const option of options) {
-      const defaultValue =
-        option.type === 'boolean'
-          ? false
-          : option.type === 'string'
-          ? option.default ?? ''
-          : undefined;
-      context.options.set(option.name, option);
-      if (option.short) {
-        context.options.set(option.short, option);
-      }
-      context.result.options[option.name] = defaultValue;
-    }
-  };
-
-  const root = makeTreeNode({
-    init(context) {
-      initContextOptions(globalOptions, context);
-    },
-    finish() {}
-  });
-
-  const breadc: Breadc = {
-    option(text): Breadc {
-      const option = makeOption(text);
-      globalOptions.push(option);
-      return breadc;
-    },
-    command(text): Command {
-      let cursor = root;
-
-      const args: Argument[] = [];
-      const options: Option[] = [];
-
-      const command: Command = {
-        callback: undefined,
-        description: '',
-        arguments: args,
-        option(text) {
-          const option = makeOption(text);
-          options.push(option);
-          return command;
-        },
-        action(fn) {
-          command.callback = fn;
-          if (cursor === root) {
-            globalOptions.push(...options);
-          }
-          return breadc;
-        }
-      };
-
-      const node = makeTreeNode({
-        command,
-        init(context) {
-          initContextOptions(options, context);
-        },
-        finish(context) {
-          const rest = context.result['--'];
-          for (let i = 0; i < args.length; i++) {
-            if (args[i].type === 'const') {
-              if (rest[i] !== args[i].name) {
-                throw new ParseError(`Internal`);
-              }
-            } else if (args[i].type === 'require') {
-              if (i >= rest.length) {
-                throw new ParseError(`You must provide require argument`);
-              }
-              context.result.arguments.push(rest[i]);
-            } else if (args[i].type === 'optional') {
-              context.result.arguments.push(rest[i]);
-            } else if (args[i].type === 'rest') {
-              context.result.arguments.push(rest.splice(i));
-            }
-          }
-          context.result['--'] = rest.splice(args.length);
-        }
-      });
-
-      {
-        // 0 -> aaa bbb
-        // 1 -> aaa bbb <xxx> <yyy>
-        // 2 -> aaa bbb <xxx> <yyy> [zzz]
-        // 3 -> bbb bbb <xxx> <yyy> [...www]
-        let state = 0;
-        for (let i = 0; i < text.length; i++) {
-          if (text[i] === '<') {
-            if (state !== 0 && state !== 1) {
-              // error here
-            }
-
-            const start = i;
-            while (i < text.length && text[i] !== '>') {
-              i++;
-            }
-
-            const name = text.slice(start + 1, i);
-            state = 1;
-            args.push({ type: 'require', name });
-          } else if (text[i] === '[') {
-            if (state !== 0 && state !== 1) {
-              // error here
-            }
-
-            const start = i;
-            while (i < text.length && text[i] !== ']') {
-              i++;
-            }
-
-            const name = text.slice(start + 1, i);
-            state = 2;
-            if (name.startsWith('...')) {
-              args.push({ type: 'rest', name });
-            } else {
-              args.push({ type: 'optional', name });
-            }
-          } else if (text[i] !== ' ') {
-            if (state !== 0) {
-              // error here
-            }
-
-            const start = i;
-            while (i < text.length && text[i] !== ' ') {
-              i++;
-            }
-            const name = text.slice(start, i);
-
-            if (cursor.children.has(name)) {
-              cursor = cursor.children.get(name)!;
-              // console.log(text);
-              // console.log(name);
-              // console.log(cursor);
-            } else {
-              const internalNode = makeTreeNode({
-                next(token, context) {
-                  const t = token.raw();
-                  context.result['--'].push(t);
-                  if (internalNode.children.has(t)) {
-                    const next = internalNode.children.get(t)!;
-                    next.init(context);
-                    return next;
-                  } else {
-                    throw new ParseError(`Unknown sub-command ${t}`);
-                  }
-                },
-                finish() {
-                  throw new ParseError(`Unknown sub-command`);
-                }
-              });
-
-              cursor.children.set(name, internalNode);
-              cursor = internalNode;
-            }
-
-            state = 0;
-            args.push({ type: 'const', name });
-          }
-        }
-
-        cursor.command = command;
-        if (cursor !== root) {
-          for (const [key, value] of cursor.children) {
-            node.children.set(key, value);
-          }
-          cursor.children = node.children;
-          cursor.next = node.next;
-          cursor.init = node.init;
-          cursor.finish = node.finish;
-        } else {
-          cursor.finish = node.finish;
-        }
-      }
-
-      allCommands.push(command);
-
-      return command;
-    },
-    parse(args: string[]) {
-      return parse(root, args);
-    },
-    async run(args: string[]) {
-      const result = parse(root, args);
-      const command = result.node.command;
-      if (command) {
-        if (command.callback) {
-          return command.callback(...result.arguments, {
-            ...result.options,
-            '--': result['--']
-          });
-        }
-      }
-      return undefined as any;
-    }
-  };
-
-  return breadc;
-}
-
-type ActionFn = (...args: any[]) => any;
-
-interface Breadc {
-  option(
-    text: string,
-    option?: { description?: string; default?: string }
-  ): Breadc;
-
-  command(text: string, option?: { description?: string }): Command;
-
-  parse(args: string[]): any;
-
-  run<T = any>(args: string[]): Promise<T>;
-}
-
-interface Command {
-  callback?: ActionFn;
-
-  description: string;
-
-  arguments: Argument[];
-
-  option(
-    text: string,
-    option?: { description?: string; default?: string }
-  ): Command;
-
-  action(fn: ActionFn): Breadc;
-}
-
-interface Option<F extends string = string, T extends string = string> {
-  format: F;
-  name: string;
-  short?: string;
-  type: 'boolean' | 'string';
-  default?: T;
-  description: string;
-}
-
-type Argument =
-  | { type: 'const'; name: string }
-  | { type: 'require'; name: string }
-  | { type: 'optional'; name: string }
-  | { type: 'rest'; name: string };

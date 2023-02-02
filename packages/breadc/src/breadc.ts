@@ -1,305 +1,208 @@
-import minimist from 'minimist';
+import type { Breadc, AppOption, Command, Argument, Option } from './types';
 
-import type { AppOption, ExtractOption, Logger, ParseResult } from './types';
+import { ParseError } from './error';
+import { makeOption } from './option';
+import { Context, makeTreeNode, parse } from './parser';
 
-import { twoColumn } from './utils';
-import { createDefaultLogger } from './logger';
-import { Option, OptionConfig } from './option';
-import { Command, CommandConfig, VersionCommand, HelpCommand } from './command';
+export function breadc(name: string, config: AppOption = {}) {
+  const allCommands: Command[] = [];
+  const globalOptions: Option[] = [];
 
-export class Breadc<GlobalOption extends object = {}> {
-  private readonly name: string;
-  private readonly _version: string;
-  private readonly description?: string | string[];
-
-  readonly logger: Logger;
-
-  private readonly options: Option[] = [];
-  private readonly commands: Command[] = [];
-  private defaultCommand?: Command;
-
-  constructor(name: string, option: AppOption) {
-    this.name = name;
-    this._version = option.version ?? 'unknown';
-    this.description = option.description;
-    this.logger = createDefaultLogger(name, option.logger);
-
-    this.commands.push(
-      new VersionCommand(this.version(), this.logger),
-      new HelpCommand(this.commands, this.help.bind(this), this.logger)
-    );
-  }
-
-  version() {
-    return `${this.name}/${this._version}`;
-  }
-
-  help(commands: Command[] = []) {
-    const output: string[] = [];
-    const println = (msg: string) => output.push(msg);
-
-    println(this.version());
-    if (commands.length === 0) {
-      if (this.description) {
-        println('');
-        if (Array.isArray(this.description)) {
-          for (const line of this.description) {
-            println(line);
-          }
-        } else {
-          println(this.description);
-        }
+  const initContextOptions = (options: Option[], context: Context) => {
+    for (const option of options) {
+      const defaultValue =
+        option.type === 'boolean'
+          ? false
+          : option.type === 'string'
+          ? option.default ?? ''
+          : false;
+      context.options.set(option.name, option);
+      if (option.short) {
+        context.options.set(option.short, option);
       }
-
-      if (this.defaultCommand) {
-        println(``);
-        println(`Usage:`);
-        println(`  $ ${this.name} ${this.defaultCommand.format}`);
-      }
-    } else if (commands.length === 1) {
-      const command = commands[0];
-      if (command.description) {
-        println('');
-        println(command.description);
-      }
-
-      println(``);
-      println(`Usage:`);
-      println(`  $ ${this.name} ${command.format}`);
+      context.result.options[option.name] = defaultValue;
     }
-
-    if (commands.length !== 1) {
-      const cmdList = (commands.length === 0 ? this.commands : commands).filter(
-        (c) => !c.isInternal
-      );
-
-      println(``);
-      println(`Commands:`);
-      const commandHelps = cmdList.map(
-        (c) =>
-          [`  $ ${this.name} ${c.format}`, c.description] as [string, string]
-      );
-
-      for (const line of twoColumn(commandHelps)) {
-        println(line);
-      }
-    }
-
-    println(``);
-    println(`Options:`);
-    const optionHelps = ([] as Array<[string, string]>).concat([
-      ...(commands.length > 0
-        ? commands.flatMap((cmd) =>
-            cmd.options.map(
-              (o) => [`  ${o.format}`, o.description] as [string, string]
-            )
-          )
-        : []),
-      ...this.options.map(
-        (o) => [`  ${o.format}`, o.description] as [string, string]
-      ),
-      [`  -h, --help`, `Display this message`],
-      [`  -v, --version`, `Display version number`]
-    ]);
-
-    for (const line of twoColumn(optionHelps)) {
-      println(line);
-    }
-
-    println(``);
-
-    return output;
-  }
-
-  option<F extends string, T = undefined>(
-    format: F,
-    description: string,
-    config?: Omit<OptionConfig<F, T>, 'description'>
-  ): Breadc<GlobalOption & ExtractOption<F, T>>;
-
-  option<F extends string, T = undefined>(
-    format: F,
-    config?: OptionConfig<F, T>
-  ): Breadc<GlobalOption & ExtractOption<F, T>>;
-
-  option<F extends string, T = undefined>(
-    format: F,
-    configOrDescription: OptionConfig<F, T> | string = '',
-    otherConfig: Omit<OptionConfig<F, T>, 'description'> = {}
-  ): Breadc<GlobalOption & ExtractOption<F, T>> {
-    const config: OptionConfig<F, T> =
-      typeof configOrDescription === 'object'
-        ? configOrDescription
-        : { ...otherConfig, description: configOrDescription };
-
-    try {
-      const option = new Option<F, T>(format, config);
-      this.options.push(option as unknown as Option);
-    } catch (error: any) {
-      this.logger.warn(error.message);
-    }
-    return this as Breadc<GlobalOption & ExtractOption<F, T>>;
-  }
-
-  command<F extends string>(
-    format: F,
-    description: string,
-    config?: Omit<CommandConfig, 'description'>
-  ): Command<F, GlobalOption>;
-
-  command<F extends string>(
-    format: F,
-    config?: CommandConfig
-  ): Command<F, GlobalOption>;
-
-  command<F extends string>(
-    format: F,
-    configOrDescription: CommandConfig | string = '',
-    otherConfig: Omit<CommandConfig, 'description'> = {}
-  ): Command<F, GlobalOption> {
-    const config: CommandConfig =
-      typeof configOrDescription === 'object'
-        ? configOrDescription
-        : { ...otherConfig, description: configOrDescription };
-
-    const command = new Command(format, { ...config, logger: this.logger });
-    if (command.default) {
-      if (this.defaultCommand) {
-        this.logger.warn('You can not have two default commands.');
-      }
-      this.defaultCommand = command;
-    }
-    this.commands.push(command);
-    return command as Command<F, GlobalOption>;
-  }
-
-  parse(args: string[]): ParseResult {
-    const allowOptions: Option[] = [
-      ...this.options,
-      ...this.commands.flatMap((c) => c.options)
-    ];
-
-    {
-      // Check option names conflict
-      const names = new Map<string, Option>();
-      for (const option of allowOptions) {
-        if (names.has(option.name)) {
-          const otherOption = names.get(option.name)!;
-          if (otherOption.type !== option.type) {
-            this.logger.warn(`Option "${option.name}" encounters conflict`);
-          }
-        } else {
-          names.set(option.name, option);
-        }
-      }
-    }
-
-    const alias = allowOptions.reduce(
-      (map: Record<string, string>, o) => {
-        if (o.shortcut) {
-          map[o.shortcut] = o.name;
-        }
-        return map;
-      },
-      { h: 'help', v: 'version' }
-    );
-    const defaultValue = allowOptions
-      .filter(
-        (o) =>
-          o.type === 'boolean' &&
-          o.default !== undefined &&
-          o.default !== null &&
-          typeof o.default === 'boolean'
-      )
-      .reduce((map: Record<string, any>, o) => {
-        map[o.name] = o.default;
-        return map;
-      }, {});
-
-    const argv = minimist(args, {
-      string: allowOptions
-        .filter((o) => o.type === 'string')
-        .map((o) => o.name),
-      boolean: allowOptions
-        .filter((o) => o.type === 'boolean')
-        .map((o) => o.name)
-        .concat(['help', 'version']),
-      default: defaultValue,
-      alias,
-      '--': true,
-      unknown: (t) => {
-        if (t[0] !== '-') return true;
-        else {
-          if (['--help', '-h', '--version', '-v'].includes(t)) {
-            return true;
-          } else {
-            this.logger.warn(`Find unknown flag "${t}"`);
-            return false;
-          }
-        }
-      }
-    });
-
-    for (const shortcut of Object.keys(alias)) {
-      delete argv[shortcut];
-    }
-
-    // Try non-default command first
-    for (const command of this.commands) {
-      if (!command.default && command.shouldRun(argv)) {
-        return command.parseArgs(argv, this.options);
-      }
-    }
-    // Then try default command
-    if (this.defaultCommand) {
-      // Fix sideEffect
-      this.defaultCommand.shouldRun(argv);
-      return this.defaultCommand.parseArgs(argv, this.options);
-    }
-
-    const argumentss = argv['_'];
-    const options: Record<string, string> = argv;
-    delete options['_'];
-    delete options['--'];
-    delete options['help'];
-    delete options['version'];
-
-    return {
-      command: undefined,
-      arguments: argumentss,
-      options,
-      '--': []
-    };
-  }
-
-  private readonly callbacks = {
-    pre: [] as Array<(option: GlobalOption) => void | Promise<void>>,
-    post: [] as Array<(option: GlobalOption) => void | Promise<void>>
   };
 
-  on(
-    event: 'pre' | 'post',
-    fn: (option: GlobalOption) => void | Promise<void>
-  ) {
-    this.callbacks[event].push(fn);
-  }
+  const root = makeTreeNode({
+    init(context) {
+      initContextOptions(globalOptions, context);
+    },
+    finish() {}
+  });
 
-  async run<T>(args: string[]): Promise<T | undefined> {
-    const parsed = this.parse(args);
-    if (parsed.command) {
-      await Promise.all(
-        this.callbacks.pre.map((fn) => fn(parsed.options as any))
-      );
-      const returnValue = await parsed.command.run(...parsed.arguments, {
-        '--': parsed['--'],
-        ...parsed.options
+  const breadc: Breadc = {
+    option(text): Breadc {
+      const option = makeOption(text);
+      globalOptions.push(option);
+      return breadc;
+    },
+    command(text): Command {
+      let cursor = root;
+
+      const args: Argument[] = [];
+      const options: Option[] = [];
+
+      const command: Command = {
+        callback: undefined,
+        description: '',
+        arguments: args,
+        option(text) {
+          const option = makeOption(text);
+          options.push(option);
+          return command;
+        },
+        action(fn) {
+          command.callback = fn;
+          if (cursor === root) {
+            globalOptions.push(...options);
+          }
+          return breadc;
+        }
+      };
+
+      const node = makeTreeNode({
+        command,
+        init(context) {
+          initContextOptions(options, context);
+        },
+        finish(context) {
+          const rest = context.result['--'];
+          for (let i = 0; i < args.length; i++) {
+            if (args[i].type === 'const') {
+              if (rest[i] !== args[i].name) {
+                throw new ParseError(`Internal`);
+              }
+            } else if (args[i].type === 'require') {
+              if (i >= rest.length) {
+                throw new ParseError(`You must provide require argument`);
+              }
+              context.result.arguments.push(rest[i]);
+            } else if (args[i].type === 'optional') {
+              context.result.arguments.push(rest[i]);
+            } else if (args[i].type === 'rest') {
+              context.result.arguments.push(rest.splice(i));
+            }
+          }
+          context.result['--'] = rest.splice(args.length);
+        }
       });
-      await Promise.all(
-        this.callbacks.post.map((fn) => fn(parsed.options as any))
-      );
-      return returnValue;
-    } else {
-      return undefined;
+
+      {
+        // 0 -> aaa bbb
+        // 1 -> aaa bbb <xxx> <yyy>
+        // 2 -> aaa bbb <xxx> <yyy> [zzz]
+        // 3 -> bbb bbb <xxx> <yyy> [...www]
+        let state = 0;
+        for (let i = 0; i < text.length; i++) {
+          if (text[i] === '<') {
+            if (state !== 0 && state !== 1) {
+              // error here
+            }
+
+            const start = i;
+            while (i < text.length && text[i] !== '>') {
+              i++;
+            }
+
+            const name = text.slice(start + 1, i);
+            state = 1;
+            args.push({ type: 'require', name });
+          } else if (text[i] === '[') {
+            if (state !== 0 && state !== 1) {
+              // error here
+            }
+
+            const start = i;
+            while (i < text.length && text[i] !== ']') {
+              i++;
+            }
+
+            const name = text.slice(start + 1, i);
+            state = 2;
+            if (name.startsWith('...')) {
+              args.push({ type: 'rest', name });
+            } else {
+              args.push({ type: 'optional', name });
+            }
+          } else if (text[i] !== ' ') {
+            if (state !== 0) {
+              // error here
+            }
+
+            const start = i;
+            while (i < text.length && text[i] !== ' ') {
+              i++;
+            }
+            const name = text.slice(start, i);
+
+            if (cursor.children.has(name)) {
+              cursor = cursor.children.get(name)!;
+              // console.log(text);
+              // console.log(name);
+              // console.log(cursor);
+            } else {
+              const internalNode = makeTreeNode({
+                next(token, context) {
+                  const t = token.raw();
+                  context.result['--'].push(t);
+                  if (internalNode.children.has(t)) {
+                    const next = internalNode.children.get(t)!;
+                    next.init(context);
+                    return next;
+                  } else {
+                    throw new ParseError(`Unknown sub-command ${t}`);
+                  }
+                },
+                finish() {
+                  throw new ParseError(`Unknown sub-command`);
+                }
+              });
+
+              cursor.children.set(name, internalNode);
+              cursor = internalNode;
+            }
+
+            state = 0;
+            args.push({ type: 'const', name });
+          }
+        }
+
+        cursor.command = command;
+        if (cursor !== root) {
+          for (const [key, value] of cursor.children) {
+            node.children.set(key, value);
+          }
+          cursor.children = node.children;
+          cursor.next = node.next;
+          cursor.init = node.init;
+          cursor.finish = node.finish;
+        } else {
+          cursor.finish = node.finish;
+        }
+      }
+
+      allCommands.push(command);
+
+      return command;
+    },
+    parse(args: string[]) {
+      return parse(root, args);
+    },
+    async run(args: string[]) {
+      const result = parse(root, args);
+      const command = result.command;
+      if (command) {
+        if (command.callback) {
+          return command.callback(...result.arguments, {
+            ...result.options,
+            '--': result['--']
+          });
+        }
+      }
+      return undefined as any;
     }
-  }
+  };
+
+  return breadc;
 }
