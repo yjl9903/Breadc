@@ -1,5 +1,6 @@
 import type { ExtractOptionType, Option, OptionOption } from './types';
 
+import { Context } from './parser';
 import { BreadcError } from './error';
 
 const OptionRE =
@@ -50,3 +51,19 @@ export function makeOption<
     throw new BreadcError(`Can not parse option format from "${format}"`);
   }
 }
+
+export const initContextOptions = (options: Option[], context: Context) => {
+  for (const option of options) {
+    context.options.set(option.name, option);
+    // Append option shortcut
+    if (option.short) {
+      context.options.set(option.short, option);
+    }
+    // Append negative boolean
+    if (option.type === 'boolean') {
+      context.options.set('no-' + option.name, option);
+    }
+
+    context.result.options[option.name] = option.initial;
+  }
+};
