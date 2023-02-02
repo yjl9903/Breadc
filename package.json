@@ -6,10 +6,11 @@
     "build": "turbo run build",
     "format": "turbo run format",
     "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm -r publish --access public",
-    "test": "turbo run test:ci",
+    "test": "pnpm -C packages/breadc test",
     "test:bench": "pnpm -C packages/breadc bench",
+    "test:ci": "turbo run test:ci",
     "typecheck": "turbo run typecheck",
-    "preversion": "pnpm test && pnpm build"
+    "preversion": "pnpm test:ci && pnpm build"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",
