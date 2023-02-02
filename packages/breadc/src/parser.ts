@@ -124,7 +124,7 @@ interface TreeNode {
   finish(context: Context): void;
 }
 
-function createTreeNode(pnode: Partial<TreeNode>): TreeNode {
+function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
   const node: TreeNode = {
     children: new Map(),
     init() {},
@@ -143,6 +143,38 @@ function createTreeNode(pnode: Partial<TreeNode>): TreeNode {
     ...pnode
   };
   return node;
+}
+
+function makeOption<F extends string = string>(format: F): Option<F> {
+  const OptionRE =
+    /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[...[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
+
+  let type: 'string' | 'boolean' = 'string';
+  let name = '';
+  let short = undefined;
+
+  const match = OptionRE.exec(format);
+  if (match) {
+    if (match[3]) {
+      type = 'string';
+    } else {
+      type = 'boolean';
+    }
+    name = match[2];
+    if (match[1]) {
+      short = match[1][1];
+    }
+
+    return {
+      format,
+      type,
+      name,
+      short,
+      description: ''
+    };
+  } else {
+    throw new BreadcError(`Can not parse option format from "${format}"`);
+  }
 }
 
 export function parse(root: TreeNode, args: string[]) {
@@ -167,9 +199,22 @@ export function parse(root: TreeNode, args: string[]) {
       const o = token.option();
       if (context.options.has(o)) {
         const option = context.options.get(o)!;
-        context.result.options[o] = true;
+        if (option.type === 'boolean') {
+          context.result.options[option.name] = true;
+        } else if (option.type === 'string') {
+          const value = lexer.next();
+          if (value !== undefined) {
+            context.result.options[option.name] = value.raw() ?? '';
+          } else {
+            throw new ParseError(
+              `You should provide arguments for ${option.format}`
+            );
+          }
+        } else {
+          throw new ParseError('unimplemented');
+        }
       } else {
-        throw new ParseError(`Unknown option: ${token.raw()}`);
+        throw new ParseError(`Unknown option ${token.raw()}`);
       }
     } else if (token.isText()) {
       const res = cursor.next(token, context);
@@ -200,38 +245,64 @@ export function breadc(name: string) {
   const allCommands: Command[] = [];
   const globalOptions: Option[] = [];
 
-  const root = createTreeNode({
-    init() {},
+  const initContextOptions = (options: Option[], context: Context) => {
+    for (const option of options) {
+      const defaultValue =
+        option.type === 'boolean'
+          ? false
+          : option.type === 'string'
+          ? ''
+          : undefined;
+      context.options.set(option.name, option);
+      if (option.short) {
+        context.options.set(option.short, option);
+      }
+      context.result.options[option.name] = defaultValue;
+    }
+  };
+
+  const root = makeTreeNode({
+    init(context) {
+      initContextOptions(globalOptions, context);
+    },
     finish() {}
   });
 
   const breadc: Breadc = {
     option(text): Breadc {
-      const option: Option = {};
+      const option = makeOption(text);
       globalOptions.push(option);
       return breadc;
     },
     command(text): Command {
+      let cursor = root;
+
       const args: Argument[] = [];
       const options: Option[] = [];
 
       const command: Command = {
         callback: undefined,
+        description: '',
         arguments: args,
         option(text) {
-          const option: Option = {};
+          const option = makeOption(text);
           options.push(option);
           return command;
         },
         action(fn) {
           command.callback = fn;
+          if (cursor === root) {
+            globalOptions.push(...options);
+          }
           return breadc;
         }
       };
 
-      const node = createTreeNode({
+      const node = makeTreeNode({
         command,
-        init() {},
+        init(context) {
+          initContextOptions(options, context);
+        },
         finish(context) {
           const rest = context.result['--'];
           for (let i = 0; i < args.length; i++) {
@@ -255,7 +326,6 @@ export function breadc(name: string) {
       });
 
       {
-        let cursor = root;
         // 0 -> aaa bbb
         // 1 -> aaa bbb <xxx> <yyy>
         // 2 -> aaa bbb <xxx> <yyy> [zzz]
@@ -309,7 +379,7 @@ export function breadc(name: string) {
               // console.log(name);
               // console.log(cursor);
             } else {
-              const internalNode = createTreeNode({
+              const internalNode = makeTreeNode({
                 next(token, context) {
                   const t = token.raw();
                   context.result['--'].push(t);
@@ -345,8 +415,6 @@ export function breadc(name: string) {
           cursor.init = node.init;
           cursor.finish = node.finish;
         } else {
-          // TODO: handle default command
-          globalOptions.push(...options);
           cursor.finish = node.finish;
         }
       }
@@ -391,6 +459,8 @@ interface Breadc {
 interface Command {
   callback?: ActionFn;
 
+  description: string;
+
   arguments: Argument[];
 
   option(text: string): Command;
@@ -398,7 +468,13 @@ interface Command {
   action(fn: ActionFn): Breadc;
 }
 
-interface Option {}
+interface Option<F extends string = string> {
+  format: F;
+  name: string;
+  short?: string;
+  type: 'boolean' | 'string';
+  description: string;
+}
 
 type Argument =
   | { type: 'const'; name: string }

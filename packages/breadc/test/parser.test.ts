@@ -172,4 +172,45 @@ describe('parser', () => {
     expect(await cli.run(['world'])).toStrictEqual(['world']);
     expect(await cli.run(['hello', 'world'])).toStrictEqual(['hello', 'world']);
   });
+
+  it('should parse options', async () => {
+    const cli = breadc('cli');
+    cli.option('--remote');
+    cli.option('--host <host>');
+    cli.command('').option('--flag').action(DEFAULT_ACTION);
+    // cli.option('--files [...host]');
+
+    expect(await cli.run(['--remote'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "flag": false,
+          "host": "",
+          "remote": true,
+        },
+      ]
+    `);
+
+    expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "flag": true,
+          "host": "",
+          "remote": false,
+        },
+      ]
+    `);
+
+    expect(await cli.run(['--host', '1.1.1.1'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "flag": false,
+          "host": "1.1.1.1",
+          "remote": false,
+        },
+      ]
+    `);
+  });
 });
