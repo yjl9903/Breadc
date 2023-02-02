@@ -16,13 +16,7 @@ const initContextOptions = (options: Option[], context: Context) => {
       context.options.set('no-' + option.name, option);
     }
 
-    const defaultValue =
-      option.type === 'boolean'
-        ? false
-        : option.type === 'string'
-        ? option.value ?? ''
-        : false;
-    context.result.options[option.name] = defaultValue;
+    context.result.options[option.name] = option.initial;
   }
 };
 
@@ -38,8 +32,8 @@ export function breadc(name: string, config: AppOption = {}) {
   });
 
   const breadc: Breadc = {
-    option(text): Breadc {
-      const option = makeOption(text);
+    option(format, config): Breadc {
+      const option = makeOption(format, config);
       globalOptions.push(option);
       return breadc;
     },
@@ -53,8 +47,8 @@ export function breadc(name: string, config: AppOption = {}) {
         callback: undefined,
         description: '',
         arguments: args,
-        option(text) {
-          const option = makeOption(text);
+        option(format, config) {
+          const option = makeOption(format, config);
           options.push(option);
           return command;
         },

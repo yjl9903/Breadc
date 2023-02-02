@@ -313,7 +313,7 @@ describe('Option Parser', () => {
     `);
   });
 
-  it('should parse options', async () => {
+  it('should parse option', async () => {
     const cli = breadc('cli');
     cli.option('--remote');
     cli.option('--host <host>');
@@ -350,6 +350,60 @@ describe('Option Parser', () => {
           "remote": false,
         },
       ]
+    `);
+  });
+
+  it('should parse negtive option', async () => {
+    const cli = breadc('cli');
+    cli.option('--remote', { default: false });
+    cli.option('--local', { default: true });
+    cli.option('--run <path>', { default: './' });
+    cli.command('').action((o) => o);
+
+    expect(await cli.run([])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "local": true,
+        "remote": false,
+        "run": "./",
+      }
+    `);
+
+    expect(await cli.run(['--local'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "local": true,
+        "remote": false,
+        "run": "./",
+      }
+    `);
+
+    expect(await cli.run(['--no-local'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "local": false,
+        "remote": false,
+        "run": "./",
+      }
+    `);
+
+    expect(await cli.run(['--no-local', '--remote'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "local": false,
+        "remote": true,
+        "run": "./",
+      }
+    `);
+
+    expect(await cli.run(['--run', 'abc', '--no-local', '--remote']))
+      .toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "local": false,
+        "remote": true,
+        "run": "abc",
+      }
     `);
   });
 });

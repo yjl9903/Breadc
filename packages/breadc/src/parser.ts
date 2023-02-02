@@ -149,12 +149,12 @@ export function parseOption(token: Token, context: Context) {
       context.result.options[option.name] = !o.startsWith('no-') ? true : false;
     } else if (option.type === 'string') {
       const value = context.lexer.next();
-      if (value !== undefined) {
-        context.result.options[option.name] = value.raw();
-      } else {
+      if (value === undefined || value.isOption()) {
         throw new ParseError(
           `You should provide arguments for ${option.format}`
         );
+      } else {
+        context.result.options[option.name] = value.raw();
       }
     } else {
       throw new ParseError('unimplemented');

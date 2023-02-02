@@ -19,9 +19,12 @@ export interface ParseResult {
 }
 
 export interface Breadc {
-  option(
-    text: string,
-    option?: { description?: string; default?: string }
+  option<
+    F extends string = string,
+    T extends string | boolean = ExtractOptionType<F>
+  >(
+    format: F,
+    option?: OptionOption<T>
   ): Breadc;
 
   command(text: string, option?: { description?: string }): Command;
@@ -38,9 +41,12 @@ export interface Command {
 
   arguments: Argument[];
 
-  option(
-    text: string,
-    option?: { description?: string; default?: string }
+  option<
+    F extends string = string,
+    T extends string | boolean = ExtractOptionType<F>
+  >(
+    format: F,
+    option?: OptionOption<T>
   ): Command;
 
   action(fn: ActionFn): Breadc;
@@ -59,8 +65,14 @@ export interface Option<
   name: string;
   short?: string;
   type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
+  initial: T extends string ? string : T extends boolean ? boolean : never;
   value: T extends string ? string : T extends boolean ? boolean : never;
   description: string;
+}
+
+export interface OptionOption<T extends string | boolean> {
+  default?: T;
+  description?: string;
 }
 
 export type ExtractOptionType<T extends string> =
