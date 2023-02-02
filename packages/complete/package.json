@@ -46,7 +46,7 @@
   "devDependencies": {
     "@types/node": "^18.11.18",
     "breadc": "workspace:*",
-    "vite": "^4.0.4",
+    "vite": "^4.1.1",
     "vitest": "^0.28.3"
   },
   "peerDependencies": {
