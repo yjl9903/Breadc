@@ -1,11 +1,14 @@
-import type { ExtractOptionType, Option } from './types';
+import type { ExtractOptionType, Option, OptionOption } from './types';
 
 import { BreadcError } from './error';
 
 const OptionRE =
   /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[...[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
 
-export function makeOption<F extends string = string>(format: F): Option<F> {
+export function makeOption<
+  F extends string = string,
+  T extends string | boolean = ExtractOptionType<F>
+>(format: F, config: OptionOption<T> = {}): Option<F, T> {
   let name = '';
   let short = undefined;
 
@@ -21,22 +24,28 @@ export function makeOption<F extends string = string>(format: F): Option<F> {
     }
 
     if (match[3]) {
-      return <Option<F, ExtractOptionType<F>>>{
+      return <Option<F, T>>{
         format,
         type: 'string',
+        initial: config.default ?? '',
         value: '',
         name,
         short,
         description: ''
       };
     } else {
-      return <Option<F, ExtractOptionType<F>>>{
+      const initial =
+        config.default === undefined || config.default === null
+          ? false
+          : config.default;
+      return <Option<F, T>>{
         format,
         type: 'boolean',
-        value: true,
+        initial,
+        value: !initial,
         name,
         short,
-        description: ''
+        description: config.description ?? ''
       };
     }
   } else {
