@@ -28,7 +28,6 @@ export function makeOption<
         format,
         type: 'string',
         initial: config.default ?? '',
-        value: '',
         name,
         short,
         description: ''
@@ -42,7 +41,6 @@ export function makeOption<
         format,
         type: 'boolean',
         initial,
-        value: !initial,
         name,
         short,
         description: config.description ?? ''
