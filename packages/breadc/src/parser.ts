@@ -337,13 +337,16 @@ export function breadc(name: string) {
 
         cursor.command = command;
         if (cursor !== root) {
-          // TODO: may be overwriten
+          for (const [key, value] of cursor.children) {
+            node.children.set(key, value);
+          }
           cursor.children = node.children;
-          cursor.init = node.init;
           cursor.next = node.next;
+          cursor.init = node.init;
           cursor.finish = node.finish;
         } else {
           // TODO: handle default command
+          globalOptions.push(...options);
           cursor.finish = node.finish;
         }
       }

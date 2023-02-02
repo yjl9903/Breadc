@@ -132,4 +132,44 @@ describe('parser', () => {
     expect(await cli.run(['dev', 'test'])).toBe(undefined);
     expect(await cli.run(['dev', 'test', '2.2.2.2'])).toBe('2.2.2.2');
   });
+
+  it('should add order sub-commands', async () => {
+    const cli = breadc('cli');
+    cli.command('dev host').action(() => true);
+    cli.command('dev remote <addr>').action((addr) => addr);
+    cli.command('dev').action(() => false);
+    cli.command('dev test [root]').action((addr) => addr);
+
+    expect(await cli.run(['dev'])).toBeFalsy();
+    expect(await cli.run(['dev', 'host'])).toBeTruthy();
+    expect(await cli.run(['dev', 'remote', '1.1.1.1'])).toBe('1.1.1.1');
+    expect(await cli.run(['dev', 'test'])).toBe(undefined);
+    expect(await cli.run(['dev', 'test', '2.2.2.2'])).toBe('2.2.2.2');
+  });
+
+  it('should add default command', async () => {
+    const cli = breadc('cli');
+    cli.command('<message>').action((message) => message);
+    cli.command('dev <root>').action((message) => message);
+    cli.command('dev remote <addr>').action((addr) => addr);
+    expect(await cli.run(['world'])).toBe('world');
+    expect(await cli.run(['build'])).toBe('build');
+    expect(await cli.run(['dev', 'world2'])).toBe('world2');
+    expect(await cli.run(['dev', 'remote', '1.1.1.1'])).toBe('1.1.1.1');
+  });
+
+  it('should add default command with optional args', async () => {
+    const cli = breadc('cli');
+    cli.command('[message]').action((message) => message);
+    expect(await cli.run([])).toBe(undefined);
+    expect(await cli.run(['world'])).toBe('world');
+  });
+
+  it('should add default command with rest args', async () => {
+    const cli = breadc('cli');
+    cli.command('[...message]').action((message) => message);
+    expect(await cli.run([])).toStrictEqual([]);
+    expect(await cli.run(['world'])).toStrictEqual(['world']);
+    expect(await cli.run(['hello', 'world'])).toStrictEqual(['hello', 'world']);
+  });
 });
