@@ -4,25 +4,31 @@ import { ParseError } from './error';
 import { makeOption } from './option';
 import { Context, makeTreeNode, parse } from './parser';
 
+const initContextOptions = (options: Option[], context: Context) => {
+  for (const option of options) {
+    context.options.set(option.name, option);
+    // Append option shortcut
+    if (option.short) {
+      context.options.set(option.short, option);
+    }
+    // Append negative boolean
+    if (option.type === 'boolean') {
+      context.options.set('no-' + option.name, option);
+    }
+
+    const defaultValue =
+      option.type === 'boolean'
+        ? false
+        : option.type === 'string'
+        ? option.value ?? ''
+        : false;
+    context.result.options[option.name] = defaultValue;
+  }
+};
+
 export function breadc(name: string, config: AppOption = {}) {
   const allCommands: Command[] = [];
   const globalOptions: Option[] = [];
-
-  const initContextOptions = (options: Option[], context: Context) => {
-    for (const option of options) {
-      const defaultValue =
-        option.type === 'boolean'
-          ? false
-          : option.type === 'string'
-          ? option.default ?? ''
-          : false;
-      context.options.set(option.name, option);
-      if (option.short) {
-        context.options.set(option.short, option);
-      }
-      context.result.options[option.name] = defaultValue;
-    }
-  };
 
   const root = makeTreeNode({
     init(context) {
