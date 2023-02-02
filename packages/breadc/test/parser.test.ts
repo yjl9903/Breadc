@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { Lexer } from '../src/parser';
+import { Lexer, breadc } from '../src/parser';
 
 describe('lexer', () => {
   it('should list all', () => {
@@ -62,5 +62,74 @@ describe('lexer', () => {
 
     const t8 = lexer.next();
     expect(t8).toBe(undefined);
+  });
+});
+
+describe('parser', () => {
+  const DEFAULT_ACTION = (...args: any[]) => args;
+
+  it('should add simple commands', async () => {
+    const cli = breadc('cli');
+    cli.command('ping').action(DEFAULT_ACTION);
+    cli.command('hello <name>').action(DEFAULT_ACTION);
+    cli.command('test [case]').action(DEFAULT_ACTION);
+    cli.command('run [...cmd]').action(DEFAULT_ACTION);
+
+    expect(await cli.run(['ping'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+        },
+      ]
+    `);
+    expect(await cli.run(['hello', 'XLor'])).toMatchInlineSnapshot(`
+      [
+        "XLor",
+        {
+          "--": [],
+        },
+      ]
+    `);
+    expect(await cli.run(['test'])).toMatchInlineSnapshot(`
+      [
+        undefined,
+        {
+          "--": [],
+        },
+      ]
+    `);
+    expect(await cli.run(['test', 'aplusb'])).toMatchInlineSnapshot(`
+      [
+        "aplusb",
+        {
+          "--": [],
+        },
+      ]
+    `);
+    expect(await cli.run(['run', 'echo', '123'])).toMatchInlineSnapshot(`
+      [
+        [
+          "echo",
+          "123",
+        ],
+        {
+          "--": [],
+        },
+      ]
+    `);
+  });
+
+  it('should add sub-commands', async () => {
+    const cli = breadc('cli');
+    cli.command('dev').action(() => false);
+    cli.command('dev host').action(() => true);
+    cli.command('dev remote <addr>').action((addr) => addr);
+    cli.command('dev test [root]').action((addr) => addr);
+
+    expect(await cli.run(['dev'])).toBeFalsy();
+    expect(await cli.run(['dev', 'host'])).toBeTruthy();
+    expect(await cli.run(['dev', 'remote', '1.1.1.1'])).toBe('1.1.1.1');
+    expect(await cli.run(['dev', 'test'])).toBe(undefined);
+    expect(await cli.run(['dev', 'test', '2.2.2.2'])).toBe('2.2.2.2');
   });
 });
