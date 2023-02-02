@@ -66,7 +66,6 @@ export interface Option<
   short?: string;
   type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
   initial: T extends string ? string : T extends boolean ? boolean : never;
-  value: T extends string ? string : T extends boolean ? boolean : never;
   description: string;
 }
 
