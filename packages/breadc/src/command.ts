@@ -292,8 +292,6 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
           ]),
         ''
       ];
-      // console.log(cursor);
-      // console.log(context);
 
       const text = expandMessage(output).join('\n');
       console.log(text);
