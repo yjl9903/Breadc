@@ -1,1 +1,5 @@
-# Autocompletion support for Breadc
+# @breadc/complete
+
+## License
+
+MIT License © 2023 [XLor](https://github.com/yjl9903)

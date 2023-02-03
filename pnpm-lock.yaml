@@ -37,6 +37,16 @@ importers:
       vite: 4.1.1_@types+node@18.11.18
       vitest: 0.28.3
 
+  packages/color:
+    specifiers:
+      '@types/node': ^18.11.18
+      vite: ^4.1.1
+      vitest: ^0.28.3
+    devDependencies:
+      '@types/node': 18.11.18
+      vite: 4.1.1_@types+node@18.11.18
+      vitest: 0.28.3
+
   packages/complete:
     specifiers:
       '@types/node': ^18.11.18

@@ -1,4 +1,4 @@
-# @breadc/progress
+# @breadc/color
 
 ## License
 
