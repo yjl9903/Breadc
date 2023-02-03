@@ -1,4 +1,4 @@
-import { bold } from 'kolorist';
+import { bold } from '@breadc/color';
 
 import type {
   AppOption,

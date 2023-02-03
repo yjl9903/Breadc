@@ -43,10 +43,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "kolorist": "^1.6.0"
+    "@breadc/color": "workspace:*"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.2",
     "@types/node": "^18.11.18",
     "cac": "^6.7.14",
     "vite": "^4.1.1",

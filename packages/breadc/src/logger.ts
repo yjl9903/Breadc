@@ -1,4 +1,4 @@
-import { blue, gray, red, yellow } from 'kolorist';
+import { blue, gray, red, yellow } from '@breadc/color';
 
 export type LoggerFn = (message: string, ...args: any[]) => void;
 

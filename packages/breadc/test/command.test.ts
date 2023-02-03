@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { options } from '@breadc/color';
+
 import breadc from '../src';
+
+options.enabled = false;
 
 describe('Version Command', () => {
   it('should print unknown version', async () => {
