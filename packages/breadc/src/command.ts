@@ -148,3 +148,26 @@ export function makeCommand<F extends string = string>(
 
   return command;
 }
+
+export function makeHelpCommand(): { option: Option; node: TreeNode } {
+  const option: Option = {
+    format: '-h, --help',
+    name: 'help',
+    short: 'h',
+    type: 'boolean',
+    initial: false,
+    description: 'Print help'
+  };
+
+  const node = makeTreeNode({
+    next() {
+      return false;
+    },
+    finish(context) {}
+  });
+
+  return {
+    option,
+    node
+  };
+}
