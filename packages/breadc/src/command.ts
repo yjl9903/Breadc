@@ -1,4 +1,4 @@
-import { bold } from '@breadc/color';
+import { bold, underline } from '@breadc/color';
 
 import type {
   AppOption,
@@ -283,9 +283,9 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
           if (cmds.length > 0) {
             return [
               '',
-              'Commands:',
+              underline('Commands:'),
               cmds.map((cmd) => [
-                `  ${name} ${bold(cmd.format)}`,
+                `  ${bold(name)} ${bold(cmd.format)}`,
                 cmd.description
               ])
             ];
@@ -294,7 +294,7 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
           }
         },
         '',
-        'Options:',
+        underline('Options:'),
         [...context.options.entries()]
           .filter(([key, op]) => key === op.name)
           .sort((lhs, rhs) => lhs[1].order - rhs[1].order)
