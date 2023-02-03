@@ -1,5 +1,4 @@
-import { AppOption } from './types/breadc';
-import type { Command, Argument, Option } from './types';
+import type { AppOption, Command, Argument, Option } from './types';
 
 import { ParseError } from './error';
 import { TreeNode, makeTreeNode } from './parser';
