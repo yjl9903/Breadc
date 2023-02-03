@@ -474,4 +474,44 @@ describe('Option Parser', () => {
         ]
       `);
   });
+
+  it('should parse string option cast', async () => {
+    const cli = breadc('cli').option('--page <page>', {
+      default: '1',
+      cast: (t) => +t
+    });
+    cli.command('').action((option) => {
+      return option.page;
+    });
+
+    expect(await cli.run([])).toMatchInlineSnapshot('1');
+    expect(await cli.run(['--page', '2'])).toMatchInlineSnapshot('2');
+    expect(await cli.run(['--page=2'])).toMatchInlineSnapshot('2');
+  });
+
+  it('should parse boolean option cast', async () => {
+    const cli = breadc('cli').option('--remote', {
+      cast: (f) => (f ? 'remote' : 'local')
+    });
+    cli.command('').action((option) => {
+      return option.remote;
+    });
+
+    expect(await cli.run([])).toMatchInlineSnapshot('"local"');
+    expect(await cli.run(['--remote'])).toMatchInlineSnapshot('"remote"');
+  });
+
+  it('should parse boolean negative option cast', async () => {
+    const cli = breadc('cli').option('--remote', {
+      default: true,
+      cast: (f) => (f ? 'remote' : 'local')
+    });
+    cli.command('').action((option) => {
+      return option.remote;
+    });
+
+    expect(await cli.run([])).toMatchInlineSnapshot('"remote"');
+    expect(await cli.run(['--remote'])).toMatchInlineSnapshot('"remote"');
+    expect(await cli.run(['--no-remote'])).toMatchInlineSnapshot('"local"');
+  });
 });
