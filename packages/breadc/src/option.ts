@@ -1,10 +1,10 @@
 import type { ExtractOptionType, Option, OptionOption } from './types';
 
 import { Context } from './parser';
+import { camelCase } from './utils';
 import { BreadcError } from './error';
 
-const OptionRE =
-  /^(-[a-zA-Z0-9], )?--([a-zA-Z0-9\-]+)( \[...[a-zA-Z0-9]+\]| <[a-zA-Z0-9]+>)?$/;
+const OptionRE = /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)( <[a-zA-Z0-9\-]+>)?$/;
 
 export function makeOption<
   F extends string = string,
@@ -64,6 +64,6 @@ export const initContextOptions = (options: Option[], context: Context) => {
       context.options.set('no-' + option.name, option);
     }
 
-    context.result.options[option.name] = option.initial;
+    context.result.options[camelCase(option.name)] = option.initial;
   }
 };

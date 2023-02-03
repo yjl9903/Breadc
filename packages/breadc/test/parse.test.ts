@@ -432,6 +432,48 @@ describe('Option Parser', () => {
       ]
     `);
   });
+
+  it('should parse camel case option', async () => {
+    const cli = breadc('cli');
+    cli.option('--allow-page');
+    cli.option('--allow-index', { default: true });
+    cli.option('--page-index <no>', { default: '1' });
+    cli.command('').action(DEFAULT_ACTION);
+
+    expect(await cli.run(['--page-index', '1'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "allowIndex": true,
+          "allowPage": false,
+          "pageIndex": "1",
+        },
+      ]
+    `);
+
+    expect(await cli.run(['--page-index=1'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "allowIndex": true,
+          "allowPage": false,
+          "pageIndex": "1",
+        },
+      ]
+    `);
+
+    expect(await cli.run(['--allow-page', '--no-allow-index']))
+      .toMatchInlineSnapshot(`
+        [
+          {
+            "--": [],
+            "allowIndex": false,
+            "allowPage": true,
+            "pageIndex": "1",
+          },
+        ]
+      `);
+  });
 });
 
 describe('Infer type', () => {

@@ -1,5 +1,6 @@
 import type { ParseResult, Command, Option } from './types';
 
+import { camelCase } from './utils';
 import { ParseError } from './error';
 
 export type TokenType = '--' | '-' | 'number' | 'string' | 'long' | 'short';
@@ -146,13 +147,12 @@ export function parseOption(token: Token, context: Context) {
   const [key, rawV] = o.split('=');
   if (context.options.has(key)) {
     const option = context.options.get(key)!;
+    const name = camelCase(option.name);
     if (option.type === 'boolean') {
-      context.result.options[option.name] = !key.startsWith('no-')
-        ? true
-        : false;
+      context.result.options[name] = !key.startsWith('no-') ? true : false;
     } else if (option.type === 'string') {
       if (rawV !== undefined) {
-        context.result.options[option.name] = rawV;
+        context.result.options[name] = rawV;
       } else {
         const value = context.lexer.next();
         if (value === undefined || value.isOption()) {
@@ -160,7 +160,7 @@ export function parseOption(token: Token, context: Context) {
             `You should provide arguments for ${option.format}`
           );
         } else {
-          context.result.options[option.name] = value.raw();
+          context.result.options[name] = value.raw();
         }
       }
     } else {
