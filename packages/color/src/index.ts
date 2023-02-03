@@ -1,1 +1,1 @@
-export default function progress() {}
+export * from './color';
