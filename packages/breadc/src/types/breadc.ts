@@ -20,6 +20,14 @@ export interface Breadc {
     T extends string | boolean = ExtractOptionType<F>
   >(
     format: F,
+    description?: string,
+    option?: OptionOption<T>
+  ): Breadc;
+  option<
+    F extends string = string,
+    T extends string | boolean = ExtractOptionType<F>
+  >(
+    format: F,
     option?: OptionOption<T>
   ): Breadc;
 
@@ -42,6 +50,14 @@ export interface Command<F extends string = string> {
 
   _options: Option[];
 
+  option<
+    OF extends string = string,
+    OT extends string | boolean = ExtractOptionType<F>
+  >(
+    format: OF,
+    description?: string,
+    option?: OptionOption<OT>
+  ): Command<F>;
   option<
     OF extends string = string,
     OT extends string | boolean = ExtractOptionType<F>

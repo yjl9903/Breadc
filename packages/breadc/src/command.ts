@@ -29,7 +29,11 @@ export function makeCommand<F extends string = string>(
     description: config.description ?? '',
     _arguments: args,
     _options: options,
-    option(format, config) {
+    option(format, _config, _config2: any = {}) {
+      const config =
+        typeof _config === 'string'
+          ? { description: _config, ..._config2 }
+          : _config;
       const option = makeOption(format, config);
       options.push(option);
       return command;
