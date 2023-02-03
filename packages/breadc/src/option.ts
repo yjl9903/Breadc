@@ -31,7 +31,8 @@ export function makeOption<
         initial: config.default ?? '',
         name,
         short,
-        description: ''
+        description: config.description ?? '',
+        order: 0
       };
     } else {
       const initial =
@@ -44,7 +45,8 @@ export function makeOption<
         initial,
         name,
         short,
-        description: config.description ?? ''
+        description: config.description ?? '',
+        order: 0
       };
     }
   } else {

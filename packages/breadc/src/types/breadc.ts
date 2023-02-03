@@ -5,7 +5,7 @@ import type { Letter } from './utils';
 export interface AppOption {
   version?: string;
 
-  description?: string | string[];
+  description?: string;
 
   // help?: string | string[] | (() => string | string[]);
 
@@ -23,7 +23,8 @@ export interface Breadc {
     option?: OptionOption<T>
   ): Breadc;
 
-  command(text: string, option?: { description?: string }): Command;
+  command(format: string, description?: string): Command;
+  command(format: string, option?: CommandOption): Command;
 
   parse(args: string[]): { command?: Command } & ParseResult;
 
@@ -32,6 +33,8 @@ export interface Breadc {
 
 export interface Command<F extends string = string> {
   callback?: ActionFn;
+
+  format: F;
 
   description: string;
 
@@ -50,6 +53,10 @@ export interface Command<F extends string = string> {
   action(fn: ActionFn): void;
 }
 
+export interface CommandOption {
+  description?: string;
+}
+
 export interface Argument {
   type: 'const' | 'require' | 'optional' | 'rest';
   name: string;
@@ -66,6 +73,8 @@ export interface Option<
   // Set initial option value, undefined means not init this option
   initial?: T extends string ? string : T extends boolean ? boolean : never;
   description: string;
+
+  order: number;
 
   // Replace the default option parser behavior
   action?: (

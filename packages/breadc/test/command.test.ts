@@ -63,133 +63,179 @@ describe('Version Command', () => {
 //   });
 // });
 
-// describe('Help command', () => {
-//   it('should print simple help', async () => {
-//     const output: string[] = [];
+describe('Help command', () => {
+  it('should print help', async () => {
+    const cli = breadc('cli', {
+      version: '1.0.0',
+      description: 'This is a cli app.'
+    });
+    cli.command('[root]', 'Start dev server');
+    cli.command('build [root]', 'Build static site');
 
-//     const cli = Breadc('cli', {
-//       version: '1.0.0',
-//       description: 'This is a cli app.',
-//       logger: (message: string) => {
-//         output.push(message);
-//       }
-//     });
-//     cli.command('[root]', 'Start dev server');
-//     cli.command('build [root]', 'Build static site');
+    expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
+      "cli/1.0.0
 
-//     await cli.run(['-h']);
-//     expect(output.join('\n')).toMatchInlineSnapshot(`
-//       "cli/1.0.0
+      This is a cli app.
 
-//       This is a cli app.
+      Commands:
+        cli [root]        Start dev server
+        cli build [root]  Build static site
 
-//       Usage:
-//         $ cli [root]
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
 
-//       Commands:
-//         $ cli [root]        Start dev server
-//         $ cli build [root]  Build static site
+    expect(await cli.run(['--help'])).toMatchInlineSnapshot(`
+      "cli/1.0.0
 
-//       Options:
-//         -h, --help     Display this message
-//         -v, --version  Display version number
-//       "
-//     `);
-//     output.splice(0);
+      This is a cli app.
 
-//     await cli.run(['--help']);
-//     expect(output.join('\n')).toMatchInlineSnapshot(`
-//       "cli/1.0.0
+      Commands:
+        cli [root]        Start dev server
+        cli build [root]  Build static site
 
-//       This is a cli app.
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
 
-//       Usage:
-//         $ cli [root]
+  it('should print command help', async () => {
+    const cli = breadc('cli', {
+      version: '1.0.0',
+      description: 'This is a cli app.'
+    });
+    cli.command('[root]', 'Start dev server');
+    cli.command('build [root]', 'Build static site');
 
-//       Commands:
-//         $ cli [root]        Start dev server
-//         $ cli build [root]  Build static site
+    expect(await cli.run(['build', '--help'])).toMatchInlineSnapshot(`
+      "cli/1.0.0
 
-//       Options:
-//         -h, --help     Display this message
-//         -v, --version  Display version number
-//       "
-//     `);
-//   });
+      This is a cli app.
 
-//   it('should print command help', async () => {
-//     const output: string[] = [];
+      Commands:
+        cli build [root]  Build static site
 
-//     const cli = Breadc('cli', {
-//       version: '1.0.0',
-//       description: 'This is a cli app.',
-//       logger: (message: string) => {
-//         output.push(message);
-//       }
-//     });
-//     cli.command('[root]', 'Start dev server');
-//     cli.command('build [root]', 'Build static site');
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
 
-//     await cli.run(['build', '--help']);
-//     expect(output.join('\n')).toMatchInlineSnapshot(`
-//       "cli/1.0.0
+  it('should print sub-commands help', async () => {
+    const cli = breadc('cli', {
+      version: '1.0.0',
+      description: 'This is a cli app.'
+    });
+    cli.command('file info [path]', 'Get file info');
+    cli.command('store ls [path]', 'List path');
+    cli.command('store rm [path]', 'Remove path');
+    cli.command('store put [path]', 'Put path');
 
-//       Build static site
+    expect(await cli.run(['store', '-h'])).toMatchInlineSnapshot(`
+      "cli/1.0.0
 
-//       Usage:
-//         $ cli build [root]
+      This is a cli app.
 
-//       Options:
-//         -h, --help     Display this message
-//         -v, --version  Display version number
-//       "
-//     `);
-//   });
+      Commands:
+        cli store ls [path]   List path
+        cli store rm [path]   Remove path
+        cli store put [path]  Put path
 
-//   it('should print subcommands help', async () => {
-//     const output: string[] = [];
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
 
-//     const cli = Breadc('cli', {
-//       version: '1.0.0',
-//       description: 'This is a cli app.',
-//       logger: (message: string) => {
-//         output.push(message);
-//       }
-//     });
-//     cli.command('file info [path]', 'Get file info');
-//     cli.command('store ls [path]', 'List path');
-//     cli.command('store rm [path]', 'Remove path');
-//     cli.command('store put [path]', 'Put path');
+    expect(await cli.run(['--help', 'store', 'ls'])).toMatchInlineSnapshot(`
+      "cli/1.0.0
 
-//     await cli.run(['store', '-h']);
-//     expect(output.join('\n')).toMatchInlineSnapshot(`
-//       "cli/1.0.0
+      This is a cli app.
 
-//       Commands:
-//         $ cli store ls [path]   List path
-//         $ cli store rm [path]   Remove path
-//         $ cli store put [path]  Put path
+      Commands:
+        cli file info [path]  Get file info
+        cli store ls [path]   List path
+        cli store rm [path]   Remove path
+        cli store put [path]  Put path
 
-//       Options:
-//         -h, --help     Display this message
-//         -v, --version  Display version number
-//       "
-//     `);
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
 
-//     output.splice(0);
-//     await cli.run(['--help', 'store', 'ls']);
-//     expect(output.join('\n')).toMatchInlineSnapshot(`
-//       "cli/1.0.0
+    expect(await cli.run(['store', 'ls', '-h'])).toMatchInlineSnapshot(`
+      "cli/1.0.0
 
-//       List path
+      This is a cli app.
 
-//       Usage:
-//         $ cli store ls [path]
+      Commands:
+        cli store ls [path]  List path
 
-//       Options:
-//         -h, --help     Display this message
-//         -v, --version  Display version number
-//       "
-//     `);
-//   });
-// });
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
+
+  it('should print options help', async () => {
+    const cli = breadc('cli');
+    cli.option('-h, --host <addr>', { description: 'Host address' });
+    cli.option('--remote', { description: 'Enable remote' });
+
+    expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Options:
+        -h, --host <addr>  Host address
+            --remote       Enable remote
+        -h, --help         Print help
+        -v, --version      Print version
+      "
+    `);
+  });
+
+  it('should print sub-commands options help', async () => {
+    const cli = breadc('cli');
+    cli.option('-h, --host <addr>', { description: 'Host address' });
+    cli.option('--remote', { description: 'Enable remote' });
+    cli
+      .command('build', 'Build static site')
+      .option('-f, --force', { description: 'Enable force mode' });
+
+    expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Commands:
+        cli build  Build static site
+
+      Options:
+        -h, --host <addr>  Host address
+            --remote       Enable remote
+        -h, --help         Print help
+        -v, --version      Print version
+      "
+    `);
+
+    expect(await cli.run(['build', '-h'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Commands:
+        cli build  Build static site
+
+      Options:
+        -h, --host <addr>  Host address
+            --remote       Enable remote
+        -f, --force        Enable force mode
+        -h, --help         Print help
+        -v, --version      Print version
+      "
+    `);
+  });
+});

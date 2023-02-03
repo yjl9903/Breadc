@@ -1,11 +1,21 @@
-import type { AppOption, Command, Argument, Option } from './types';
+import { bold } from 'kolorist';
 
+import type {
+  AppOption,
+  Command,
+  CommandOption,
+  Argument,
+  Option
+} from './types';
+
+import { twoColumn } from './utils';
 import { ParseError } from './error';
-import { TreeNode, makeTreeNode } from './parser';
 import { makeOption, initContextOptions } from './option';
+import { TreeNode, makeTreeNode, Context } from './parser';
 
 export function makeCommand<F extends string = string>(
   format: F,
+  config: CommandOption,
   root: TreeNode
 ): Command {
   let cursor = root;
@@ -15,7 +25,8 @@ export function makeCommand<F extends string = string>(
 
   const command: Command = {
     callback: undefined,
-    description: '',
+    format,
+    description: config.description ?? '',
     _arguments: args,
     _options: options,
     option(format, config) {
@@ -156,6 +167,7 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
       console.log(text);
       return text;
     },
+    format: '-v, --version',
     description: 'Print version',
     _arguments: [],
     _options: [],
@@ -178,6 +190,7 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
     short: 'v',
     type: 'boolean',
     initial: undefined,
+    order: 999999999 + 1,
     description: 'Print version',
     action() {
       return node;
@@ -187,10 +200,116 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
   return option;
 }
 
+type HelpBlcok = string | Array<[string, string]>;
+type HelpMessage = Array<HelpBlcok | (() => HelpBlcok[] | undefined)>;
+
 export function makeHelpCommand(name: string, config: AppOption): Option {
+  function expandMessage(message: HelpMessage) {
+    const result: string[] = [];
+    for (const row of message) {
+      if (typeof row === 'function') {
+        const r = row();
+        if (r) {
+          result.push(...expandMessage(r));
+        }
+      } else if (typeof row === 'string') {
+        result.push(row);
+      } else if (Array.isArray(row)) {
+        const lines = twoColumn(row);
+        for (const line of lines) {
+          result.push(line);
+        }
+      }
+    }
+    return result;
+  }
+
+  function expandCommands(cursor: TreeNode) {
+    const visited = new WeakSet<TreeNode>();
+    const commands: Command[] = cursor.command ? [cursor.command] : [];
+    const q = [cursor];
+    visited.add(cursor);
+
+    for (let i = 0; i < q.length; i++) {
+      const cur = q[i];
+      for (const [_key, cmd] of cur.children) {
+        if (!visited.has(cmd)) {
+          visited.add(cmd);
+          if (cmd.command) {
+            commands.push(cmd.command);
+          }
+          q.push(cmd);
+        }
+      }
+    }
+
+    return commands;
+  }
+
+  function reorderHelpVersion(options: Option[]) {
+    const result: Option[] = [];
+    for (const op of options) {
+      if (op.name === 'help') {
+      } else if (op.name === 'version') {
+      } else {
+        result.push(option);
+      }
+    }
+    return result;
+  }
+
   const command: Command = {
-    callback() {},
-    description: '',
+    callback(option) {
+      // @ts-ignore
+      const context: Context = option.__context__;
+      // @ts-ignore
+      const cursor: TreeNode = option.__cursor__;
+
+      const output: HelpMessage = [
+        `${name}/${config.version ? config.version : 'unknown'}`,
+        () => {
+          if (config.description) {
+            return ['', config.description];
+          } else {
+            return undefined;
+          }
+        },
+        () => {
+          const cmds = expandCommands(cursor);
+          if (cmds.length > 0) {
+            return [
+              '',
+              'Commands:',
+              cmds.map((cmd) => [
+                `  ${name} ${bold(cmd.format)}`,
+                cmd.description
+              ])
+            ];
+          } else {
+            return undefined;
+          }
+        },
+        '',
+        'Options:',
+        [...context.options.entries()]
+          .filter(([key, op]) => key === op.name)
+          .sort((lhs, rhs) => lhs[1].order - rhs[1].order)
+          .map(([_key, op]) => [
+            '  ' + (!op.short ? '    ' : '') + bold(op.format),
+            op.description
+          ]),
+        ''
+      ];
+      // console.log(cursor);
+      // console.log(context);
+
+      const text = expandMessage(output).join('\n');
+      console.log(text);
+
+      return text;
+    },
+    format: '-h, --help',
+    description: 'Print help',
     _arguments: [],
     _options: [],
     option() {
@@ -200,6 +319,7 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
   };
 
   const node = makeTreeNode({
+    command,
     next() {
       return false;
     }
@@ -212,7 +332,12 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
     type: 'boolean',
     initial: undefined,
     description: 'Print help',
-    action() {
+    order: 999999999,
+    action(cursor, _token, context) {
+      // @ts-ignore
+      context.result.options.__cursor__ = cursor;
+      // @ts-ignore
+      context.result.options.__context__ = context;
       return node;
     }
   };
