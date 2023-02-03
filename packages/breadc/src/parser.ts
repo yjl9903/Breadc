@@ -155,12 +155,12 @@ export function parseOption(token: Token, context: Context) {
         context.result.options[name] = rawV;
       } else {
         const value = context.lexer.next();
-        if (value === undefined || value.isOption()) {
+        if (value !== undefined && !value.isOption()) {
+          context.result.options[name] = value.raw();
+        } else {
           throw new ParseError(
             `You should provide arguments for ${option.format}`
           );
-        } else {
-          context.result.options[name] = value.raw();
         }
       }
     } else {
