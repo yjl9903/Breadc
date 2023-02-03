@@ -1,4 +1,4 @@
-import type { ParseResult } from '../parser';
+import type { ParseResult, TreeNode, Context, Token } from '../parser';
 
 import type { Letter } from './utils';
 
@@ -63,8 +63,16 @@ export interface Option<
   name: string;
   short?: string;
   type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
-  initial: T extends string ? string : T extends boolean ? boolean : never;
+  // Set initial option value, undefined means not init this option
+  initial?: T extends string ? string : T extends boolean ? boolean : never;
   description: string;
+
+  // Replace the default option parser behavior
+  action?: (
+    cursor: TreeNode,
+    token: Token,
+    context: Context
+  ) => TreeNode | false;
 }
 
 export interface OptionOption<T extends string | boolean> {
