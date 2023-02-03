@@ -143,18 +143,25 @@ export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
 
 export function parseOption(token: Token, context: Context) {
   const o = token.option();
-  if (context.options.has(o)) {
-    const option = context.options.get(o)!;
+  const [key, rawV] = o.split('=');
+  if (context.options.has(key)) {
+    const option = context.options.get(key)!;
     if (option.type === 'boolean') {
-      context.result.options[option.name] = !o.startsWith('no-') ? true : false;
+      context.result.options[option.name] = !key.startsWith('no-')
+        ? true
+        : false;
     } else if (option.type === 'string') {
-      const value = context.lexer.next();
-      if (value === undefined || value.isOption()) {
-        throw new ParseError(
-          `You should provide arguments for ${option.format}`
-        );
+      if (rawV !== undefined) {
+        context.result.options[option.name] = rawV;
       } else {
-        context.result.options[option.name] = value.raw();
+        const value = context.lexer.next();
+        if (value === undefined || value.isOption()) {
+          throw new ParseError(
+            `You should provide arguments for ${option.format}`
+          );
+        } else {
+          context.result.options[option.name] = value.raw();
+        }
       }
     } else {
       throw new ParseError('unimplemented');
