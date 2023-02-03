@@ -64,6 +64,8 @@ export const initContextOptions = (options: Option[], context: Context) => {
       context.options.set('no-' + option.name, option);
     }
 
-    context.result.options[camelCase(option.name)] = option.initial;
+    if (option.initial !== undefined) {
+      context.result.options[camelCase(option.name)] = option.initial;
+    }
   }
 };

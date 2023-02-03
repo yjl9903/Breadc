@@ -1,13 +1,16 @@
 import type { Breadc, AppOption, Command, Option } from './types';
 
-import { makeCommand } from './command';
+import { makeCommand, makeHelpCommand, makeVersionCommand } from './command';
 import { makeTreeNode, parse } from './parser';
 import { initContextOptions, makeOption } from './option';
 
 export function breadc(name: string, config: AppOption = {}) {
   let defaultCommand: Command | undefined = undefined;
   const allCommands: Command[] = [];
-  const globalOptions: Option[] = [];
+  const globalOptions: Option[] = [
+    makeVersionCommand(name, config),
+    makeHelpCommand(name, config)
+  ];
 
   const root = makeTreeNode({
     init(context) {

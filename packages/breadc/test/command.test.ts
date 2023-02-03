@@ -3,8 +3,19 @@ import { describe, expect, it } from 'vitest';
 import breadc from '../src';
 
 describe('Version Command', () => {
-  it('should print version', () => {
-    const cli = breadc('cli', { version: '0.0.0' });
+  it('should print unknown version', async () => {
+    const cli = breadc('cli');
+    expect(await cli.run(['-v'])).toMatchInlineSnapshot('"cli/unknown"');
+    expect(await cli.run(['--version'])).toMatchInlineSnapshot('"cli/unknown"');
+  });
+
+  it('should print version', async () => {
+    const cli = breadc('cli', {
+      version: '1.0.0'
+    });
+
+    expect(await cli.run(['-v'])).toMatchInlineSnapshot('"cli/1.0.0"');
+    expect(await cli.run(['--version'])).toMatchInlineSnapshot('"cli/1.0.0"');
   });
 });
 
@@ -49,24 +60,6 @@ describe('Version Command', () => {
 //     await cli.run(['hello']);
 //     await cli.run(['echo', ' world']);
 //     expect(text).toBe('hello world');
-//   });
-// });
-
-// describe('Version command', () => {
-//   it('should print version', async () => {
-//     const output: string[] = [];
-//     const cli = Breadc('cli', {
-//       version: '1.0.0',
-//       logger: (message: string) => {
-//         output.push(message);
-//       }
-//     });
-
-//     await cli.run(['-v']);
-//     await cli.run(['--version']);
-
-//     expect(output[0]).toMatchInlineSnapshot('"cli/1.0.0"');
-//     expect(output[1]).toMatchInlineSnapshot('"cli/1.0.0"');
 //   });
 // });
 

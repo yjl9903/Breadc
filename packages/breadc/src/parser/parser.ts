@@ -37,7 +37,9 @@ export function parseOption(
     const option = context.options.get(key)!;
     const name = camelCase(option.name);
 
-    if (option.type === 'boolean') {
+    if (option.action) {
+      return option.action(cursor, token, context);
+    } else if (option.type === 'boolean') {
       context.result.options[name] = !key.startsWith('no-') ? true : false;
     } else if (option.type === 'string') {
       if (rawV !== undefined) {

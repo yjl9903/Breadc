@@ -1,3 +1,4 @@
+import { AppOption } from './types/breadc';
 import type { Command, Argument, Option } from './types';
 
 import { ParseError } from './error';
@@ -149,25 +150,73 @@ export function makeCommand<F extends string = string>(
   return command;
 }
 
-export function makeHelpCommand(): { option: Option; node: TreeNode } {
+export function makeVersionCommand(name: string, config: AppOption): Option {
+  const command: Command = {
+    callback() {
+      const text = `${name}/${config.version ? config.version : 'unknown'}`;
+      console.log(text);
+      return text;
+    },
+    description: 'Print version',
+    _arguments: [],
+    _options: [],
+    option() {
+      return command;
+    },
+    action() {}
+  };
+
+  const node = makeTreeNode({
+    command,
+    next() {
+      return false;
+    }
+  });
+
   const option: Option = {
-    format: '-h, --help',
-    name: 'help',
-    short: 'h',
+    format: '-v, --version',
+    name: 'version',
+    short: 'v',
     type: 'boolean',
-    initial: false,
-    description: 'Print help'
+    initial: undefined,
+    description: 'Print version',
+    action() {
+      return node;
+    }
+  };
+
+  return option;
+}
+
+export function makeHelpCommand(name: string, config: AppOption): Option {
+  const command: Command = {
+    callback() {},
+    description: '',
+    _arguments: [],
+    _options: [],
+    option() {
+      return command;
+    },
+    action() {}
   };
 
   const node = makeTreeNode({
     next() {
       return false;
-    },
-    finish(context) {}
+    }
   });
 
-  return {
-    option,
-    node
+  const option: Option = {
+    format: '-h, --help',
+    name: 'help',
+    short: 'h',
+    type: 'boolean',
+    initial: undefined,
+    description: 'Print help',
+    action() {
+      return node;
+    }
   };
+
+  return option;
 }
