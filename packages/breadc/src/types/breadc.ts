@@ -20,19 +20,21 @@ export interface AppOption {
 export interface Breadc<GlobalOption extends object = {}> {
   option<
     F extends string = string,
-    T extends string | boolean = ExtractOptionType<F>
+    T extends string | boolean = ExtractOptionType<F>,
+    R extends any = ExtractOptionType<F>
   >(
     format: F,
     description?: string,
-    option?: OptionOption<T>
-  ): Breadc<GlobalOption & ExtractOption<F>>;
+    option?: OptionOption<T, R>
+  ): Breadc<GlobalOption & ExtractOption<F, R>>;
   option<
     F extends string = string,
-    T extends string | boolean = ExtractOptionType<F>
+    T extends string | boolean = ExtractOptionType<F>,
+    R extends any = ExtractOptionType<F>
   >(
     format: F,
-    option?: OptionOption<T>
-  ): Breadc<GlobalOption & ExtractOption<F>>;
+    option?: OptionOption<T, R>
+  ): Breadc<GlobalOption & ExtractOption<F, R>>;
 
   command<F extends string = string>(
     format: F,
@@ -65,19 +67,21 @@ export interface Command<
 
   option<
     OF extends string = string,
-    OT extends string | boolean = ExtractOptionType<F>
+    OT extends string | boolean = ExtractOptionType<F>,
+    OR extends any = ExtractOptionType<F>
   >(
     format: OF,
     description?: string,
-    option?: OptionOption<OT>
-  ): Command<F, CommandOption & ExtractOption<OF>, GlobalOption>;
+    option?: OptionOption<OT, OR>
+  ): Command<F, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
   option<
     OF extends string = string,
-    OT extends string | boolean = ExtractOptionType<F>
+    OT extends string | boolean = ExtractOptionType<F>,
+    OR extends any = ExtractOptionType<F>
   >(
     format: OF,
-    option?: OptionOption<OT>
-  ): Command<F, CommandOption & ExtractOption<OF>, GlobalOption>;
+    option?: OptionOption<OT, OR>
+  ): Command<F, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
 
   action(fn: ActionFn<ExtractCommand<F>, CommandOption & GlobalOption>): void;
 }
@@ -93,17 +97,27 @@ export interface Argument {
 
 export interface Option<
   F extends string = string,
-  T extends string | boolean = ExtractOptionType<F>
+  T extends string | boolean = ExtractOptionType<F>,
+  R extends any = T extends string
+    ? string
+    : T extends boolean
+    ? boolean
+    : never
 > {
   format: F;
+  type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
+
   name: string;
   short?: string;
-  type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
-  // Set initial option value, undefined means not init this option
-  initial?: T extends string ? string : T extends boolean ? boolean : never;
   description: string;
-
+  // order in help message
   order: number;
+
+  // Set initial option value, undefined means not init this option
+  initial?: R;
+  cast?: (
+    value: T extends string ? string : T extends boolean ? boolean : never
+  ) => R;
 
   // Replace the default option parser behavior
   action?: (
@@ -113,7 +127,8 @@ export interface Option<
   ) => TreeNode | false;
 }
 
-export interface OptionOption<T extends string | boolean> {
-  default?: T;
+export interface OptionOption<T extends string | boolean, R extends any> {
   description?: string;
+  default?: T;
+  cast?: (value: T) => R;
 }

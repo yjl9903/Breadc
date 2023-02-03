@@ -8,8 +8,9 @@ const OptionRE = /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)( <[a-zA-Z0-9\-]+>)?$/;
 
 export function makeOption<
   F extends string = string,
-  T extends string | boolean = ExtractOptionType<F>
->(format: F, config: OptionOption<T> = {}): Option<F, T> {
+  T extends string | boolean = ExtractOptionType<F>,
+  R extends any = any
+>(format: F, config: OptionOption<T, R> = {}): Option<F, T> {
   let name = '';
   let short = undefined;
 
@@ -25,14 +26,17 @@ export function makeOption<
     }
 
     if (match[3]) {
+      const initial = config.default ?? '';
       return <Option<F, T>>{
         format,
         type: 'string',
-        initial: config.default ?? '',
         name,
         short,
         description: config.description ?? '',
-        order: 0
+        order: 0,
+        // @ts-ignore
+        initial: config.cast ? config.cast(initial) : initial,
+        cast: config.cast
       };
     } else {
       const initial =
@@ -42,11 +46,13 @@ export function makeOption<
       return <Option<F, T>>{
         format,
         type: 'boolean',
-        initial,
         name,
         short,
         description: config.description ?? '',
-        order: 0
+        order: 0,
+        // @ts-ignore
+        initial: config.cast ? config.cast(initial) : initial,
+        cast: config.cast
       };
     }
   } else {

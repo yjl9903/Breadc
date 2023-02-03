@@ -4,10 +4,9 @@ const cli = breadc('genType');
 
 cli
   .command('<maxDep>')
-  .option('--command-dep <number>', { default: '3' })
-  .action((_maxDep, option) => {
+  .option('--command-dep <number>', { default: '3', cast: (t) => +t })
+  .action((_maxDep, { commandDep }) => {
     const maxDep = +_maxDep;
-    const commandDep = +option.commandDep;
     const ans: string[][] = [];
 
     for (let dep = maxDep; dep >= 1; dep--) {

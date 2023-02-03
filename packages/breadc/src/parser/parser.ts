@@ -57,6 +57,10 @@ export function parseOption(
     } else {
       throw new ParseError('unimplemented');
     }
+
+    if (option.cast) {
+      context.result.options[name] = option.cast(context.result.options[name]);
+    }
   } else {
     throw new ParseError(`Unknown option ${token.raw()}`);
   }
