@@ -39,11 +39,11 @@ export interface Breadc<GlobalOption extends object = {}> {
   command<F extends string = string>(
     format: F,
     description?: string
-  ): Command<F, {}, GlobalOption>;
+  ): Command<F, ExtractCommand<F>, {}, GlobalOption>;
   command<F extends string = string>(
     format: F,
     option?: CommandOption
-  ): Command<F, {}, GlobalOption>;
+  ): Command<F, ExtractCommand<F>, {}, GlobalOption>;
 
   parse(args: string[]): { command?: Command } & ParseResult;
 
@@ -52,6 +52,7 @@ export interface Breadc<GlobalOption extends object = {}> {
 
 export interface Command<
   F extends string = string,
+  AT extends any[] = ExtractCommand<F>,
   CommandOption extends object = {},
   GlobalOption extends object = {}
 > {
@@ -73,7 +74,7 @@ export interface Command<
     format: OF,
     description?: string,
     option?: OptionOption<OT, OR>
-  ): Command<F, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
+  ): Command<F, AT, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
   option<
     OF extends string = string,
     OT extends string | boolean = ExtractOptionType<F>,
@@ -81,9 +82,9 @@ export interface Command<
   >(
     format: OF,
     option?: OptionOption<OT, OR>
-  ): Command<F, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
+  ): Command<F, AT, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
 
-  action(fn: ActionFn<ExtractCommand<F>, CommandOption & GlobalOption>): void;
+  action(fn: ActionFn<AT, CommandOption & GlobalOption>): void;
 }
 
 export interface CommandOption {

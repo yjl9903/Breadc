@@ -4,6 +4,7 @@ node_modules
 # Build output
 dist
 .turbo
+tsconfig.vitest-temp.json
 
 # Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
