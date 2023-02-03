@@ -406,6 +406,32 @@ describe('Option Parser', () => {
       }
     `);
   });
+
+  it('should parse string option', async () => {
+    const cli = breadc('cli');
+    cli.option('--flag');
+    cli.option('--host <addr>');
+    cli.command('').action(DEFAULT_ACTION);
+
+    expect(await cli.run(['--host', '1.1.1.1'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "flag": false,
+          "host": "1.1.1.1",
+        },
+      ]
+    `);
+    expect(await cli.run(['--host=1.1.1.1', '--flag'])).toMatchInlineSnapshot(`
+      [
+        {
+          "--": [],
+          "flag": true,
+          "host": "1.1.1.1",
+        },
+      ]
+    `);
+  });
 });
 
 describe('Infer type', () => {
