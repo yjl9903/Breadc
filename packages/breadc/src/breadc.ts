@@ -57,6 +57,7 @@ export function breadc(name: string, config: AppOption = {}) {
       const command = result.command;
       if (command) {
         if (command.callback) {
+          // @ts-ignore
           return command.callback(...result.arguments, {
             ...result.options,
             '--': result['--']
