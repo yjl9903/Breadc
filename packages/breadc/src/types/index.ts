@@ -34,7 +34,7 @@ export interface Breadc {
   run<T = any>(args: string[]): Promise<T>;
 }
 
-export interface Command {
+export interface Command<F extends string = string> {
   callback?: ActionFn;
 
   description: string;
@@ -44,12 +44,12 @@ export interface Command {
   _options: Option[];
 
   option<
-    F extends string = string,
-    T extends string | boolean = ExtractOptionType<F>
+    OF extends string = string,
+    OT extends string | boolean = ExtractOptionType<F>
   >(
-    format: F,
-    option?: OptionOption<T>
-  ): Command;
+    format: OF,
+    option?: OptionOption<OT>
+  ): Command<F>;
 
   action(fn: ActionFn): void;
 }
