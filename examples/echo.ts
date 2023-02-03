@@ -2,7 +2,7 @@ import breadc from '../packages/breadc/src';
 
 const cli = breadc('echo', { version: '1.0.0' })
   .option('--host <host>', { default: 'localhost' })
-  .option('--port <port>', { default: '3000' });
+  .option('--port <port>', { default: '3000', cast: (t) => +t });
 
 cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(message ?? 'You can say anything!');
@@ -12,5 +12,4 @@ cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(`Port: ${port}`);
 });
 
-cli.run(process.argv.slice(2));
-// .catch((err) => cli.logger.error(err.message));
+cli.run(process.argv.slice(2)).catch((err) => console.error(err));
