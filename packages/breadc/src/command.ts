@@ -250,18 +250,6 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
     return commands;
   }
 
-  function reorderHelpVersion(options: Option[]) {
-    const result: Option[] = [];
-    for (const op of options) {
-      if (op.name === 'help') {
-      } else if (op.name === 'version') {
-      } else {
-        result.push(option);
-      }
-    }
-    return result;
-  }
-
   const command: Command = {
     callback(option) {
       // @ts-ignore
@@ -283,7 +271,7 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
           if (cmds.length > 0) {
             return [
               '',
-              underline('Commands:'),
+              bold(underline('Commands:')),
               cmds.map((cmd) => [
                 `  ${bold(name)} ${bold(cmd.format)}`,
                 cmd.description
@@ -294,7 +282,7 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
           }
         },
         '',
-        underline('Options:'),
+        bold(underline('Options:')),
         [...context.options.entries()]
           .filter(([key, op]) => key === op.name)
           .sort((lhs, rhs) => lhs[1].order - rhs[1].order)
