@@ -1,6 +1,11 @@
 import type { ParseResult, TreeNode, Context, Token } from '../parser';
 
-import type { Letter } from './utils';
+import type {
+  ActionFn,
+  ExtractCommand,
+  ExtractOption,
+  ExtractOptionType
+} from './extract';
 
 export interface AppOption {
   version?: string;
@@ -12,9 +17,7 @@ export interface AppOption {
   // logger?: Partial<Logger> | LoggerFn;
 }
 
-export type ActionFn = (...args: any[]) => any;
-
-export interface Breadc {
+export interface Breadc<GlobalOption extends object = {}> {
   option<
     F extends string = string,
     T extends string | boolean = ExtractOptionType<F>
@@ -22,25 +25,35 @@ export interface Breadc {
     format: F,
     description?: string,
     option?: OptionOption<T>
-  ): Breadc;
+  ): Breadc<GlobalOption & ExtractOption<F>>;
   option<
     F extends string = string,
     T extends string | boolean = ExtractOptionType<F>
   >(
     format: F,
     option?: OptionOption<T>
-  ): Breadc;
+  ): Breadc<GlobalOption & ExtractOption<F>>;
 
-  command(format: string, description?: string): Command;
-  command(format: string, option?: CommandOption): Command;
+  command<F extends string = string>(
+    format: F,
+    description?: string
+  ): Command<F, {}, GlobalOption>;
+  command<F extends string = string>(
+    format: F,
+    option?: CommandOption
+  ): Command<F, {}, GlobalOption>;
 
   parse(args: string[]): { command?: Command } & ParseResult;
 
   run<T = any>(args: string[]): Promise<T>;
 }
 
-export interface Command<F extends string = string> {
-  callback?: ActionFn;
+export interface Command<
+  F extends string = string,
+  CommandOption extends object = {},
+  GlobalOption extends object = {}
+> {
+  callback?: ActionFn<ExtractCommand<F>, CommandOption & GlobalOption>;
 
   format: F;
 
@@ -57,16 +70,16 @@ export interface Command<F extends string = string> {
     format: OF,
     description?: string,
     option?: OptionOption<OT>
-  ): Command<F>;
+  ): Command<F, CommandOption & ExtractOption<OF>, GlobalOption>;
   option<
     OF extends string = string,
     OT extends string | boolean = ExtractOptionType<F>
   >(
     format: OF,
     option?: OptionOption<OT>
-  ): Command<F>;
+  ): Command<F, CommandOption & ExtractOption<OF>, GlobalOption>;
 
-  action(fn: ActionFn): void;
+  action(fn: ActionFn<ExtractCommand<F>, CommandOption & GlobalOption>): void;
 }
 
 export interface CommandOption {
@@ -104,14 +117,3 @@ export interface OptionOption<T extends string | boolean> {
   default?: T;
   description?: string;
 }
-
-export type ExtractOptionType<T extends string> =
-  T extends `-${Letter}, --${infer R} <${infer U}>`
-    ? string
-    : T extends `-${Letter}, --${infer R}`
-    ? boolean
-    : T extends `--${infer R} <${infer U}>`
-    ? string
-    : T extends `--${infer R}`
-    ? boolean
-    : string | boolean;

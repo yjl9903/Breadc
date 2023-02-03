@@ -58,4 +58,4 @@ export type Uppercase =
 
 export type Letter = Lowercase | Uppercase;
 
-export type Push<T extends any[], U, R> = [...T, U, R];
+export type Dash = '-';
