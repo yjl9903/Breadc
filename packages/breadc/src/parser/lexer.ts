@@ -73,7 +73,7 @@ export class Lexer {
   }
 
   public hasNext(): boolean {
-    return this.cursor + 1 < this.rawArgs.length;
+    return this.cursor < this.rawArgs.length;
   }
 
   public peek(): Token | undefined {

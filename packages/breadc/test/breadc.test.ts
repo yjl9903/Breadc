@@ -477,6 +477,33 @@ describe('Plugin', () => {
     expect(output[1]).toBe(2);
     expect(output[2]).toBeUndefined();
   });
+
+  it('should match sub command', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreCommand: {
+            send: () => {
+              output.push(1);
+            }
+          },
+          onPostCommand: {
+            sendMessage: () => {
+              output.push(2);
+            }
+          }
+        }
+      ]
+    });
+    cli.command('echo').action(() => 0);
+    cli.command('send message').action(() => 0);
+    await cli.run(['echo']);
+    await cli.run(['send', 'message']);
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBe(2);
+    expect(output[2]).toBeUndefined();
+  });
 });
 
 // describe('Warnings', () => {

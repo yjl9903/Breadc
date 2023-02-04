@@ -209,6 +209,7 @@ describe('Help command', () => {
     cli.option('--remote', { description: 'Enable remote' });
     cli
       .command('build', 'Build static site')
+      .option('-t, --test', 'Perform test', {})
       .option('-f, --force', { description: 'Enable force mode' });
 
     expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
@@ -234,6 +235,7 @@ describe('Help command', () => {
       Options:
         -h, --host <addr>  Host address
             --remote       Enable remote
+        -t, --test         Perform test
         -f, --force        Enable force mode
         -h, --help         Print help
         -v, --version      Print version
