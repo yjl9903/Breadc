@@ -7,13 +7,13 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
 
   for (const plugin of plugins) {
     for (const [key, fn] of Object.entries(plugin.onPreCommand ?? {})) {
-      if (key in onPreCommand) {
+      if (!(key in onPreCommand)) {
         onPreCommand[key] = [];
       }
       onPreCommand[key]!.push(fn);
     }
     for (const [key, fn] of Object.entries(plugin.onPostCommand ?? {})) {
-      if (key in onPostCommand) {
+      if (!(key in onPostCommand)) {
         onPostCommand[key] = [];
       }
       onPostCommand[key]!.push(fn);

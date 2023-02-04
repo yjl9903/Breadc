@@ -363,6 +363,31 @@ describe('Plugin', () => {
     expect(output[1]).toBe(2);
     expect(output[2]).toBeUndefined();
   });
+
+  it('should match command', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreCommand: {
+            '*': () => {
+              output.push(1);
+            }
+          },
+          onPostCommand: {
+            '*': () => {
+              output.push(2);
+            }
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBe(2);
+    expect(output[2]).toBeUndefined();
+  });
 });
 
 // describe('Warnings', () => {
