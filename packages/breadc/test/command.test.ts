@@ -163,7 +163,7 @@ describe('Help command', () => {
 
   it('should print sub-commands options help', async () => {
     const cli = breadc('cli');
-    cli.option('-h, --host <addr>', { description: 'Host address' });
+    cli.option('-h, --host <addr>', 'Host address');
     cli.option('--remote', { description: 'Enable remote' });
     cli
       .command('build', 'Build static site')

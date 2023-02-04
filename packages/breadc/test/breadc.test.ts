@@ -213,6 +213,11 @@ describe('Breadc', () => {
 });
 
 describe('Breadc Error', () => {
+  it('should match a command', async () => {
+    const cli = breadc('cli');
+    expect(await cli.run([])).toBeUndefined();
+  });
+
   it('has wrong command format', () => {
     const cli = breadc('cli');
     expect(() => cli.command('[abc] abc')).toThrowErrorMatchingInlineSnapshot(
@@ -273,6 +278,9 @@ describe('Breadc Error', () => {
       cli.option('--root <...files>')
     ).toThrowErrorMatchingInlineSnapshot(
       '"Can not parse option format (--root <...files>)"'
+    );
+    expect(() => cli.option('--no-root')).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (--no-root)"'
     );
   });
 });
