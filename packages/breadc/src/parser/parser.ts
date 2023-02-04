@@ -54,8 +54,8 @@ export function parseOption(
           );
         }
       }
+      /* c8 ignore next 3 */
     } else {
-      /* c8 ignore next 1 */
       throw new ParseError('unreachable');
     }
 
@@ -100,8 +100,8 @@ export function parse(root: TreeNode, args: string[]) {
       } else {
         cursor = res;
       }
+      /* c8 ignore next 3 */
     } else {
-      /* c8 ignore next 1 */
       throw new ParseError('unreachable');
     }
   }

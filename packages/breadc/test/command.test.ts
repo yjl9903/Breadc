@@ -91,7 +91,7 @@ describe('Help command', () => {
       version: '1.0.0',
       description: 'This is a cli app.'
     });
-    cli.command('file info [path]', 'Get file info');
+    cli.command('file info [path]', { description: 'Get file info' });
     cli.command('store ls [path]', 'List path');
     cli.command('store rm [path]', 'Remove path');
     cli.command('store put [path]', 'Put path');
