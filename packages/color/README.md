@@ -1,9 +1,11 @@
-# @breadc/progress
+# @breadc/color
+
+![example](../../images/color.png)
 
 ## Installation
 
 ```bash
-npm i @breadc/progress
+npm i @breadc/color
 ```
 
 ## License

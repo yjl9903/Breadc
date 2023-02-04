@@ -1,14 +1,12 @@
 {
-  "name": "breadc",
+  "name": "@breadc/color",
   "version": "0.7.0",
-  "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
+  "description": "Terminal color for Breadc",
   "keywords": [
     "breadc",
+    "progress",
     "cli",
-    "framework",
-    "command-line",
-    "minimist",
-    "typescript"
+    "command-line"
   ],
   "homepage": "https://github.com/yjl9903/Breadc#readme",
   "bugs": {
@@ -36,22 +34,13 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "coverage": "vitest run --coverage",
     "format": "prettier --write src/**/*.ts test/*.ts",
     "test": "vitest",
-    "test:bench": "vitest bench",
     "test:ci": "vitest --run",
-    "test:coverage": "vitest run --coverage",
-    "test:typecheck": "vitest typecheck",
-    "typecheck": "tsc --noEmit && vitest typecheck --run"
-  },
-  "dependencies": {
-    "@breadc/color": "workspace:*"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",
-    "@vitest/coverage-c8": "^0.28.4",
-    "cac": "^6.7.14",
-    "vitest": "0.28.3"
+    "vitest": "^0.28.3"
   }
 }

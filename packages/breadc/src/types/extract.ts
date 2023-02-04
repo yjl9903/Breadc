@@ -1,53 +1,31 @@
-import kolorist from 'kolorist';
-
-import type { Command } from './command';
-
-export interface AppOption {
-  version?: string;
-
-  description?: string | string[];
-
-  help?: string | string[] | (() => string | string[]);
-
-  logger?: Partial<Logger> | LoggerFn;
-}
-
-export type LoggerFn = (message: string, ...args: any[]) => void;
-
-export interface Logger {
-  println: LoggerFn;
-  info: LoggerFn;
-  warn: LoggerFn;
-  error: LoggerFn;
-  debug: LoggerFn;
-}
-
-export interface ParseResult {
-  command: Command | undefined;
-  arguments: any[];
-  options: Record<string, string>;
-  '--': string[];
-}
-
-export type ExtractOption<T extends string, D = undefined> = {
-  [k in ExtractOptionName<T>]: D extends undefined ? ExtractOptionType<T> : D;
-};
+import type { Letter } from './utils';
 
 /**
- * Extract option name type
+ * Extract option type, boolean or string
+ */
+export type ExtractOptionType<T extends string> =
+  T extends `-${Letter}, --${infer R} <${infer U}>`
+    ? string
+    : T extends `-${Letter}, --${infer R}`
+    ? boolean
+    : T extends `--${infer R} <${infer U}>`
+    ? string
+    : T extends `--${infer R}`
+    ? boolean
+    : string | boolean;
+
+/**
+ * Extract option raw name
  *
  * Examples:
  * + const t1: ExtractOption<'--option' | '--hello'> = 'hello'
  * + const t2: ExtractOption<'-r, --root'> = 'root'
+ * + const t3: ExtractOption<'--page-index'> = 'pageIndex'
  */
-export type ExtractOptionName<T extends string> =
-  T extends `-${Letter}, --${infer R} [${infer U}]`
-    ? R
-    : T extends `-${Letter}, --${infer R} <${infer U}>`
+export type ExtractOptionRawName<T extends string> =
+  T extends `-${Letter}, --${infer R} <${infer U}>`
     ? R
     : T extends `-${Letter}, --${infer R}`
-    ? R
-    : T extends `--${infer R} [${infer U}]`
     ? R
     : T extends `--${infer R} <${infer U}>`
     ? R
@@ -55,87 +33,29 @@ export type ExtractOptionName<T extends string> =
     ? R
     : never;
 
-export type ExtractOptionType<T extends string> =
-  T extends `-${Letter}, --${infer R} [${infer U}]`
-    ? string | undefined
-    : T extends `-${Letter}, --${infer R} <${infer U}>`
-    ? string | boolean
-    : T extends `-${Letter}, --${infer R}`
-    ? boolean
-    : T extends `--${infer R} [${infer U}]`
-    ? string | undefined
-    : T extends `--${infer R} <${infer U}>`
-    ? string | boolean
-    : T extends `--${infer R}`
-    ? boolean
-    : never;
+/**
+ * Extrat camel case option name
+ */
+export type ExtractOptionName<
+  T extends string,
+  R extends string = ExtractOptionRawName<T>
+> = R extends `${infer P1}-${infer P2}-${infer P3}`
+  ? `${P1}${Capitalize<P2>}${Capitalize<P3>}`
+  : R extends `${infer P1}-${infer P2}`
+  ? `${P1}${Capitalize<P2>}`
+  : R;
 
-type Digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+/**
+ * Extract option information
+ */
+export type ExtractOption<T extends string, D = undefined> = {
+  [k in ExtractOptionName<T>]: D extends undefined ? ExtractOptionType<T> : D;
+};
 
-type Lowercase =
-  | 'a'
-  | 'b'
-  | 'c'
-  | 'd'
-  | 'e'
-  | 'f'
-  | 'g'
-  | 'h'
-  | 'i'
-  | 'j'
-  | 'k'
-  | 'l'
-  | 'm'
-  | 'n'
-  | 'o'
-  | 'p'
-  | 'q'
-  | 'r'
-  | 's'
-  | 't'
-  | 'u'
-  | 'v'
-  | 'w'
-  | 'x'
-  | 'y'
-  | 'z';
-
-type Uppercase =
-  | 'A'
-  | 'B'
-  | 'C'
-  | 'D'
-  | 'E'
-  | 'F'
-  | 'G'
-  | 'H'
-  | 'I'
-  | 'J'
-  | 'K'
-  | 'L'
-  | 'M'
-  | 'N'
-  | 'O'
-  | 'P'
-  | 'Q'
-  | 'R'
-  | 'S'
-  | 'T'
-  | 'U'
-  | 'V'
-  | 'W'
-  | 'X'
-  | 'Y'
-  | 'Z';
-
-type Letter = Lowercase | Uppercase;
-
-type Push<T extends any[], U, R> = [...T, U, R];
-
-type Context = { logger: Logger; color: typeof kolorist };
+export type Push<T extends any[], U, R> = [...T, U, R];
 
 export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
-  ...arg: Push<T, Option & { '--': string[] }, Context>
+  ...arg: Push<T, Option & { '--': string[] }, {}>
 ) => R | Promise<R>;
 
 /**
@@ -237,11 +157,3 @@ export type ExtractCommand<T extends string> =
     : T extends ``
     ? []
     : never;
-
-export type ExtractArgument<T extends string> = T extends `<${infer R}>`
-  ? string
-  : T extends `[...${infer R}]`
-  ? string[]
-  : T extends `[${infer R}]`
-  ? string | undefined
-  : never;

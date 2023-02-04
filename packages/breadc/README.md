@@ -2,12 +2,12 @@
 
 [![version](https://img.shields.io/npm/v/breadc?color=rgb%2850%2C203%2C86%29&label=Breadc)](https://www.npmjs.com/package/breadc) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 
-Yet another Command Line Application Framework powered by [minimist](https://www.npmjs.com/package/minimist), but with fully strong [TypeScript](https://www.typescriptlang.org/) support.
+Yet another Command Line Application Framework with fully strong [TypeScript](https://www.typescriptlang.org/) support.
 
 ## Features
 
 + ⚡️ **Light-weight**: Only 40 kB (Unpacked).
-+ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `Breadc`, `command`, `option`, `action`, `run`.
++ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `breadc`, `command`, `option`, `action`, `run`.
 + 💻 **TypeScript Infer**: IDE will automatically infer the type of your command action function.
 
 ## Installation
@@ -21,23 +21,22 @@ npm i breadc
 Try [./examples/echo.ts](./examples/echo.ts).
 
 ```ts
-import Breadc from 'breadc'
+import breadc from 'breadc'
 
-const cli = Breadc('echo', { version: '1.0.0' })
-  .option('--host [host]', { default: 'localhost' })
-  .option('--port [port]', { construct: (port) => (port ? +port : 3000) });
+const cli = breadc('echo', { version: '1.0.0' })
+  .option('--host <host>', { default: 'localhost' })
+  .option('--port <port>', { default: '3000', cast: p => +p })
 
 cli
   .command('[message]', 'Say something!')
   .action((message, option) => {
-    const host = option.host;
-    const port = option.port;
-    console.log(`Host: ${host}`);
-    console.log(`Port: ${port}`);
+    const host = option.host
+    const port = option.port
+    console.log(`Host: ${host}`)
+    console.log(`Port: ${port}`)
   })
 
-cli.run(process.argv.slice(2))
-  .catch(err => cli.logger.error(err.message))
+cli.run(process.argv.slice(2)).catch(err => console.error(err))
 ```
 
 If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), input something using `option`, and then you will find the `option` is automatically typed with `{ host: string, port: number }`. In the figure below, [Visual Studio Code](https://code.visualstudio.com/) will automatically infer that the type of `option.host` is `string` and the type of `option.port` is `number`.
@@ -71,4 +70,4 @@ cli
 
 ## License
 
-MIT License © 2021 [XLor](https://github.com/yjl9903)
+MIT License © 2023 [XLor](https://github.com/yjl9903)

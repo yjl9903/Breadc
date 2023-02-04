@@ -31,4 +31,13 @@ jobs:
         run: pnpm build
 
       - name: Test
-        run: pnpm test:ci
+        run: |
+          pnpm test:ci
+          pnpm test:coverage
+      
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          verbose: true
+          file: ./packages/breadc/coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}

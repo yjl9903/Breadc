@@ -9,9 +9,14 @@
       "inputs": ["src/**/*.ts", "test/**/*.ts"]
     },
     "typecheck": {
+      "dependsOn": ["build"],
       "inputs": ["src/**/*.ts", "test/**/*.ts"]
     },
     "test:ci": {
+      "dependsOn": ["build", "typecheck"],
+      "inputs": ["src/**/*.ts", "test/**/*.ts"]
+    },
+    "test:coverage": {
       "dependsOn": ["build", "typecheck"],
       "inputs": ["src/**/*.ts", "test/**/*.ts"]
     },

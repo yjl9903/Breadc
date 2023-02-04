@@ -1,13 +1,11 @@
 import { bench, describe } from 'vitest';
 
 import cac from 'cac';
-import Breadc from '../src';
-
-import { breadc } from '../src/parser';
+import breadc from '../src';
 
 describe('Init empty cli', () => {
   bench('Breadc', () => {
-    Breadc('cli', { version: '0.0.0', description: 'This is an empty cli' });
+    breadc('cli', { version: '0.0.0', description: 'This is an empty cli' });
   });
 
   bench('cac', () => {
@@ -15,25 +13,16 @@ describe('Init empty cli', () => {
     cli.help();
     cli.version('0.0.0');
   });
-
-  bench('Breadc Experimental', () => {
-    breadc('cli');
-  });
 });
 
-describe('Parse option', () => {
-  const b = Breadc('cli');
+describe('Parse simple option', () => {
+  const b = breadc('cli');
   b.option('--flag')
     .command('')
     .action(() => {});
 
   const c = cac('cli');
   c.option('--flag', '')
-    .command('')
-    .action(() => {});
-
-  const d = breadc('cli');
-  d.option('--flag')
     .command('')
     .action(() => {});
 
@@ -46,23 +35,26 @@ describe('Parse option', () => {
   bench('cac', () => {
     c.parse(args);
   });
-
-  bench('Breadc Experimental', () => {
-    d.parse(args);
-  });
 });
 
-describe('Parse array', () => {
-  const b = Breadc('cli');
-  b.command('[...files]').action(() => {});
+describe('Parse more option', () => {
+  const b = breadc('cli');
+  b.option('--flag')
+    .option('--host <addr>')
+    .option('--local')
+    .option('--root <root>')
+    .command('')
+    .action(() => {});
 
   const c = cac('cli');
-  c.command('[...files]').action(() => {});
+  c.option('--flag', '')
+    .option('--host <addr>', '')
+    .option('--local', '')
+    .option('--root <root>', '')
+    .command('')
+    .action(() => {});
 
-  const d = breadc('cli');
-  d.command('[...files]').action(() => {});
-
-  const args = ['a', 'b', 'c', 'd'];
+  const args = ['--flag', '--host', '1.1.1.1', '--local', '--root=./'];
 
   bench('Breadc', () => {
     b.parse(args);
@@ -71,8 +63,44 @@ describe('Parse array', () => {
   bench('cac', () => {
     c.parse(args);
   });
+});
 
-  bench('Breadc Experimental', () => {
-    d.parse(args);
+describe('Parse sub-commands', () => {
+  const action = () => {};
+
+  bench('Breadc', () => {
+    const b = breadc('cli');
+    b.command('[op]').action(action);
+    b.command('dev').action(action);
+    b.command('build <root>').action(action);
+    b.command('preview').action(action);
+    b.command('test [case]').action(action);
+    b.command('run [...args]').action(action);
+
+    b.parse(['op']);
+    b.parse(['dev']);
+    b.parse(['build', 'root']);
+    b.parse(['preview']);
+    b.parse(['test']);
+    b.parse(['test', '1']);
+    b.parse(['run', 'a', 'b', 'c', 'd', 'e']);
+  });
+
+  bench('cac', () => {
+    const c = cac('cli');
+    c.command('[op]').action(action);
+    c.command('dev').action(action);
+    c.command('build <root>').action(action);
+    c.command('preview').action(action);
+    c.command('test [case]').action(action);
+    c.command('run [...args]').action(action);
+
+    c.parse(['op']);
+    c.parse(['dev']);
+    c.parse(['build', 'root']);
+    c.parse(['preview']);
+    c.parse(['test']);
+    c.parse(['test', '1']);
+    c.parse(['run', 'a', 'b', 'c', 'd', 'e']);
   });
 });

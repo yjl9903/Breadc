@@ -1,16 +1,18 @@
-import type { AppOption } from './types';
+import { breadc } from './breadc';
 
-import { Breadc } from './breadc';
+export type {
+  AppOption,
+  Breadc,
+  Command,
+  Option,
+  Argument,
+  Plugin
+} from './types';
 
-export type { Breadc };
+export { breadc } from './breadc';
 
-export type { Command, CommandConfig } from './command';
+export { definePlugin } from './plugin';
 
-export type { Option, OptionConfig } from './option';
+export { ParseError, BreadcError } from './error';
 
-export default function breadc<T extends object = {}>(
-  name: string,
-  option: AppOption = {}
-): Breadc<T> {
-  return new Breadc(name, option);
-}
+export default breadc;

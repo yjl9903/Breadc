@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import Breadc from '../src';
+import breadc from '../src';
 
-describe('Run Breadc', () => {
+describe('Breadc', () => {
   it('should run sub commands', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli.command('pages build');
     cli.command('pages dev [...files]').action((files) => files);
 
@@ -21,7 +21,7 @@ describe('Run Breadc', () => {
   });
 
   it('should parse rest arguments', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli.command('[...]').action((files) => files);
     expect(await cli.run(['a', 'b', 'c', 'd', 'e'])).toMatchInlineSnapshot(`
       [
@@ -35,7 +35,7 @@ describe('Run Breadc', () => {
   });
 
   it('should parse one argument and rest arguments', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli.command('<root> [...]').action((root, files) => {
       expect(root).toMatchInlineSnapshot('"a"');
       expect(files).toMatchInlineSnapshot(`
@@ -51,7 +51,7 @@ describe('Run Breadc', () => {
   });
 
   it('should run number argument', () => {
-    const cli = Breadc('add');
+    const cli = breadc('add');
     cli.command('<a> <b>').action((a, b) => {
       expect(typeof a).toBe('string');
       expect(typeof b).toBe('string');
@@ -60,7 +60,7 @@ describe('Run Breadc', () => {
   });
 
   it('should run hex number argument', () => {
-    const cli = Breadc('add');
+    const cli = breadc('add');
     cli.command('<a> <b>').action((a, b) => {
       expect(typeof a).toBe('string');
       expect(typeof b).toBe('string');
@@ -69,8 +69,8 @@ describe('Run Breadc', () => {
     cli.run(['0x11', '0x12']);
   });
 
-  it('should run with boolean option', () => {
-    const cli = Breadc('cal');
+  it('should run with boolean option', async () => {
+    const cli = breadc('cal');
     cli
       .command('minus <a> <b>')
       .option('--minus')
@@ -87,176 +87,91 @@ describe('Run Breadc', () => {
         expect(typeof b).toBe('string');
         expect(option.minus).toBeTruthy();
       });
-    cli.run(['--minus', '1', '2']);
-    cli.run(['minus', '1', '2']);
-    cli.run(['minus', '1', '2', '--no-minus']);
+    await cli.run(['--minus', '1', '2']);
+    await cli.run(['minus', '1', '2']);
+    await cli.run(['minus', '1', '2', '--no-minus']);
   });
 
   it('should run with required option', async () => {
     {
-      const cli = Breadc('cal');
+      const cli = breadc('cal');
       cli
         .command('')
         .option('--fst <fst>')
         .option('--snd <snd>')
         .action((option) => {
-          expect(option.fst).toBe('1');
-          expect(option.snd).toBe('2');
+          return [option.fst, option.snd];
         });
-      await cli.run(['--fst', '1', '--snd', '2']);
-    }
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst <fst>')
-        .option('--snd <snd>')
-        .action((option) => {
-          expect(option.fst).toBeTruthy();
-          expect(option.snd).toBeTruthy();
-        });
-      await cli.run(['--fst', '--snd']);
-    }
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst <fst>')
-        .option('--snd <snd>')
-        .action((option) => {
-          expect(option.fst).toBeTruthy();
-          expect(option.snd).toBeFalsy();
-        });
-      await cli.run(['--fst']);
-    }
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst <fst>')
-        .option('--snd <snd>')
-        .action((option) => {
-          expect(option.fst).toBeFalsy();
-          expect(option.snd).toBeFalsy();
-        });
-      await cli.run(['--no-fst']);
+      expect(await cli.run(['--fst', '1', '--snd', '2'])).toStrictEqual([
+        '1',
+        '2'
+      ]);
     }
   });
 
-  it('should run with non-required option', async () => {
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst [fst]')
-        .option('--snd [snd]')
-        .action((option) => {
-          expect(option.fst).toBe('1');
-          expect(option.snd).toBe('2');
-        });
-      await cli.run(['--fst', '1', '--snd', '2']);
-    }
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst [fst]')
-        .option('--snd [snd]')
-        .action((option) => {
-          expect(option.fst).toBe('');
-          expect(option.snd).toBe('');
-        });
-      await cli.run(['--fst', '--snd']);
-    }
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst [fst]')
-        .option('--snd [snd]')
-        .action((option) => {
-          expect(option.fst).toBe('');
-          expect(option.snd).toBeUndefined();
-        });
-      await cli.run(['--fst']);
-    }
-    {
-      const cli = Breadc('cal');
-      cli
-        .command('')
-        .option('--fst [fst]')
-        .option('--snd [snd]')
-        .action((option) => {
-          expect(option.fst).toBeUndefined();
-          expect(option.snd).toBeUndefined();
-        });
-      await cli.run(['--no-fst']);
-    }
-  });
-
-  it('should run with construct option', async () => {
-    {
-      const cli = Breadc('echo', { version: '1.0.0' })
-        .option('--host <host>', { default: 'localhost' })
-        .option('--port <port>', {
-          construct: (port) => (port ? +port : 3000)
-        });
-
-      cli.command('[message]').action((_message, option) => {
-        expect(option.host).toBe('localhost');
-        expect(option.port).toBe(3000);
+  it('should cast option type', async () => {
+    const cli = breadc('echo', { version: '1.0.0' })
+      .option('--host <host>', { default: 'localhost' })
+      .option('--port <port>', {
+        default: '3000',
+        cast: (port) => +port
       });
 
-      await cli.run([]);
-      await cli.run(['--port', '3000']);
-    }
-    {
-      const cli = Breadc('echo', { version: '1.0.0' })
-        .option('--host <host>', { default: 'localhost' })
-        .option('--port <port>', {
-          construct: (port) => (port ? +port : 3000)
-        });
+    cli.command('[message]').action((_message, option) => {
+      return option;
+    });
 
-      cli.command('[message]').action((_message, option) => {
-        expect(option.host).toBe('ip');
-        expect(option.port).toBe(3001);
-      });
-
-      await cli.run(['--host', 'ip', '--port', '3001']);
-    }
+    expect(await cli.run([])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "host": "localhost",
+          "port": 3000,
+        }
+      `);
+    expect(await cli.run(['--port', '3000'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "host": "localhost",
+          "port": 3000,
+        }
+      `);
+    expect(await cli.run(['--host', 'ip', '--port', '3001']))
+      .toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "host": "ip",
+          "port": 3001,
+        }
+      `);
   });
 
   it('has different options', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli
       .command('a')
       .option('--host')
-      .action((option) => {
-        expect(option).toMatchInlineSnapshot(`
-          {
-            "--": [],
-            "host": true,
-          }
-        `);
-      });
+      .action((option) => option);
     cli
       .command('b')
       .option('--port')
-      .action((option) => {
-        expect(option).toMatchInlineSnapshot(`
-          {
-            "--": [],
-            "port": true,
-          }
-        `);
-      });
+      .action((option) => option);
 
-    await cli.run(['a', '--host']);
-    await cli.run(['b', '--port']);
+    expect(await cli.run(['a', '--host'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "host": true,
+      }
+    `);
+    expect(await cli.run(['b', '--port'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "port": true,
+      }
+    `);
   });
 
   it('should run with default true boolean option value', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli
       .option('--flag', { default: true })
       .command('')
@@ -267,7 +182,7 @@ describe('Run Breadc', () => {
   });
 
   it('should run with default false boolean option value', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli
       .option('--flag', { default: false })
       .command('')
@@ -277,67 +192,238 @@ describe('Run Breadc', () => {
     expect(await cli.run(['--no-flag'])).toBe(false);
   });
 
-  it('should run with default string option value', async () => {
-    const cli = Breadc('cli');
-    cli
-      .option('--flag [value]', { default: 'true' })
-      .command('')
-      .action((option) => option.flag);
-    expect(await cli.run([])).toBe('true');
-    expect(await cli.run(['--flag'])).toBe('true');
-    // TODO: fix this behaivor
-    expect(await cli.run(['--no-flag'])).toBe('true');
-  });
-
   it('should run with default string required value', async () => {
-    const cli = Breadc('cli');
+    const cli = breadc('cli');
     cli
       .option('--flag <value>', { default: 'true' })
       .option('--open <value>', { default: true })
       .command('')
       .action((option) => option.flag);
     expect(await cli.run([])).toBe('true');
-    expect(await cli.run(['--flag'])).toBe(true);
     expect(await cli.run(['--flag', 'text'])).toBe('text');
-    // TODO: fix this behaivor
-    expect(await cli.run(['--no-flag'])).toBe('true');
+    expect(
+      async () => await cli.run(['--flag'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '"You should provide arguments for --flag <value>"'
+    );
+    expect(
+      async () => await cli.run(['--no-flag'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown option --no-flag"');
   });
 });
 
-describe('Warnings', () => {
-  it('should find option conflict', async () => {
-    const output: string[] = [];
-    const cli = Breadc('cli', {
-      logger: {
-        warn(message: string) {
-          output.push(message);
-        }
-      }
-    }).option('--host [string]');
-    cli.command('').option('--host');
+describe('Breadc Error', () => {
+  it('should match a command', async () => {
+    const cli = breadc('cli');
+    expect(await cli.run([])).toBeUndefined();
+  });
 
-    await cli.run([]);
-
-    expect(output[0]).toMatchInlineSnapshot(
-      '"Option \\"host\\" encounters conflict"'
+  it('has wrong command format', () => {
+    const cli = breadc('cli');
+    expect(() => cli.command('[abc] abc')).toThrowErrorMatchingInlineSnapshot(
+      '"Sub-command should be placed at the beginning"'
+    );
+    expect(() =>
+      cli.command('[...abc] abc')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Sub-command should be placed at the beginning"'
+    );
+    expect(() => cli.command('<abc> abc')).toThrowErrorMatchingInlineSnapshot(
+      '"Sub-command should be placed at the beginning"'
+    );
+    expect(() =>
+      cli.command('abc <abc> abc')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Sub-command should be placed at the beginning"'
+    );
+    expect(() =>
+      cli.command('def [abc] abc')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Sub-command should be placed at the beginning"'
+    );
+    expect(() =>
+      cli.command('ghi [...abc] abc')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Sub-command should be placed at the beginning"'
+    );
+    expect(() =>
+      cli.command('[ghi] <abc> abc')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Required arguments should be placed before optional or rest arguments"'
+    );
+    expect(() => cli.command('[abc] [ghi]')).toThrowErrorMatchingInlineSnapshot(
+      '"There is at most one optional or rest arguments"'
     );
   });
 
-  it('should not find option conflict', async () => {
-    const output: string[] = [];
-    const cli = Breadc('cli', {
-      logger: {
-        warn(message: string) {
-          output.push(message);
-        }
-      }
-    }).option('--host');
-    cli.command('').option('--host');
-
-    await cli.run([]);
-
-    expect(output[0]).toMatchInlineSnapshot(
-      '"You may miss action function in <default command>"'
+  it('has wrong option format', () => {
+    const cli = breadc('cli');
+    expect(() => cli.option('abc')).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (abc)"'
+    );
+    expect(() => cli.option('-r')).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (-r)"'
+    );
+    expect(() =>
+      cli.option('--root [...files]')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (--root [...files])"'
+    );
+    expect(() =>
+      cli.option('--root [files]')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (--root [files])"'
+    );
+    expect(() =>
+      cli.option('--root <...files>')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (--root <...files>)"'
+    );
+    expect(() => cli.option('--no-root')).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (--no-root)"'
     );
   });
 });
+
+describe('Parse Error', () => {
+  it('should provide required arguments', async () => {
+    const cli = breadc('cli');
+    cli.command('run <dir>').action((dir) => dir);
+    expect(
+      async () => await cli.run(['run'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '"You must provide require argument dir"'
+    );
+  });
+
+  it('should not match inner sub-commands', async () => {
+    const cli = breadc('cli');
+    cli.command('page get <page>').action((p) => p);
+    expect(async () =>
+      cli.run(['page'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown sub-command"');
+    expect(async () =>
+      cli.run(['page', 'post'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '"Unknown sub-command (post)"'
+    );
+  });
+});
+
+describe('Plugin', () => {
+  it('should pre run', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreRun() {
+            output.push(1);
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(1);
+  });
+
+  it('should post run', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPostRun() {
+            output.push(2);
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(2);
+  });
+
+  it('should pre and post run', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreRun() {
+            output.push(1);
+          },
+          onPostRun() {
+            output.push(2);
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBe(2);
+    expect(output[2]).toBeUndefined();
+  });
+
+  it('should match command', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreCommand: {
+            '*': () => {
+              output.push(1);
+            }
+          },
+          onPostCommand: {
+            '*': () => {
+              output.push(2);
+            }
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBe(2);
+    expect(output[2]).toBeUndefined();
+  });
+});
+
+// describe('Warnings', () => {
+//   it('should find option conflict', async () => {
+//     const output: string[] = [];
+//     const cli = Breadc('cli', {
+//       logger: {
+//         warn(message: string) {
+//           output.push(message);
+//         }
+//       }
+//     }).option('--host [string]');
+//     cli.command('').option('--host');
+
+//     await cli.run([]);
+
+//     expect(output[0]).toMatchInlineSnapshot(
+//       '"Option \\"host\\" encounters conflict"'
+//     );
+//   });
+
+//   it('should not find option conflict', async () => {
+//     const output: string[] = [];
+//     const cli = Breadc('cli', {
+//       logger: {
+//         warn(message: string) {
+//           output.push(message);
+//         }
+//       }
+//     }).option('--host');
+//     cli.command('').option('--host');
+
+//     await cli.run([]);
+
+//     expect(output[0]).toMatchInlineSnapshot(
+//       '"You may miss action function in <default command>"'
+//     );
+//   });
+// });

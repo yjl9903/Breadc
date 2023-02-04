@@ -1,15 +1,10 @@
-import Breadc from '../src/';
+import breadc from '../packages/breadc/src';
 
-const cli = Breadc('genType');
+const cli = breadc('genType');
 
 cli
   .command('<maxDep>')
-  .option('--commandDep [number]', {
-    default: '3',
-    construct(t) {
-      return +t!;
-    }
-  })
+  .option('--command-dep <number>', { default: '3', cast: (t) => +t })
   .action((_maxDep, { commandDep }) => {
     const maxDep = +_maxDep;
     const ans: string[][] = [];
