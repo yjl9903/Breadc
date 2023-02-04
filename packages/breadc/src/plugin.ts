@@ -63,6 +63,7 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
 
 export type PluginContainer = ReturnType<typeof makePluginContainer>;
 
+/* c8 ignore next 3 */
 export function definePlugin(plugin: Partial<Plugin>): Partial<Plugin> {
   return plugin;
 }
