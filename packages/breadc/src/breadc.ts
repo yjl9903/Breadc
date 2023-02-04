@@ -62,11 +62,7 @@ export function breadc(name: string, config: AppOption = {}) {
       if (command) {
         if (command.callback) {
           await container.preRun(breadc);
-          // @ts-ignore
-          const r = command.callback(...result.arguments, {
-            ...result.options,
-            '--': result['--']
-          });
+          const r = await command.callback(result);
           await container.postRun(breadc);
           return r;
         }

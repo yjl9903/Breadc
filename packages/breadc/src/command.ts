@@ -41,11 +41,14 @@ export function makeCommand<F extends string = string>(
       return command;
     },
     action(fn) {
-      command.callback = async (...args: any[]) => {
-        await container.preCommand(command);
+      command.callback = async (parsed) => {
+        await container.preCommand(command, parsed);
         // @ts-ignore
-        const result = await fn(...args);
-        await container.postCommand(command);
+        const result = await fn(...parsed.arguments, {
+          ...parsed.options,
+          '--': parsed['--']
+        });
+        await container.postCommand(command, parsed);
         return result;
       };
     }
@@ -183,7 +186,7 @@ export function makeCommand<F extends string = string>(
 
 export function makeVersionCommand(name: string, config: AppOption): Option {
   const command: Command = {
-    callback() {
+    async callback() {
       const text = `${name}/${config.version ? config.version : 'unknown'}`;
       console.log(text);
       return text;
@@ -268,11 +271,11 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
   }
 
   const command: Command = {
-    callback(option) {
+    async callback(parsed) {
       // @ts-ignore
-      const context: Context = option.__context__;
+      const context: Context = parsed.options.__context__;
       // @ts-ignore
-      const cursor: TreeNode = option.__cursor__;
+      const cursor: TreeNode = parsed.options.__cursor__;
 
       const output: HelpMessage = [
         `${name}/${config.version ? config.version : 'unknown'}`,

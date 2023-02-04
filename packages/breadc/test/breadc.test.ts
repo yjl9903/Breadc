@@ -364,6 +364,91 @@ describe('Plugin', () => {
     expect(output[2]).toBeUndefined();
   });
 
+  it('should match all command', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreCommand() {
+            output.push(1);
+          },
+          onPostCommand() {
+            output.push(2);
+          }
+        }
+      ]
+    });
+    cli.command('abc').action(() => 0);
+    cli.command('def').action(() => 1);
+    await cli.run(['abc']);
+    await cli.run(['def']);
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBe(2);
+    expect(output[2]).toBe(1);
+    expect(output[3]).toBe(2);
+    expect(output[4]).toBeUndefined();
+  });
+
+  it('should match receive command parse result', async () => {
+    const output: any[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreCommand(result) {
+            output.push(result);
+          }
+        }
+      ]
+    });
+    cli.command('abc').action(() => 0);
+    cli.command('def').action(() => 1);
+    await cli.run(['abc']);
+    await cli.run(['def']);
+    expect(output[0]).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "arguments": [],
+        "command": {
+          "_arguments": [
+            {
+              "name": "abc",
+              "type": "const",
+            },
+          ],
+          "_options": [],
+          "action": [Function],
+          "callback": [Function],
+          "description": "",
+          "format": "abc",
+          "option": [Function],
+        },
+        "options": {},
+      }
+    `);
+    expect(output[1]).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "arguments": [],
+        "command": {
+          "_arguments": [
+            {
+              "name": "def",
+              "type": "const",
+            },
+          ],
+          "_options": [],
+          "action": [Function],
+          "callback": [Function],
+          "description": "",
+          "format": "def",
+          "option": [Function],
+        },
+        "options": {},
+      }
+    `);
+    expect(output[2]).toBeUndefined();
+  });
+
   it('should match command', async () => {
     const output: number[] = [];
     const cli = breadc('cli', {

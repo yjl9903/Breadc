@@ -1,26 +1,51 @@
+import type { ParseResult } from './parser';
 import type { Breadc, Command, Plugin } from './types';
 
 export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
-  type Container = Record<string, Array<() => void | Promise<void>>>;
+  type Container = Record<
+    string,
+    Array<(result: ParseResult) => void | Promise<void>>
+  >;
   const onPreCommand: Container = {};
   const onPostCommand: Container = {};
 
   for (const plugin of plugins) {
-    for (const [key, fn] of Object.entries(plugin.onPreCommand ?? {})) {
+    if (typeof plugin.onPreCommand === 'function') {
+      const key = '*';
       if (!(key in onPreCommand)) {
         onPreCommand[key] = [];
       }
-      onPreCommand[key]!.push(fn);
+      onPreCommand[key]!.push(plugin.onPreCommand);
+    } else {
+      for (const [key, fn] of Object.entries(plugin.onPreCommand ?? {})) {
+        if (!(key in onPreCommand)) {
+          onPreCommand[key] = [];
+        }
+        onPreCommand[key]!.push(fn);
+      }
     }
-    for (const [key, fn] of Object.entries(plugin.onPostCommand ?? {})) {
+
+    if (typeof plugin.onPostCommand === 'function') {
+      const key = '*';
       if (!(key in onPostCommand)) {
         onPostCommand[key] = [];
       }
-      onPostCommand[key]!.push(fn);
+      onPostCommand[key]!.push(plugin.onPostCommand);
+    } else {
+      for (const [key, fn] of Object.entries(plugin.onPostCommand ?? {})) {
+        if (!(key in onPostCommand)) {
+          onPostCommand[key] = [];
+        }
+        onPostCommand[key]!.push(fn);
+      }
     }
   }
 
-  const run = async (container: Container, command: Command) => {
+  const run = async (
+    container: Container,
+    command: Command,
+    result: ParseResult
+  ) => {
     const prefix = command._arguments
       .filter((a) => a.type === 'const')
       .map((a) => a.name);
@@ -36,7 +61,7 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
               .join('');
       const fns = container[key];
       if (fns && fns.length > 0) {
-        await Promise.all(fns.map((fn) => fn()));
+        await Promise.all(fns.map((fn) => fn(result)));
       }
     }
   };
@@ -47,11 +72,11 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
         await p.onPreRun?.(breadc);
       }
     },
-    async preCommand(command: Command) {
-      await run(onPreCommand, command);
+    async preCommand(command: Command, result: ParseResult) {
+      await run(onPreCommand, command, result);
     },
-    async postCommand(command: Command) {
-      await run(onPostCommand, command);
+    async postCommand(command: Command, result: ParseResult) {
+      await run(onPostCommand, command, result);
     },
     async postRun(breadc: Breadc) {
       for (const p of plugins) {

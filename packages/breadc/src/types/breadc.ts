@@ -56,7 +56,7 @@ export interface Command<
   CommandOption extends object = {},
   GlobalOption extends object = {}
 > {
-  callback?: ActionFn<ExtractCommand<F>, CommandOption & GlobalOption>;
+  callback?: (result: ParseResult) => Promise<any>;
 
   format: F;
 
@@ -134,9 +134,11 @@ export interface OptionOption<T extends string | boolean, R extends any = T> {
   cast?: (value: T) => R;
 }
 
+type CommandHookFn = (result: ParseResult) => void | Promise<void>;
+
 export interface Plugin {
   onPreRun(breadc: Breadc): void | Promise<void>;
-  onPreCommand: Record<string, () => void | Promise<void>>;
-  onPostCommand: Record<string, () => void | Promise<void>>;
+  onPreCommand: Record<string, CommandHookFn> | CommandHookFn;
+  onPostCommand: Record<string, CommandHookFn> | CommandHookFn;
   onPostRun(breadc: Breadc): void | Promise<void>;
 }
