@@ -43,7 +43,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "kolorist": "^1.6.0",
+    "kolorist": "^1.7.0",
     "minimist": "^1.2.7"
   },
   "devDependencies": {
