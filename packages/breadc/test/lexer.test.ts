@@ -63,4 +63,21 @@ describe('lexer', () => {
     const t8 = lexer.next();
     expect(t8).toBe(undefined);
   });
+
+  it('can receive empty string', () => {
+    const lexer = new Lexer(['', 'a', '']);
+    expect([...lexer]).toMatchInlineSnapshot(`
+      [
+        Token {
+          "text": "",
+        },
+        Token {
+          "text": "a",
+        },
+        Token {
+          "text": "",
+        },
+      ]
+    `);
+  });
 });

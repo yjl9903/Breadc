@@ -88,7 +88,7 @@ export class Lexer {
         const value = that.rawArgs[that.cursor];
         that.cursor += 1;
         return {
-          value: value ? new Token(value) : undefined,
+          value: value !== undefined ? new Token(value) : undefined,
           done: that.cursor > that.rawArgs.length
         } as IteratorYieldResult<Token> | IteratorReturnResult<undefined>;
       }
