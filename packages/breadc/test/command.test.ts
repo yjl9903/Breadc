@@ -6,7 +6,7 @@ import breadc from '../src';
 
 options.enabled = false;
 
-describe.only('Alias command', () => {
+describe('Alias command', () => {
   it('should share alias', async () => {
     const cli = breadc('cli');
     let cnt = 0;
