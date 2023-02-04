@@ -18,7 +18,7 @@ export function makeOption<
   if (match) {
     name = match[2];
     if (name.startsWith('no-')) {
-      throw new BreadcError(`Can not parse option format from "${format}"`);
+      throw new BreadcError(`Can not parse option format (${format})`);
     }
 
     if (match[1]) {
@@ -56,7 +56,7 @@ export function makeOption<
       };
     }
   } else {
-    throw new BreadcError(`Can not parse option format from "${format}"`);
+    throw new BreadcError(`Can not parse option format (${format})`);
   }
 }
 

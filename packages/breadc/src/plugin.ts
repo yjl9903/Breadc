@@ -34,7 +34,10 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
                 idx === 0 ? t : t[0].toUpperCase() + t.slice(1)
               )
               .join('');
-      await Promise.all(container[key]?.map((fn) => fn()));
+      const fns = container[key];
+      if (fns && fns.length > 0) {
+        await Promise.all(fns.map((fn) => fn()));
+      }
     }
   };
 

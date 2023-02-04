@@ -10,7 +10,7 @@ import type {
 import type { PluginContainer } from './plugin';
 
 import { twoColumn } from './utils';
-import { ParseError } from './error';
+import { ParseError, BreadcError } from './error';
 import { makeOption, initContextOptions } from './option';
 import { TreeNode, makeTreeNode, Context } from './parser';
 
@@ -61,11 +61,13 @@ export function makeCommand<F extends string = string>(
       for (let i = 0; i < args.length; i++) {
         if (args[i].type === 'const') {
           if (rest[i] !== args[i].name) {
-            throw new ParseError(`Internal`);
+            throw new ParseError(`Sub-command ${args[i].name} mismatch`);
           }
         } else if (args[i].type === 'require') {
           if (i >= rest.length) {
-            throw new ParseError(`You must provide require argument`);
+            throw new ParseError(
+              `You must provide require argument ${args[i].name}`
+            );
           }
           context.result.arguments.push(rest[i]);
         } else if (args[i].type === 'optional') {
@@ -87,7 +89,9 @@ export function makeCommand<F extends string = string>(
     for (let i = 0; i < format.length; i++) {
       if (format[i] === '<') {
         if (state !== 0 && state !== 1) {
-          // error here
+          throw new BreadcError(
+            `Required arguments should be placed before optional or rest arguments`
+          );
         }
 
         const start = i;
@@ -100,7 +104,9 @@ export function makeCommand<F extends string = string>(
         args.push({ type: 'require', name });
       } else if (format[i] === '[') {
         if (state !== 0 && state !== 1) {
-          // error here
+          throw new BreadcError(
+            `There is at most one optional or rest arguments`
+          );
         }
 
         const start = i;
@@ -117,7 +123,9 @@ export function makeCommand<F extends string = string>(
         }
       } else if (format[i] !== ' ') {
         if (state !== 0) {
-          // error here
+          throw new BreadcError(
+            `Sub-command should be placed at the beginning`
+          );
         }
 
         const start = i;
@@ -138,7 +146,7 @@ export function makeCommand<F extends string = string>(
                 next.init(context);
                 return next;
               } else {
-                throw new ParseError(`Unknown sub-command ${t}`);
+                throw new ParseError(`Unknown sub-command (${t})`);
               }
             },
             finish() {
