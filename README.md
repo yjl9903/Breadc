@@ -2,12 +2,12 @@
 
 [![version](https://img.shields.io/npm/v/breadc?color=rgb%2850%2C203%2C86%29&label=Breadc)](https://www.npmjs.com/package/breadc) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 
-Yet another Command Line Application Framework powered by [minimist](https://www.npmjs.com/package/minimist), but with fully strong [TypeScript](https://www.typescriptlang.org/) support.
+Yet another Command Line Application Framework with fully strong [TypeScript](https://www.typescriptlang.org/) support.
 
 ## Features
 
 + ⚡️ **Light-weight**: Only 40 kB (Unpacked).
-+ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `Breadc`, `command`, `option`, `action`, `run`.
++ 📖 **East to Learn**: Breadc is basically compatible with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `breadc`, `command`, `option`, `action`, `run`.
 + 💻 **TypeScript Infer**: IDE will automatically infer the type of your command action function.
 
 ## Installation
