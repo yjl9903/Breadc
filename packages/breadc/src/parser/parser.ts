@@ -55,7 +55,8 @@ export function parseOption(
         }
       }
     } else {
-      throw new ParseError('unimplemented');
+      /* c8 ignore next 1 */
+      throw new ParseError('unreachable');
     }
 
     if (option.cast) {
@@ -100,6 +101,7 @@ export function parse(root: TreeNode, args: string[]) {
         cursor = res;
       }
     } else {
+      /* c8 ignore next 1 */
       throw new ParseError('unreachable');
     }
   }
