@@ -71,17 +71,21 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
 
   return {
     async preRun(breadc: Breadc) {
+      if (plugins.length === 0) return;
       for (const p of plugins) {
         await p.onPreRun?.(breadc);
       }
     },
     async preCommand(command: Command, result: ParseResult) {
+      if (plugins.length === 0) return;
       await run(onPreCommand, command, result);
     },
     async postCommand(command: Command, result: ParseResult) {
+      if (plugins.length === 0) return;
       await run(onPostCommand, command, result);
     },
     async postRun(breadc: Breadc) {
+      if (plugins.length === 0) return;
       for (const p of plugins) {
         await p.onPostRun?.(breadc);
       }
