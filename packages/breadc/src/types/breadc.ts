@@ -68,8 +68,8 @@ export interface Command<
 
   option<
     OF extends string = string,
-    OT extends string | boolean = ExtractOptionType<F>,
-    OR extends any = ExtractOptionType<F>
+    OT extends string | boolean = ExtractOptionType<OF>,
+    OR extends any = ExtractOptionType<OF>
   >(
     format: OF,
     description?: string,
@@ -77,8 +77,8 @@ export interface Command<
   ): Command<F, AT, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
   option<
     OF extends string = string,
-    OT extends string | boolean = ExtractOptionType<F>,
-    OR extends any = ExtractOptionType<F>
+    OT extends string | boolean = ExtractOptionType<OF>,
+    OR extends any = ExtractOptionType<OF>
   >(
     format: OF,
     option?: OptionOption<OT, OR>
@@ -128,7 +128,7 @@ export interface Option<
   ) => TreeNode | false;
 }
 
-export interface OptionOption<T extends string | boolean, R extends any> {
+export interface OptionOption<T extends string | boolean, R extends any = T> {
   description?: string;
   default?: T;
   cast?: (value: T) => R;
