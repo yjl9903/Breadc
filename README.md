@@ -4,6 +4,8 @@
 
 Yet another Command Line Application Framework with fully strong [TypeScript](https://www.typescriptlang.org/) support.
 
+![vscode](./images/vscode.png)
+
 ## Features
 
 + ⚡️ **Light-weight**: Only 40 kB (Unpacked).
