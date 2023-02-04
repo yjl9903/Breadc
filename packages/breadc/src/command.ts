@@ -12,7 +12,7 @@ import type { PluginContainer } from './plugin';
 import { twoColumn } from './utils';
 import { ParseError, BreadcError } from './error';
 import { makeOption, initContextOptions } from './option';
-import { TreeNode, makeTreeNode, Context } from './parser';
+import { TreeNode, makeTreeNode, Context, Token } from './parser';
 
 export function makeCommand<F extends string = string>(
   format: F,
@@ -125,7 +125,7 @@ export function makeCommand<F extends string = string>(
           cursor = cursor.children.get(name)!;
         } else {
           const internalNode = makeTreeNode({
-            next(token, context) {
+            next(token: Token, context) {
               const t = token.raw();
               context.result['--'].push(t);
               if (internalNode.children.has(t)) {
