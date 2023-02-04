@@ -19,7 +19,10 @@ export function breadc(name: string, config: AppOption = {}) {
       }
 
       initContextOptions(
-        [makeHelpCommand(name, config), makeVersionCommand(name, config)],
+        [
+          makeHelpCommand(name, config, allCommands),
+          makeVersionCommand(name, config)
+        ],
         context
       );
     },

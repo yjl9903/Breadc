@@ -82,6 +82,8 @@ describe('Help command', () => {
 
       This is a cli app.
 
+      Usage: cli [OPTIONS] [COMMAND]
+
       Commands:
         cli [root]        Start dev server
         cli build [root]  Build static site
@@ -96,6 +98,8 @@ describe('Help command', () => {
       "cli/1.0.0
 
       This is a cli app.
+
+      Usage: cli [OPTIONS] [COMMAND]
 
       Commands:
         cli [root]        Start dev server
@@ -120,6 +124,8 @@ describe('Help command', () => {
       "cli/1.0.0
 
       This is a cli app.
+
+      Usage: cli [OPTIONS] [COMMAND]
 
       Commands:
         cli build [root]  Build static site
@@ -146,6 +152,8 @@ describe('Help command', () => {
 
       This is a cli app.
 
+      Usage: cli [OPTIONS] <COMMAND>
+
       Commands:
         cli store ls [path]   List path
         cli store rm [path]   Remove path
@@ -161,6 +169,8 @@ describe('Help command', () => {
       "cli/1.0.0
 
       This is a cli app.
+
+      Usage: cli [OPTIONS] <COMMAND>
 
       Commands:
         cli file info [path]  Get file info
@@ -179,6 +189,8 @@ describe('Help command', () => {
 
       This is a cli app.
 
+      Usage: cli [OPTIONS] <COMMAND>
+
       Commands:
         cli store ls [path]  List path
 
@@ -196,6 +208,8 @@ describe('Help command', () => {
 
     expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
       "cli/unknown
+
+      Usage: cli [OPTIONS]
 
       Options:
         -h, --host <addr>  Host address
@@ -218,6 +232,8 @@ describe('Help command', () => {
     expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
       "cli/unknown
 
+      Usage: cli [OPTIONS] build
+
       Commands:
         cli build  Build static site
 
@@ -231,6 +247,8 @@ describe('Help command', () => {
 
     expect(await cli.run(['build', '-h'])).toMatchInlineSnapshot(`
       "cli/unknown
+
+      Usage: cli [OPTIONS] build
 
       Commands:
         cli build  Build static site

@@ -268,7 +268,11 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
 type HelpBlcok = string | Array<[string, string]>;
 type HelpMessage = Array<HelpBlcok | (() => HelpBlcok[] | undefined)>;
 
-export function makeHelpCommand(name: string, config: AppOption): Option {
+export function makeHelpCommand(
+  name: string,
+  config: AppOption,
+  allCommands: Command[]
+): Option {
   function expandMessage(message: HelpMessage) {
     const result: string[] = [];
     for (const row of message) {
@@ -311,6 +315,15 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
     return commands;
   }
 
+  const usage =
+    allCommands.length === 0
+      ? `[OPTIONS]`
+      : allCommands.length === 1
+      ? `[OPTIONS] ${allCommands[0].format}`
+      : allCommands.some((c) => c._default)
+      ? `[OPTIONS] [COMMAND]`
+      : `[OPTIONS] <COMMAND>`;
+
   const command: Command = {
     async callback(parsed) {
       // @ts-ignore
@@ -327,6 +340,8 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
             return undefined;
           }
         },
+        '',
+        `${bold(underline('Usage:'))} ${bold(name)} ${usage}`,
         () => {
           const cmds = expandCommands(cursor);
           if (cmds.length > 0) {
