@@ -1,6 +1,6 @@
 {
   "name": "@breadc/progress",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "CLI progress bar for Breadc",
   "keywords": [
     "breadc",
