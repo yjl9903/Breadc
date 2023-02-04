@@ -12,7 +12,7 @@ export interface AppOption {
 
   description?: string;
 
-  plugins?: Plugin[];
+  plugins?: Partial<Plugin>[];
 
   // logger?: Partial<Logger> | LoggerFn;
 }

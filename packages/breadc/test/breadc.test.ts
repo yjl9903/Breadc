@@ -304,7 +304,64 @@ describe('Parse Error', () => {
     ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown sub-command"');
     expect(async () =>
       cli.run(['page', 'post'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown sub-command"');
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '"Unknown sub-command (post)"'
+    );
+  });
+});
+
+describe('Plugin', () => {
+  it('should pre run', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreRun() {
+            output.push(1);
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(1);
+  });
+
+  it('should post run', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPostRun() {
+            output.push(2);
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(2);
+  });
+
+  it('should pre and post run', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onPreRun() {
+            output.push(1);
+          },
+          onPostRun() {
+            output.push(2);
+          }
+        }
+      ]
+    });
+    cli.command('').action(() => 0);
+    await cli.run([]);
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBe(2);
+    expect(output[2]).toBeUndefined();
   });
 });
 
