@@ -9,6 +9,10 @@ export type {
   Plugin
 } from './types';
 
+export { breadc } from './breadc';
+
 export { definePlugin } from './plugin';
+
+export { ParseError, BreadcError } from './error';
 
 export default breadc;
