@@ -49,6 +49,9 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
     const prefix = command._arguments
       .filter((a) => a.type === 'const')
       .map((a) => a.name);
+    if (prefix.length === 0) {
+      prefix.push('_');
+    }
     for (let i = 0; i <= prefix.length; i++) {
       const key =
         i === 0
