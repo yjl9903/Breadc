@@ -61,7 +61,7 @@ cli
   .option('--port')
   .command('')
   .action((option) => {
-    // The type of option is Record<'port', string>
+    // The type of option is only { port: boolean }
   })
 ```
 
