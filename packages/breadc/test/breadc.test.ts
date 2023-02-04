@@ -285,6 +285,29 @@ describe('Breadc Error', () => {
   });
 });
 
+describe('Parse Error', () => {
+  it('should provide required arguments', async () => {
+    const cli = breadc('cli');
+    cli.command('run <dir>').action((dir) => dir);
+    expect(
+      async () => await cli.run(['run'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '"You must provide require argument dir"'
+    );
+  });
+
+  it('should not match inner sub-commands', async () => {
+    const cli = breadc('cli');
+    cli.command('page get <page>').action((p) => p);
+    expect(async () =>
+      cli.run(['page'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown sub-command"');
+    expect(async () =>
+      cli.run(['page', 'post'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown sub-command"');
+  });
+});
+
 // describe('Warnings', () => {
 //   it('should find option conflict', async () => {
 //     const output: string[] = [];

@@ -60,6 +60,7 @@ export function makeCommand<F extends string = string>(
       const rest = context.result['--'];
       for (let i = 0; i < args.length; i++) {
         if (args[i].type === 'const') {
+          /* c8 ignore next 3 */
           if (rest[i] !== args[i].name) {
             throw new ParseError(`Sub-command ${args[i].name} mismatch`);
           }
