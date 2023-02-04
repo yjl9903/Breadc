@@ -7,6 +7,7 @@ import type {
   Argument,
   Option
 } from './types';
+import type { PluginContainer } from './plugin';
 
 import { twoColumn } from './utils';
 import { ParseError } from './error';
@@ -16,7 +17,8 @@ import { TreeNode, makeTreeNode, Context } from './parser';
 export function makeCommand<F extends string = string>(
   format: F,
   config: CommandOption,
-  root: TreeNode
+  root: TreeNode,
+  container: PluginContainer
 ): Command {
   let cursor = root;
 
@@ -39,7 +41,13 @@ export function makeCommand<F extends string = string>(
       return command;
     },
     action(fn) {
-      command.callback = fn;
+      command.callback = async (...args: any[]) => {
+        await container.preCommand(command);
+        // @ts-ignore
+        const result = await fn(...args);
+        await container.postCommand(command);
+        return result;
+      };
     }
   };
 

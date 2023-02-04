@@ -1,5 +1,7 @@
 import type { ParseResult, TreeNode, Context, Token } from '../parser';
 
+import type { Plugin } from '../plugin';
+
 import type {
   ActionFn,
   ExtractCommand,
@@ -12,7 +14,7 @@ export interface AppOption {
 
   description?: string;
 
-  // help?: string | string[] | (() => string | string[]);
+  plugins?: Plugin[];
 
   // logger?: Partial<Logger> | LoggerFn;
 }

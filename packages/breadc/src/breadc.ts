@@ -1,5 +1,6 @@
 import type { Breadc, AppOption, Command, Option } from './types';
 
+import { makePluginContainer } from './plugin';
 import { makeTreeNode, parse } from './parser';
 import { initContextOptions, makeOption } from './option';
 import { makeCommand, makeHelpCommand, makeVersionCommand } from './command';
@@ -8,6 +9,7 @@ export function breadc(name: string, config: AppOption = {}) {
   let defaultCommand: Command | undefined = undefined;
   const allCommands: Command[] = [];
   const globalOptions: Option[] = [];
+  const container = makePluginContainer(config.plugins);
 
   const root = makeTreeNode({
     init(context) {
@@ -15,6 +17,7 @@ export function breadc(name: string, config: AppOption = {}) {
       if (defaultCommand) {
         initContextOptions(defaultCommand._options, context);
       }
+
       initContextOptions(
         [makeHelpCommand(name, config), makeVersionCommand(name, config)],
         context
@@ -37,7 +40,7 @@ export function breadc(name: string, config: AppOption = {}) {
       const config =
         typeof _config === 'string' ? { description: _config } : _config;
 
-      const command = makeCommand(text, config, root);
+      const command = makeCommand(text, config, root, container);
 
       if (
         command._arguments.length === 0 ||
@@ -50,18 +53,22 @@ export function breadc(name: string, config: AppOption = {}) {
       return command;
     },
     parse(args: string[]) {
-      return parse(root, args);
+      const result = parse(root, args);
+      return result;
     },
     async run(args: string[]) {
-      const result = parse(root, args);
+      const result = breadc.parse(args);
       const command = result.command;
       if (command) {
         if (command.callback) {
+          await container.preRun();
           // @ts-ignore
-          return command.callback(...result.arguments, {
+          const r = command.callback(...result.arguments, {
             ...result.options,
             '--': result['--']
           });
+          await container.postRun();
+          return r;
         }
       }
       return undefined as any;
