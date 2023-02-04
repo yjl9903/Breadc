@@ -15,4 +15,5 @@ export function padRight(texts: string[], fill = ' '): string[] {
     .map((t) => t.length)
     .reduce((max, l) => Math.max(max, l), 0);
   return texts.map((t) => t + fill.repeat(length - t.length));
+  /* c8 ignore next 1 */
 }

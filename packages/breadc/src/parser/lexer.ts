@@ -55,6 +55,7 @@ export class Token {
       return (this._type = 'string');
     }
   }
+  /* c8 ignore next 1 */
 }
 
 export class Lexer {

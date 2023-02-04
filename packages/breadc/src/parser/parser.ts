@@ -66,6 +66,7 @@ export function parseOption(
     throw new ParseError(`Unknown option ${token.raw()}`);
   }
   return cursor;
+  /* c8 ignore next 1 */
 }
 
 export function parse(root: TreeNode, args: string[]) {
