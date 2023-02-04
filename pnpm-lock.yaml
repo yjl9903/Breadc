@@ -10,7 +10,7 @@ importers:
       typescript: ^4.9.5
       unbuild: latest
       vite: ^4.1.1
-      vitest: ^0.28.3
+      vitest: ^0.28.4
     devDependencies:
       '@types/node': 18.11.18
       bumpp: 8.2.1
@@ -18,7 +18,7 @@ importers:
       typescript: 4.9.5
       unbuild: 1.1.1
       vite: 4.1.1_@types+node@18.11.18
-      vitest: 0.28.3
+      vitest: 0.28.4
 
   packages/breadc:
     specifiers:
@@ -27,7 +27,7 @@ importers:
       '@vitest/coverage-c8': ^0.28.4
       cac: ^6.7.14
       vite: ^4.1.1
-      vitest: ^0.28.3
+      vitest: ^0.28.4
     dependencies:
       '@breadc/color': link:../color
     devDependencies:
@@ -35,7 +35,7 @@ importers:
       '@vitest/coverage-c8': 0.28.4
       cac: 6.7.14
       vite: 4.1.1_@types+node@18.11.18
-      vitest: 0.28.3
+      vitest: 0.28.4
 
   packages/color:
     specifiers:
@@ -53,24 +53,24 @@ importers:
       breadc: workspace:*
       omelette: ^0.4.17
       vite: ^4.1.1
-      vitest: ^0.28.3
+      vitest: ^0.28.4
     dependencies:
       omelette: 0.4.17
     devDependencies:
       '@types/node': 18.11.18
       breadc: link:../breadc
       vite: 4.1.1_@types+node@18.11.18
-      vitest: 0.28.3
+      vitest: 0.28.4
 
   packages/progress:
     specifiers:
       '@types/node': ^18.11.18
       vite: ^4.1.1
-      vitest: ^0.28.3
+      vitest: ^0.28.4
     devDependencies:
       '@types/node': 18.11.18
       vite: 4.1.1_@types+node@18.11.18
-      vitest: 0.28.3
+      vitest: 0.28.4
 
 packages:
 
