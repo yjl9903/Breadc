@@ -1,11 +1,4 @@
-import { Breadc, Command } from './types';
-
-export interface Plugin {
-  onPreRun(breadc: Breadc): void | Promise<void>;
-  onPreCommand(breadc: Breadc): void | Promise<void>;
-  onPostCommand(breadc: Breadc): void | Promise<void>;
-  onPostRun(breadc: Breadc): void | Promise<void>;
-}
+import type { Command, Plugin } from './types';
 
 export function makePluginContainer(plugin: Plugin[] = []) {
   return {

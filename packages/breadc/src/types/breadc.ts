@@ -1,7 +1,5 @@
 import type { ParseResult, TreeNode, Context, Token } from '../parser';
 
-import type { Plugin } from '../plugin';
-
 import type {
   ActionFn,
   ExtractCommand,
@@ -134,4 +132,11 @@ export interface OptionOption<T extends string | boolean, R extends any> {
   description?: string;
   default?: T;
   cast?: (value: T) => R;
+}
+
+export interface Plugin {
+  onPreRun(breadc: Breadc): void | Promise<void>;
+  onPreCommand(breadc: Breadc): void | Promise<void>;
+  onPostCommand(breadc: Breadc): void | Promise<void>;
+  onPostRun(breadc: Breadc): void | Promise<void>;
 }
