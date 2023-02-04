@@ -62,6 +62,8 @@ export interface Command<
 
   description: string;
 
+  _default: boolean;
+
   _arguments: Argument[];
 
   _options: Option[];
@@ -83,6 +85,8 @@ export interface Command<
     format: OF,
     option?: OptionOption<OT, OR>
   ): Command<F, AT, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
+
+  alias(format: string): Command<F, AT, CommandOption, GlobalOption>;
 
   action(fn: ActionFn<AT, CommandOption & GlobalOption>): void;
 }

@@ -20,8 +20,6 @@ export function makeCommand<F extends string = string>(
   root: TreeNode,
   container: PluginContainer
 ): Command {
-  let cursor = root;
-
   const args: Argument[] = [];
   const options: Option[] = [];
 
@@ -29,6 +27,7 @@ export function makeCommand<F extends string = string>(
     callback: undefined,
     format,
     description: config.description ?? '',
+    _default: false,
     _arguments: args,
     _options: options,
     option(format, _config, _config2: any = {}) {
@@ -38,6 +37,24 @@ export function makeCommand<F extends string = string>(
           : _config;
       const option = makeOption(format, config);
       options.push(option);
+      return command;
+    },
+    alias(format) {
+      const aliasArgs: Argument[] = [];
+      const node = makeNode(aliasArgs);
+
+      function* g(): Generator<Argument> {
+        for (const f of format.split(' ')) {
+          yield { type: 'const', name: f };
+        }
+        for (const a of args.filter((a) => a.type !== 'const')) {
+          yield a;
+        }
+        return undefined;
+      }
+
+      insertTreeNode(aliasArgs, node, g());
+
       return command;
     },
     action(fn) {
@@ -54,90 +71,56 @@ export function makeCommand<F extends string = string>(
     }
   };
 
-  const node = makeTreeNode({
-    command,
-    init(context) {
-      initContextOptions(options, context);
-    },
-    finish(context) {
-      const rest = context.result['--'];
-      for (let i = 0; i < args.length; i++) {
-        if (args[i].type === 'const') {
-          /* c8 ignore next 3 */
-          if (rest[i] !== args[i].name) {
-            throw new ParseError(`Sub-command ${args[i].name} mismatch`);
+  const node = makeNode(args);
+
+  insertTreeNode(args, node, parseCommandFormat(format));
+
+  return command;
+
+  function makeNode(args: Argument[]) {
+    return makeTreeNode({
+      command,
+      init(context) {
+        initContextOptions(options, context);
+      },
+      finish(context) {
+        const rest = context.result['--'];
+        for (let i = 0; i < args.length; i++) {
+          if (args[i].type === 'const') {
+            /* c8 ignore next 3 */
+            if (rest[i] !== args[i].name) {
+              throw new ParseError(`Sub-command ${args[i].name} mismatch`);
+            }
+          } else if (args[i].type === 'require') {
+            if (i >= rest.length) {
+              throw new ParseError(
+                `You must provide require argument ${args[i].name}`
+              );
+            }
+            context.result.arguments.push(rest[i]);
+          } else if (args[i].type === 'optional') {
+            context.result.arguments.push(rest[i]);
+          } else if (args[i].type === 'rest') {
+            context.result.arguments.push(rest.splice(i));
           }
-        } else if (args[i].type === 'require') {
-          if (i >= rest.length) {
-            throw new ParseError(
-              `You must provide require argument ${args[i].name}`
-            );
-          }
-          context.result.arguments.push(rest[i]);
-        } else if (args[i].type === 'optional') {
-          context.result.arguments.push(rest[i]);
-        } else if (args[i].type === 'rest') {
-          context.result.arguments.push(rest.splice(i));
         }
+        context.result['--'] = rest.splice(args.length);
       }
-      context.result['--'] = rest.splice(args.length);
-    }
-  });
+    });
+  }
 
-  {
-    // 0 -> aaa bbb
-    // 1 -> aaa bbb <xxx> <yyy>
-    // 2 -> aaa bbb <xxx> <yyy> [zzz]
-    // 3 -> bbb bbb <xxx> <yyy> [...www]
-    let state = 0;
-    for (let i = 0; i < format.length; i++) {
-      if (format[i] === '<') {
-        if (state !== 0 && state !== 1) {
-          throw new BreadcError(
-            `Required arguments should be placed before optional or rest arguments`
-          );
-        }
+  function insertTreeNode(
+    args: Argument[],
+    node: TreeNode,
+    parsed: Generator<Argument>
+  ) {
+    let cursor = root;
 
-        const start = i;
-        while (i < format.length && format[i] !== '>') {
-          i++;
-        }
+    for (const arg of parsed) {
+      args.push(arg);
 
-        const name = format.slice(start + 1, i);
-        state = 1;
-        args.push({ type: 'require', name });
-      } else if (format[i] === '[') {
-        if (state !== 0 && state !== 1) {
-          throw new BreadcError(
-            `There is at most one optional or rest arguments`
-          );
-        }
-
-        const start = i;
-        while (i < format.length && format[i] !== ']') {
-          i++;
-        }
-
-        const name = format.slice(start + 1, i);
-        state = 2;
-        if (name.startsWith('...')) {
-          args.push({ type: 'rest', name });
-        } else {
-          args.push({ type: 'optional', name });
-        }
-      } else if (format[i] !== ' ') {
-        if (state !== 0) {
-          throw new BreadcError(
-            `Sub-command should be placed at the beginning`
-          );
-        }
-
-        const start = i;
-        while (i < format.length && format[i] !== ' ') {
-          i++;
-        }
-        const name = format.slice(start, i);
-
+      if (arg.type === 'const') {
+        const name = arg.name;
         if (cursor.children.has(name)) {
           cursor = cursor.children.get(name)!;
         } else {
@@ -161,9 +144,6 @@ export function makeCommand<F extends string = string>(
           cursor.children.set(name, internalNode);
           cursor = internalNode;
         }
-
-        state = 0;
-        args.push({ type: 'const', name });
       }
     }
 
@@ -177,11 +157,70 @@ export function makeCommand<F extends string = string>(
       cursor.init = node.init;
       cursor.finish = node.finish;
     } else {
+      command._default = true;
       cursor.finish = node.finish;
     }
   }
+}
 
-  return command;
+function* parseCommandFormat(format: string): Generator<Argument> {
+  // 0 -> aaa bbb
+  // 1 -> aaa bbb <xxx> <yyy>
+  // 2 -> aaa bbb <xxx> <yyy> [zzz]
+  // 3 -> bbb bbb <xxx> <yyy> [...www]
+  let state = 0;
+  for (let i = 0; i < format.length; i++) {
+    if (format[i] === '<') {
+      if (state !== 0 && state !== 1) {
+        throw new BreadcError(
+          `Required arguments should be placed before optional or rest arguments`
+        );
+      }
+
+      const start = i;
+      while (i < format.length && format[i] !== '>') {
+        i++;
+      }
+
+      const name = format.slice(start + 1, i);
+      state = 1;
+      yield { type: 'require', name };
+    } else if (format[i] === '[') {
+      if (state !== 0 && state !== 1) {
+        throw new BreadcError(
+          `There is at most one optional or rest arguments`
+        );
+      }
+
+      const start = i;
+      while (i < format.length && format[i] !== ']') {
+        i++;
+      }
+
+      const name = format.slice(start + 1, i);
+      state = 2;
+      if (name.startsWith('...')) {
+        yield { type: 'rest', name };
+      } else {
+        yield { type: 'optional', name };
+      }
+    } else if (format[i] !== ' ') {
+      if (state !== 0) {
+        throw new BreadcError(`Sub-command should be placed at the beginning`);
+      }
+
+      const start = i;
+      while (i < format.length && format[i] !== ' ') {
+        i++;
+      }
+      const name = format.slice(start, i);
+
+      state = 0;
+      yield { type: 'const', name };
+    }
+  }
+
+  return undefined;
 }
 
 export function makeVersionCommand(name: string, config: AppOption): Option {
@@ -195,10 +234,12 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
     description: 'Print version',
     _arguments: [],
     _options: [],
-    option() {
-      return command;
-    },
-    action() {}
+    // @ts-ignore
+    option: undefined,
+    // @ts-ignore
+    alias: undefined,
+    // @ts-ignore
+    action: undefined
   };
 
   const node = makeTreeNode({
@@ -322,10 +363,12 @@ export function makeHelpCommand(name: string, config: AppOption): Option {
     description: 'Print help',
     _arguments: [],
     _options: [],
-    option() {
-      return command;
-    },
-    action() {}
+    // @ts-ignore
+    option: undefined,
+    // @ts-ignore
+    alias: undefined,
+    // @ts-ignore
+    action: undefined
   };
 
   const node = makeTreeNode({

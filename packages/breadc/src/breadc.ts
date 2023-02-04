@@ -42,10 +42,7 @@ export function breadc(name: string, config: AppOption = {}) {
 
       const command = makeCommand(text, config, root, container);
 
-      if (
-        command._arguments.length === 0 ||
-        command._arguments[0].type !== 'const'
-      ) {
+      if (command._default) {
         defaultCommand = command;
       }
 

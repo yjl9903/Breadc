@@ -6,6 +6,48 @@ import breadc from '../src';
 
 options.enabled = false;
 
+describe.only('Alias command', () => {
+  it('should share alias', async () => {
+    const cli = breadc('cli');
+    let cnt = 0;
+    cli
+      .command('echo')
+      .alias('say')
+      .action(() => {
+        return ++cnt;
+      });
+    expect(await cli.run(['echo'])).toBe(1);
+    expect(await cli.run(['say'])).toBe(2);
+  });
+
+  it('should share alias with default command', async () => {
+    const cli = breadc('cli');
+    let cnt = 0;
+    cli
+      .command('')
+      .alias('echo')
+      .action(() => {
+        return ++cnt;
+      });
+    expect(await cli.run([])).toBe(1);
+    expect(await cli.run(['echo'])).toBe(2);
+  });
+
+  it('should share alias with default command and arguments', async () => {
+    const cli = breadc('cli');
+    let text = '';
+    cli
+      .command('[message]')
+      .alias('echo')
+      .action((message) => {
+        text += message;
+      });
+    await cli.run(['hello']);
+    await cli.run(['echo', ' world']);
+    expect(text).toBe('hello world');
+  });
+});
+
 describe('Version Command', () => {
   it('should print unknown version', async () => {
     const cli = breadc('cli');
