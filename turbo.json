@@ -15,6 +15,10 @@
       "dependsOn": ["build", "typecheck"],
       "inputs": ["src/**/*.ts", "test/**/*.ts"]
     },
+    "test:coverage": {
+      "dependsOn": ["build", "typecheck"],
+      "inputs": ["src/**/*.ts", "test/**/*.ts"]
+    },
     "dev": {
       "cache": false
     }

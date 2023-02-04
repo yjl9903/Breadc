@@ -232,14 +232,22 @@ describe('Breadc Error', () => {
       '"Sub-command should be placed at the beginning"'
     );
     expect(() =>
-      cli.command('abc [abc] abc')
+      cli.command('def [abc] abc')
     ).toThrowErrorMatchingInlineSnapshot(
       '"Sub-command should be placed at the beginning"'
     );
     expect(() =>
-      cli.command('abc [...abc] abc')
+      cli.command('ghi [...abc] abc')
     ).toThrowErrorMatchingInlineSnapshot(
       '"Sub-command should be placed at the beginning"'
+    );
+    expect(() =>
+      cli.command('[ghi] <abc> abc')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Required arguments should be placed before optional or rest arguments"'
+    );
+    expect(() => cli.command('[abc] [ghi]')).toThrowErrorMatchingInlineSnapshot(
+      '"There is at most one optional or rest arguments"'
     );
   });
 
