@@ -62,6 +62,9 @@ describe('Version Command', () => {
 
     expect(await cli.run(['-v'])).toMatchInlineSnapshot('"cli/1.0.0"');
     expect(await cli.run(['--version'])).toMatchInlineSnapshot('"cli/1.0.0"');
+    expect(await cli.run(['--version', 'other'])).toMatchInlineSnapshot(
+      '"cli/1.0.0"'
+    );
   });
 });
 

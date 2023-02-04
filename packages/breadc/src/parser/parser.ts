@@ -88,6 +88,7 @@ export function parse(root: TreeNode, args: string[]) {
       break;
     } else if (token.isOption()) {
       const res = parseOption(cursor, token, context);
+      /* c8 ignore next 2 */
       if (res === false) {
         break;
       } else {
