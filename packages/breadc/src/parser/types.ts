@@ -4,7 +4,7 @@ import type { Lexer, Token } from './lexer';
 
 export interface ParseResult {
   arguments: Array<string | string[] | undefined>;
-  options: Record<string, string | boolean>;
+  options: Record<string, any>;
   '--': string[];
 }
 

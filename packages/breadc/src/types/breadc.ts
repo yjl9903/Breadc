@@ -136,7 +136,7 @@ export interface OptionOption<T extends string | boolean, R extends any> {
 
 export interface Plugin {
   onPreRun(breadc: Breadc): void | Promise<void>;
-  onPreCommand(breadc: Breadc): void | Promise<void>;
-  onPostCommand(breadc: Breadc): void | Promise<void>;
+  onPreCommand: Record<string, () => void | Promise<void>>;
+  onPostCommand: Record<string, () => void | Promise<void>>;
   onPostRun(breadc: Breadc): void | Promise<void>;
 }
