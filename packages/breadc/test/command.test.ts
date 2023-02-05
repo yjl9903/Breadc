@@ -263,4 +263,31 @@ describe('Help command', () => {
       "
     `);
   });
+
+  it('should print alias commands help', async () => {
+    const cli = breadc('cli');
+    cli.option('--host <addr>', 'Host address');
+    cli.option('-r, --remote', { description: 'Enable remote' });
+    cli
+      .command('build', 'Build static site')
+      .alias('')
+      .option('-t, --test', 'Perform test', {})
+      .option('-f, --force', { description: 'Enable force mode' });
+
+    expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS] build
+
+      Commands:
+        cli build  Build static site
+
+      Options:
+            --host <addr>  Host address
+        -r, --remote       Enable remote
+        -h, --help         Print help
+        -v, --version      Print version
+      "
+    `);
+  });
 });

@@ -295,6 +295,7 @@ export function makeHelpCommand(
 
   function expandCommands(cursor: TreeNode) {
     const visited = new WeakSet<TreeNode>();
+    const added = new WeakSet<Command>();
     const commands: Command[] = cursor.command ? [cursor.command] : [];
     const q = [cursor];
     visited.add(cursor);
@@ -304,7 +305,8 @@ export function makeHelpCommand(
       for (const [_key, cmd] of cur.children) {
         if (!visited.has(cmd)) {
           visited.add(cmd);
-          if (cmd.command) {
+          if (cmd.command && !added.has(cmd.command)) {
+            added.add(cmd.command);
             commands.push(cmd.command);
           }
           q.push(cmd);
