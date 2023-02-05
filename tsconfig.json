@@ -11,6 +11,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true
   },
+  "paths": {
+    "breadc": ["./packages/breadc/src/index.ts"],
+  },
   "exclude": [
     "**/dist/**",
     "**/node_modules/**",

@@ -30,6 +30,8 @@ export function breadc(name: string, config: AppOption = {}) {
   });
 
   const breadc: Breadc = {
+    name,
+    description: config.description ?? '',
     option(format, _config, _config2: any = {}) {
       const config =
         typeof _config === 'string'

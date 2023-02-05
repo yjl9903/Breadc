@@ -18,6 +18,10 @@ export interface AppOption {
 }
 
 export interface Breadc<GlobalOption extends object = {}> {
+  name: string;
+
+  description: string;
+
   option<
     F extends string = string,
     T extends string | boolean = ExtractOptionType<F>,
