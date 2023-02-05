@@ -504,6 +504,21 @@ describe('Plugin', () => {
     expect(output[1]).toBe(2);
     expect(output[2]).toBeUndefined();
   });
+
+  it('should run on init', async () => {
+    const output: number[] = [];
+    const cli = breadc('cli', {
+      plugins: [
+        {
+          onInit() {
+            output.push(1);
+          }
+        }
+      ]
+    });
+    expect(output[0]).toBe(1);
+    expect(output[1]).toBeUndefined();
+  });
 });
 
 // describe('Warnings', () => {

@@ -1,5 +1,5 @@
 import type { ParseResult } from './parser';
-import type { Breadc, Command, Plugin } from './types';
+import type { Breadc, Command, Option, Plugin } from './types';
 
 export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
   type Container = Record<
@@ -70,6 +70,12 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
   };
 
   return {
+    init(breadc: Breadc, allCommands: Command[], globalOptions: Option[]) {
+      if (plugins.length === 0) return;
+      for (const p of plugins) {
+        p.onInit?.(breadc, allCommands, globalOptions);
+      }
+    },
     async preRun(breadc: Breadc) {
       if (plugins.length === 0) return;
       for (const p of plugins) {

@@ -141,8 +141,13 @@ export interface OptionOption<T extends string | boolean, R extends any = T> {
 type CommandHookFn = (result: ParseResult) => void | Promise<void>;
 
 export interface Plugin {
-  onPreRun(breadc: Breadc): void | Promise<void>;
-  onPreCommand: Record<string, CommandHookFn> | CommandHookFn;
-  onPostCommand: Record<string, CommandHookFn> | CommandHookFn;
-  onPostRun(breadc: Breadc): void | Promise<void>;
+  onInit?(
+    breadc: Breadc,
+    allCommands: Command[],
+    globalOptions: Option[]
+  ): void;
+  onPreRun?(breadc: Breadc): void | Promise<void>;
+  onPreCommand?: Record<string, CommandHookFn> | CommandHookFn;
+  onPostCommand?: Record<string, CommandHookFn> | CommandHookFn;
+  onPostRun?(breadc: Breadc): void | Promise<void>;
 }

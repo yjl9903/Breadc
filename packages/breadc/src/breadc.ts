@@ -71,5 +71,7 @@ export function breadc(name: string, config: AppOption = {}) {
     }
   };
 
+  container.init(breadc, allCommands, globalOptions);
+
   return breadc;
 }
