@@ -13,6 +13,9 @@
   },
   "paths": {
     "breadc": ["./packages/breadc/src/index.ts"],
+    "@breadc/color": ["./packages/color/src/index.ts"],
+    "@breadc/complete": ["./packages/complete/src/index.ts"],
+    "@breadc/progress": ["./packages/progress/src/index.ts"],
   },
   "exclude": [
     "**/dist/**",
