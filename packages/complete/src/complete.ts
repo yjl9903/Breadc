@@ -26,7 +26,9 @@ function makeCompleteOption(
   const command: Command = {
     async callback(result) {
       const shell: string = detectShellType(result.options['shell']);
-      return generate(shell as any, breadc, allCommands, globalOptions);
+      const text = generate(shell as any, breadc, allCommands, globalOptions);
+      console.log(text);
+      return text;
     },
     format: '-c, --complete <shell>',
     description: 'Export shell complete script',

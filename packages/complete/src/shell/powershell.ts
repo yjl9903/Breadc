@@ -1,3 +1,5 @@
+import type { Breadc, Command, Option } from 'breadc';
+
 import type { CompletionGenerator } from './types';
 
 export const generatePowershell: CompletionGenerator = (
@@ -6,7 +8,7 @@ export const generatePowershell: CompletionGenerator = (
   globalOptions
 ) => {
   const bin = breadc.name;
-  const subcommands = '';
+  const subcommands = generateSubcommands(breadc, commands, globalOptions);
 
   const template = `using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
@@ -33,3 +35,58 @@ Register-ArgumentCompleter -Native -CommandName '${bin}' -ScriptBlock {
 
   return template;
 };
+
+function generateSubcommands(
+  breadc: Breadc,
+  commands: Command[],
+  globalOptions: Option[]
+) {
+  const cases: string[] = [];
+
+  cases.push(
+    [
+      '',
+      `'${breadc.name}' {`,
+      ...commands.map(
+        (c) =>
+          `    [CompletionResult]::new('${c._arguments[0].name}', '${c._arguments[0].name}', [CompletionResultType]::ParameterValue, '${c.description}')`
+      ),
+      ...globalOptions.map(
+        (o) =>
+          `    [CompletionResult]::new('--${o.name}', '${o.name}', [CompletionResultType]::ParameterName, '${o.description}')`
+      ),
+      `    break`,
+      `}`
+    ]
+      .map((t) => '        ' + t)
+      .join('\n')
+  );
+
+  for (const command of commands) {
+    const args = command._arguments
+      .filter((a) => a.type === 'const')
+      .map((a) => a.name)
+      .join(';');
+
+    cases.push(
+      [
+        '',
+        `'${breadc.name};${args}' {`,
+        ...command._options.map(
+          (o) =>
+            `    [CompletionResult]::new('--${o.name}', '${o.name}', [CompletionResultType]::ParameterName, '${o.description}')`
+        ),
+        ...globalOptions.map(
+          (o) =>
+            `    [CompletionResult]::new('--${o.name}', '${o.name}', [CompletionResultType]::ParameterName, '${o.description}')`
+        ),
+        `    break`,
+        `}`
+      ]
+        .map((t) => '        ' + t)
+        .join('\n')
+    );
+  }
+
+  return cases.join('\n');
+}

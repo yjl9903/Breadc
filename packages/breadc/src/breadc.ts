@@ -8,7 +8,10 @@ import { makeCommand, makeHelpCommand, makeVersionCommand } from './command';
 export function breadc(name: string, config: AppOption = {}) {
   let defaultCommand: Command | undefined = undefined;
   const allCommands: Command[] = [];
-  const globalOptions: Option[] = [];
+  const globalOptions: Option[] = [
+    makeHelpCommand(name, config, allCommands),
+    makeVersionCommand(name, config)
+  ];
   const container = makePluginContainer(config.plugins);
 
   const root = makeTreeNode({
@@ -18,13 +21,13 @@ export function breadc(name: string, config: AppOption = {}) {
         initContextOptions(defaultCommand._options, context);
       }
 
-      initContextOptions(
-        [
-          makeHelpCommand(name, config, allCommands),
-          makeVersionCommand(name, config)
-        ],
-        context
-      );
+      // initContextOptions(
+      //   [
+      //     makeHelpCommand(name, config, allCommands),
+      //     makeVersionCommand(name, config)
+      //   ],
+      //   context
+      // );
     },
     finish() {}
   });

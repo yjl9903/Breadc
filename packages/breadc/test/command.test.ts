@@ -203,8 +203,8 @@ describe('Help command', () => {
 
   it('should print options help', async () => {
     const cli = breadc('cli');
-    cli.option('-h, --host <addr>', { description: 'Host address' });
-    cli.option('--remote', { description: 'Enable remote' });
+    cli.option('--host <addr>', { description: 'Host address' });
+    cli.option('-r, --remote', { description: 'Enable remote' });
 
     expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
       "cli/unknown
@@ -212,8 +212,8 @@ describe('Help command', () => {
       Usage: cli [OPTIONS]
 
       Options:
-        -h, --host <addr>  Host address
-            --remote       Enable remote
+            --host <addr>  Host address
+        -r, --remote       Enable remote
         -h, --help         Print help
         -v, --version      Print version
       "
@@ -222,8 +222,8 @@ describe('Help command', () => {
 
   it('should print sub-commands options help', async () => {
     const cli = breadc('cli');
-    cli.option('-h, --host <addr>', 'Host address');
-    cli.option('--remote', { description: 'Enable remote' });
+    cli.option('--host <addr>', 'Host address');
+    cli.option('-r, --remote', { description: 'Enable remote' });
     cli
       .command('build', 'Build static site')
       .option('-t, --test', 'Perform test', {})
@@ -238,8 +238,8 @@ describe('Help command', () => {
         cli build  Build static site
 
       Options:
-        -h, --host <addr>  Host address
-            --remote       Enable remote
+            --host <addr>  Host address
+        -r, --remote       Enable remote
         -h, --help         Print help
         -v, --version      Print version
       "
@@ -254,8 +254,8 @@ describe('Help command', () => {
         cli build  Build static site
 
       Options:
-        -h, --host <addr>  Host address
-            --remote       Enable remote
+            --host <addr>  Host address
+        -r, --remote       Enable remote
         -t, --test         Perform test
         -f, --force        Enable force mode
         -h, --help         Print help

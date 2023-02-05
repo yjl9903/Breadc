@@ -315,21 +315,21 @@ export function makeHelpCommand(
     return commands;
   }
 
-  const usage =
-    allCommands.length === 0
-      ? `[OPTIONS]`
-      : allCommands.length === 1
-      ? `[OPTIONS] ${allCommands[0].format}`
-      : allCommands.some((c) => c._default)
-      ? `[OPTIONS] [COMMAND]`
-      : `[OPTIONS] <COMMAND>`;
-
   const command: Command = {
     async callback(parsed) {
       // @ts-ignore
       const context: Context = parsed.options.__context__;
       // @ts-ignore
       const cursor: TreeNode = parsed.options.__cursor__;
+
+      const usage =
+        allCommands.length === 0
+          ? `[OPTIONS]`
+          : allCommands.length === 1
+          ? `[OPTIONS] ${allCommands[0].format}`
+          : allCommands.some((c) => c._default)
+          ? `[OPTIONS] [COMMAND]`
+          : `[OPTIONS] <COMMAND>`;
 
       const output: HelpMessage = [
         `${name}/${config.version ? config.version : 'unknown'}`,

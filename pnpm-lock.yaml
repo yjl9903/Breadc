@@ -45,6 +45,7 @@ importers:
 
   packages/complete:
     specifiers:
+      '@breadc/color': workspace:*
       '@types/node': ^18.11.19
       breadc: workspace:*
       omelette: ^0.4.17
@@ -52,6 +53,7 @@ importers:
     dependencies:
       omelette: 0.4.17
     devDependencies:
+      '@breadc/color': link:../color
       '@types/node': 18.11.19
       breadc: link:../breadc
       vitest: 0.28.4
