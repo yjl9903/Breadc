@@ -1,1 +1,3 @@
-export default function progress() {}
+export * from './types';
+
+export * from './progress';
