@@ -44,7 +44,7 @@
     "omelette": "^0.4.17"
   },
   "devDependencies": {
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.11.19",
     "breadc": "workspace:*",
     "vitest": "0.28.4"
   },

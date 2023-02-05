@@ -48,7 +48,7 @@
     "@breadc/color": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.11.19",
     "@vitest/coverage-c8": "^0.28.4",
     "cac": "^6.7.14",
     "vitest": "0.28.4"
