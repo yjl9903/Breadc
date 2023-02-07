@@ -1,4 +1,4 @@
-import type { Letter } from './utils';
+import type { Letter, Prettify } from './utils';
 
 /**
  * Extract option type, boolean or string
@@ -55,7 +55,7 @@ export type ExtractOption<T extends string, D = undefined> = {
 export type Push<T extends any[], U, R> = [...T, U, R];
 
 export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
-  ...arg: Push<T, Option & { '--': string[] }, {}>
+  ...arg: Push<T, Prettify<Option & { '--': string[] }>, {}>
 ) => R | Promise<R>;
 
 /**
