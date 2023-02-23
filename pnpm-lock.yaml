@@ -4,7 +4,7 @@ importers:
 
   .:
     specifiers:
-      '@types/node': ^18.14.0
+      '@types/node': ^18.14.1
       bumpp: latest
       turbo: ^1.8.2
       typescript: ^4.9.5
@@ -12,41 +12,41 @@ importers:
       vite: ^4.1.4
       vitest: 0.28.5
     devDependencies:
-      '@types/node': 18.14.0
-      bumpp: 8.2.1
+      '@types/node': 18.14.1
+      bumpp: 9.0.0
       turbo: 1.8.2
       typescript: 4.9.5
       unbuild: 1.1.2
-      vite: 4.1.4_@types+node@18.14.0
+      vite: 4.1.4_@types+node@18.14.1
       vitest: 0.28.5
 
   packages/breadc:
     specifiers:
       '@breadc/color': workspace:*
-      '@types/node': ^18.14.0
+      '@types/node': ^18.14.1
       '@vitest/coverage-c8': ^0.28.5
       cac: ^6.7.14
       vitest: 0.28.5
     dependencies:
       '@breadc/color': link:../color
     devDependencies:
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       '@vitest/coverage-c8': 0.28.5
       cac: 6.7.14
       vitest: 0.28.5
 
   packages/color:
     specifiers:
-      '@types/node': ^18.14.0
+      '@types/node': ^18.14.1
       vitest: ^0.28.5
     devDependencies:
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       vitest: 0.28.5
 
   packages/complete:
     specifiers:
       '@breadc/color': workspace:*
-      '@types/node': ^18.14.0
+      '@types/node': ^18.14.1
       breadc: workspace:*
       omelette: ^0.4.17
       vitest: 0.28.5
@@ -54,19 +54,19 @@ importers:
       omelette: 0.4.17
     devDependencies:
       '@breadc/color': link:../color
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       breadc: link:../breadc
       vitest: 0.28.5
 
   packages/progress:
     specifiers:
-      '@types/node': ^18.14.0
+      '@types/node': ^18.14.1
       string-width: ^5.1.2
       vitest: 0.28.5
     dependencies:
       string-width: 5.1.2
     devDependencies:
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       vitest: 0.28.5
 
 packages:
@@ -852,8 +852,8 @@ packages:
     resolution: {integrity: sha512-z/QT1XN4K4KYuslS23k62yDIDLwLFkzxOuMplDtObz0+y7VqJCaO2o+SPwHCvLFZh7xazvvoor2tA/hPz9ee7g==}
     dev: true
 
-  /@types/node/18.14.0:
-    resolution: {integrity: sha512-5EWrvLmglK+imbCJY0+INViFWUHg1AHel1sq4ZVSfdcNqGy9Edv3UB9IIzzg+xPaUcAgZYcfVs2fBcwDeZzU0A==}
+  /@types/node/18.14.1:
+    resolution: {integrity: sha512-QH+37Qds3E0eDlReeboBxfHbX9omAcBCXEzswCu6jySP642jiM3cYSIkU/REqwhCUqXdonHFuBfJDiAJxMNhaQ==}
     dev: true
 
   /@types/resolve/1.20.2:
@@ -1011,15 +1011,14 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /bumpp/8.2.1:
-    resolution: {integrity: sha512-4tHKsWC2mqHQvdjZ4AXgVhS2xMsz8qQ4zYt87vGRXW5tqAjrYa/UJqy7s/dGYI2OIe9ghBdiFhKpyKEX9SXffg==}
+  /bumpp/9.0.0:
+    resolution: {integrity: sha512-I2+JLFQin46NioHg6wi23hYQMVExiJyGblARp5fIHUzLv3rRz9me38eUe2xlQCAl7Ys9X+SlhTaIkttTxiL6cQ==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
       '@jsdevtools/ez-spawn': 3.0.4
       cac: 6.7.14
-      fast-glob: 3.2.11
-      kleur: 4.1.5
+      fast-glob: 3.2.12
       prompts: 2.4.2
       semver: 7.3.8
     dev: true
@@ -1279,8 +1278,8 @@ packages:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
     dev: true
 
-  /fast-glob/3.2.11:
-    resolution: {integrity: sha512-xrO3+1bxSo3ZVHAnqzyuewYT6aMFHRAd4Kcs92MAonjwQZLsK9d0SF1IyQ3k5PoirxTW0Oe/RqFgMQ6TcNE5Ew==}
+  /fast-glob/3.2.12:
+    resolution: {integrity: sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==}
     engines: {node: '>=8.6.0'}
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -1397,7 +1396,7 @@ packages:
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       dir-glob: 3.0.1
-      fast-glob: 3.2.11
+      fast-glob: 3.2.12
       ignore: 5.2.0
       merge2: 1.4.1
       slash: 4.0.0
@@ -1559,11 +1558,6 @@ packages:
 
   /kleur/3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
-    engines: {node: '>=6'}
-    dev: true
-
-  /kleur/4.1.5:
-    resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
     dev: true
 
@@ -2193,7 +2187,7 @@ packages:
       convert-source-map: 1.8.0
     dev: true
 
-  /vite-node/0.28.5_@types+node@18.14.0:
+  /vite-node/0.28.5_@types+node@18.14.1:
     resolution: {integrity: sha512-LmXb9saMGlrMZbXTvOveJKwMTBTNUH66c8rJnQ0ZPNX+myPEol64+szRzXtV5ORb0Hb/91yq+/D3oERoyAt6LA==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
@@ -2205,7 +2199,7 @@ packages:
       picocolors: 1.0.0
       source-map: 0.6.1
       source-map-support: 0.5.21
-      vite: 4.1.4_@types+node@18.14.0
+      vite: 4.1.4_@types+node@18.14.1
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -2216,7 +2210,7 @@ packages:
       - terser
     dev: true
 
-  /vite/4.1.1_@types+node@18.14.0:
+  /vite/4.1.1_@types+node@18.14.1:
     resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -2241,7 +2235,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       esbuild: 0.16.17
       postcss: 8.4.21
       resolve: 1.22.1
@@ -2250,7 +2244,7 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vite/4.1.4_@types+node@18.14.0:
+  /vite/4.1.4_@types+node@18.14.1:
     resolution: {integrity: sha512-3knk/HsbSTKEin43zHu7jTwYWv81f8kgAL99G5NWBcA1LKvtvcVAC4JjBH1arBunO9kQka+1oGbrMKOjk4ZrBg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -2275,7 +2269,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       esbuild: 0.16.17
       postcss: 8.4.21
       resolve: 1.22.1
@@ -2308,7 +2302,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.4
       '@types/chai-subset': 1.3.3
-      '@types/node': 18.14.0
+      '@types/node': 18.14.1
       '@vitest/expect': 0.28.5
       '@vitest/runner': 0.28.5
       '@vitest/spy': 0.28.5
@@ -2327,8 +2321,8 @@ packages:
       tinybench: 2.3.1
       tinypool: 0.3.1
       tinyspy: 1.0.2
-      vite: 4.1.1_@types+node@18.14.0
-      vite-node: 0.28.5_@types+node@18.14.0
+      vite: 4.1.1_@types+node@18.14.1
+      vite-node: 0.28.5_@types+node@18.14.1
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
