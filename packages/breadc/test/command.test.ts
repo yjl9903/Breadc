@@ -205,6 +205,7 @@ describe('Help command', () => {
     const cli = breadc('cli');
     cli.option('--host <addr>', { description: 'Host address' });
     cli.option('-r, --remote', { description: 'Enable remote' });
+    cli.option('--no-open', { description: 'Open page' });
 
     expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
       "cli/unknown

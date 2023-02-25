@@ -17,15 +17,16 @@ export function makeOption<
   const match = OptionRE.exec(format);
   if (match) {
     name = match[2];
-    if (name.startsWith('no-')) {
-      throw new BreadcError(`Can not parse option format (${format})`);
-    }
 
     if (match[1]) {
       short = match[1][1];
     }
 
     if (match[3]) {
+      if (name.startsWith('no-')) {
+        throw new BreadcError(`Can not parse option format (${format})`);
+      }
+
       const initial = config.default ?? '';
       return <Option<F, T>>{
         format,
@@ -39,10 +40,17 @@ export function makeOption<
         cast: config.cast
       };
     } else {
+      if (name.startsWith('no-')) {
+        name = name.slice(3);
+        // @ts-ignore
+        config.default = true;
+      }
+
       const initial =
         config.default === undefined || config.default === null
           ? false
           : config.default;
+
       return <Option<F, T>>{
         format,
         type: 'boolean',

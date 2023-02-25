@@ -407,6 +407,26 @@ describe('Option Parser', () => {
     `);
   });
 
+  it('should parse negtive boolean option', async () => {
+    const cli = breadc('cli');
+    cli.option('--no-open');
+    cli.command('').action((o) => o);
+
+    expect(await cli.run(['--open'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": true,
+      }
+    `);
+
+    expect(await cli.run(['--no-open'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": false,
+      }
+    `);
+  });
+
   it('should parse string option', async () => {
     const cli = breadc('cli');
     cli.option('--flag');

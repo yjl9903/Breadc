@@ -279,8 +279,10 @@ describe('Breadc Error', () => {
     ).toThrowErrorMatchingInlineSnapshot(
       '"Can not parse option format (--root <...files>)"'
     );
-    expect(() => cli.option('--no-root')).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (--no-root)"'
+    expect(() =>
+      cli.option('--no-root <root>')
+    ).toThrowErrorMatchingInlineSnapshot(
+      '"Can not parse option format (--no-root <root>)"'
     );
   });
 });
