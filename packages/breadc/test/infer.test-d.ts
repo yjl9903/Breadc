@@ -11,6 +11,14 @@ describe('Type Infer', () => {
     await cli.run([]);
   });
 
+  it('should have negative boolean option', async () => {
+    const cli = breadc('cli').option('--no-open');
+    cli.command('').action((option) => {
+      expectTypeOf(option).toMatchTypeOf<{ open: boolean }>();
+    });
+    await cli.run([]);
+  });
+
   it('should have string option', async () => {
     const cli = breadc('cli').option('--host <addr>');
     cli.command('').action((option) => {

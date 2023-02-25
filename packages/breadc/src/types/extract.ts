@@ -25,9 +25,13 @@ export type ExtractOptionType<T extends string> =
 export type ExtractOptionRawName<T extends string> =
   T extends `-${Letter}, --${infer R} <${infer U}>`
     ? R
+    : T extends `-${Letter}, --no-${infer R}`
+    ? R
     : T extends `-${Letter}, --${infer R}`
     ? R
     : T extends `--${infer R} <${infer U}>`
+    ? R
+    : T extends `--no-${infer R}`
     ? R
     : T extends `--${infer R}`
     ? R
