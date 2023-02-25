@@ -215,6 +215,7 @@ describe('Help command', () => {
       Options:
             --host <addr>  Host address
         -r, --remote       Enable remote
+            --no-open      Open page
         -h, --help         Print help
         -v, --version      Print version
       "
