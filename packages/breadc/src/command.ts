@@ -314,7 +314,14 @@ export function makeHelpCommand(
       }
     }
 
-    return commands;
+    const alias = new Map<string, Command>();
+    for (const cmd of commands) {
+      if (!alias.has(cmd.format)) {
+        alias.set(cmd.format, cmd);
+      }
+    }
+
+    return [...alias.values()];
   }
 
   const command: Command = {

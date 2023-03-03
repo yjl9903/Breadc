@@ -46,6 +46,42 @@ describe('Alias command', () => {
     await cli.run(['echo', ' world']);
     expect(text).toBe('hello world');
   });
+
+  it('should generate help message', async () => {
+    const cli = breadc('cli');
+    cli
+      .command('[message]')
+      .alias('echo')
+      .action(() => {});
+
+    expect(await cli.run(['--help'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS] [message]
+
+      Commands:
+        cli [message]  
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+
+    expect(await cli.run(['echo', '--help'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS] [message]
+
+      Commands:
+        cli [message]  
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
 });
 
 describe('Version Command', () => {
