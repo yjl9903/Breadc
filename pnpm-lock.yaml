@@ -69,6 +69,17 @@ importers:
       '@types/node': 18.15.1
       vitest: 0.29.2
 
+  packages/spinner:
+    specifiers:
+      '@types/node': ^18.15.1
+      string-width: ^5.1.2
+      vitest: 0.29.2
+    dependencies:
+      string-width: 5.1.2
+    devDependencies:
+      '@types/node': 18.15.1
+      vitest: 0.29.2
+
 packages:
 
   /@ampproject/remapping/2.1.2:
