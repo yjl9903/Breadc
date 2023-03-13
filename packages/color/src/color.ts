@@ -83,6 +83,15 @@ function kolorist(
   };
 }
 
+export function combine(...fns: ReturnType<typeof kolorist>[]) {
+  return (str: string | number) => {
+    for (const fn of fns) {
+      str = fn(str);
+    }
+    return str;
+  };
+}
+
 export function stripColors(str: string | number) {
   return ('' + str)
     .replace(/\x1b\[[0-9;]+m/g, '')
