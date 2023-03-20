@@ -49,8 +49,8 @@
   },
   "devDependencies": {
     "@types/node": "^18.15.3",
-    "@vitest/coverage-c8": "^0.29.3",
+    "@vitest/coverage-c8": "^0.29.7",
     "cac": "^6.7.14",
-    "vitest": "0.29.3"
+    "vitest": "0.29.7"
   }
 }
