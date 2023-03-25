@@ -15,7 +15,7 @@
     "preversion": "pnpm test:ci && pnpm build"
   },
   "devDependencies": {
-    "@types/node": "^18.15.7",
+    "@types/node": "^18.15.9",
     "bumpp": "latest",
     "turbo": "^1.8.5",
     "typescript": "^5.0.2",
