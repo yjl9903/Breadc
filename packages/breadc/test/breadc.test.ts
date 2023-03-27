@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import breadc from '../src';
+import { breadc } from '../src';
 
 describe('Breadc', () => {
   it('should run sub commands', async () => {

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import { options } from '@breadc/color';
 
-import breadc from '../src';
+import { breadc } from '../src';
 
 options.enabled = false;
 

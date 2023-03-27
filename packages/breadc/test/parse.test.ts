@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import breadc from '../src';
+import { breadc } from '../src';
 
 const DEFAULT_ACTION = (...args: any[]) => args;
 

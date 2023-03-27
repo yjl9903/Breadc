@@ -1,7 +1,7 @@
 import { bench, describe } from 'vitest';
 
 import cac from 'cac';
-import breadc from '../src';
+import { breadc } from '../src';
 
 describe('Init empty cli', () => {
   bench('Breadc', () => {

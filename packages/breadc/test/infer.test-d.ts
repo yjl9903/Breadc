@@ -1,6 +1,6 @@
 import { describe, it, expectTypeOf } from 'vitest';
 
-import breadc from '../src';
+import { breadc } from '../src';
 
 describe('Type Infer', () => {
   it('should have boolean option', async () => {
