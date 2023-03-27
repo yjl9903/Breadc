@@ -20,7 +20,11 @@ export interface AppOption {
 
   plugins?: Partial<Plugin>[];
 
-  // logger?: Partial<Logger> | LoggerFn;
+  builtin?: {
+    version?: false | Partial<{ description: string; content: string }>;
+
+    help?: false | Partial<{ description: string }>;
+  };
 }
 
 export interface Breadc<GlobalOption extends object = {}> {

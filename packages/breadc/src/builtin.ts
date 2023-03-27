@@ -5,13 +5,24 @@ import { makeTreeNode, TreeNode } from './parser';
 import { AppOption, Command, Option } from './types';
 
 export function makeVersionCommand(name: string, config: AppOption): Option {
+  let description = 'Print version';
+  if (typeof config.builtin?.version === 'object') {
+    if (config.builtin.version.description) {
+      description = config.builtin.version.description;
+    }
+  }
+
   const node = makeTreeNode({
     next() {
       return false;
     },
     finish() {
       return () => {
-        const text = `${name}/${config.version ? config.version : 'unknown'}`;
+        const text =
+          typeof config.builtin?.version === 'object' &&
+          config.builtin.version.content
+            ? config.builtin.version.content
+            : `${name}/${config.version ? config.version : 'unknown'}`;
         console.log(text);
         return text;
       };
@@ -25,7 +36,7 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
     type: 'boolean',
     initial: undefined,
     order: 999999999 + 1,
-    description: 'Print version',
+    description,
     parse() {
       return node;
     }
@@ -91,6 +102,13 @@ export function makeHelpCommand(
     }
 
     return [...alias.values()];
+  }
+
+  let description = 'Print help';
+  if (typeof config.builtin?.help === 'object') {
+    if (config.builtin.help.description) {
+      description = config.builtin.help.description;
+    }
   }
 
   const node = makeTreeNode({
@@ -162,7 +180,7 @@ export function makeHelpCommand(
     short: 'h',
     type: 'boolean',
     initial: undefined,
-    description: 'Print help',
+    description,
     order: 999999999,
     parse(cursor, _token, context) {
       context.meta.__cursor__ = cursor;

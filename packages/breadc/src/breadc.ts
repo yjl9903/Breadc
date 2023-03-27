@@ -9,10 +9,15 @@ import { makeHelpCommand, makeVersionCommand } from './builtin';
 export function breadc(name: string, config: AppOption = {}) {
   let defaultCommand: Command | undefined = undefined;
   const allCommands: Command[] = [];
-  const globalOptions: Option[] = [
-    makeHelpCommand(name, config, allCommands),
-    makeVersionCommand(name, config)
-  ];
+  const globalOptions: Option[] = [];
+
+  if (config.builtin?.version !== false) {
+    globalOptions.push(makeVersionCommand(name, config));
+  }
+  if (config.builtin?.help !== false) {
+    globalOptions.push(makeHelpCommand(name, config, allCommands));
+  }
+
   const container = makePluginContainer(config.plugins);
 
   const root = makeTreeNode({

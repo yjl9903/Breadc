@@ -132,6 +132,23 @@ describe('Version Command', () => {
       '"cli/1.0.0"'
     );
   });
+
+  it('should print custom version', async () => {
+    const cli = breadc('cli', {
+      builtin: {
+        version: {
+          content: 'Hello, this is version'
+        }
+      }
+    });
+
+    expect(await cli.run(['-v'])).toMatchInlineSnapshot(
+      '"Hello, this is version"'
+    );
+    expect(await cli.run(['--version'])).toMatchInlineSnapshot(
+      '"Hello, this is version"'
+    );
+  });
 });
 
 describe('Help command', () => {
@@ -355,6 +372,25 @@ describe('Help command', () => {
         -r, --remote       Enable remote
         -h, --help         Print help
         -v, --version      Print version
+      "
+    `);
+  });
+
+  it('should print custom help', async () => {
+    const cli = breadc('cli', {
+      builtin: {
+        version: { description: '输出版本' },
+        help: { description: '输出帮助' }
+      }
+    });
+    expect(await cli.run(['-h'])).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS]
+
+      Options:
+        -h, --help     输出帮助
+        -v, --version  输出版本
       "
     `);
   });
