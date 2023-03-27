@@ -196,7 +196,7 @@ describe('Breadc', () => {
     const cli = breadc('cli');
     cli
       .option('--flag <value>', { default: 'true' })
-      .option('--open <value>', { default: true })
+      .option('--open', { default: true })
       .command('')
       .action((option) => option.flag);
     expect(await cli.run([])).toBe('true');

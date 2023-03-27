@@ -39,7 +39,7 @@ export function breadc(name: string, config: AppOption = {}) {
           : _config;
       const option = makeOption(format, config);
       globalOptions.push(option);
-      return breadc;
+      return breadc as Breadc<any>;
     },
     command(text, _config = {}, _config2: any = {}) {
       const config =
