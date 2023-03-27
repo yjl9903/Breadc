@@ -33,22 +33,23 @@ export interface Breadc<GlobalOption extends object = {}> {
   description: string;
 
   option<
-    F extends string = string,
-    T extends string | boolean = ExtractOptionType<F>,
-    R extends any = ExtractOptionType<F>
+    OF extends string = string,
+    OT extends string | boolean = ExtractOptionType<OF>,
+    OO extends OptionOption<OT, any> = OptionOption<OT, any>,
+    OR extends any = OO extends { cast(...args: any[]): infer CR }
+      ? CR
+      : OO['default'] extends OT
+      ? OT
+      : OT extends string
+      ? undefined | string
+      : OT extends boolean
+      ? boolean
+      : undefined | string | boolean
   >(
-    format: F,
-    description?: string,
-    option?: OptionOption<T, R>
-  ): Breadc<GlobalOption & ExtractOption<F, R>>;
-  option<
-    F extends string = string,
-    T extends string | boolean = ExtractOptionType<F>,
-    R extends any = ExtractOptionType<F>
-  >(
-    format: F,
-    option?: OptionOption<T, R>
-  ): Breadc<GlobalOption & ExtractOption<F, R>>;
+    format: OF,
+    description?: string | OO,
+    option?: OO
+  ): Breadc<GlobalOption & ExtractOption<OF, OR>>;
 
   command<F extends string = string>(
     format: F,
@@ -86,19 +87,20 @@ export interface Command<
   option<
     OF extends string = string,
     OT extends string | boolean = ExtractOptionType<OF>,
-    OR extends any = ExtractOptionType<OF>
+    OO extends OptionOption<OT, any> = OptionOption<OT, any>,
+    OR extends any = OO extends { cast(...args: any[]): infer CR }
+      ? CR
+      : OO['default'] extends OT
+      ? OT
+      : OT extends string
+      ? undefined | string
+      : OT extends boolean
+      ? boolean
+      : undefined | string | boolean
   >(
     format: OF,
-    description?: string,
-    option?: OptionOption<OT, OR>
-  ): Command<F, AT, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
-  option<
-    OF extends string = string,
-    OT extends string | boolean = ExtractOptionType<OF>,
-    OR extends any = ExtractOptionType<OF>
-  >(
-    format: OF,
-    option?: OptionOption<OT, OR>
+    description?: string | OO,
+    option?: OO
   ): Command<F, AT, CommandOption & ExtractOption<OF, OR>, GlobalOption>;
 
   alias(format: string): Command<F, AT, CommandOption, GlobalOption>;
@@ -124,11 +126,7 @@ export interface Argument {
 export interface Option<
   F extends string = string,
   T extends string | boolean = ExtractOptionType<F>,
-  R extends any = T extends string
-    ? string
-    : T extends boolean
-    ? boolean
-    : never
+  R extends unknown = any
 > {
   format: F;
   type: T extends string ? 'string' : T extends boolean ? 'boolean' : never;
@@ -153,7 +151,7 @@ export interface Option<
   ) => TreeNode | false;
 }
 
-export interface OptionOption<T extends string | boolean, R extends any = T> {
+export interface OptionOption<T extends string | boolean, R extends any = any> {
   description?: string;
   default?: T;
   cast?: (value: T) => R;

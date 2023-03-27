@@ -52,8 +52,8 @@ export type ExtractOptionName<
 /**
  * Extract option information
  */
-export type ExtractOption<T extends string, D = undefined> = {
-  [k in ExtractOptionName<T>]: D extends undefined ? ExtractOptionType<T> : D;
+export type ExtractOption<T extends string, D = never> = {
+  [k in ExtractOptionName<T>]: D extends never ? ExtractOptionType<T> : D;
 };
 
 export type Push<T extends any[], U, R> = [...T, U, R];

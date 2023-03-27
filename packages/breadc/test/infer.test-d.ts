@@ -22,13 +22,26 @@ describe('Type Infer', () => {
   it('should have string option', async () => {
     const cli = breadc('cli').option('--host <addr>');
     cli.command('').action((option) => {
+      expectTypeOf(option).toMatchTypeOf<{ host: string | undefined }>();
+    });
+    await cli.run([]);
+  });
+
+  it('should have string option with default', async () => {
+    const cli = breadc('cli').option('--host <addr>', '', {
+      default: '1.1.1.1'
+    });
+    cli.command('').action((option) => {
       expectTypeOf(option).toMatchTypeOf<{ host: string }>();
     });
     await cli.run([]);
   });
 
   it('should have cast option', async () => {
-    const cli = breadc('cli').option('--page <page>', { cast: (t) => +t });
+    const cli = breadc('cli').option('--page <page>', {
+      default: '0',
+      cast: (t) => +t
+    });
     cli.command('').action((option) => {
       expectTypeOf(option).toMatchTypeOf<{ page: number }>();
     });

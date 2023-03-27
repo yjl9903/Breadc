@@ -9,8 +9,11 @@ const OptionRE = /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)( <[a-zA-Z0-9\-]+>)?$/;
 export function makeOption<
   F extends string = string,
   T extends string | boolean = ExtractOptionType<F>,
-  R extends any = any
->(format: F, config: OptionOption<T, R> = {}): Option<F, T> {
+  R extends unknown = any
+>(
+  format: F,
+  config: OptionOption<T, R> = { default: undefined }
+): Option<F, T> {
   let name = '';
   let short = undefined;
 
@@ -27,7 +30,7 @@ export function makeOption<
         throw new BreadcError(`Can not parse option format (${format})`);
       }
 
-      const initial = config.default ?? '';
+      const initial = config.default ?? undefined;
       return <Option<F, T>>{
         format,
         type: 'string',

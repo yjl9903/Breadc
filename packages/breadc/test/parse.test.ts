@@ -390,7 +390,6 @@ describe('Option Parser', () => {
         {
           "--": [],
           "flag": false,
-          "host": "",
           "remote": true,
         },
       ]
@@ -401,7 +400,6 @@ describe('Option Parser', () => {
         {
           "--": [],
           "flag": true,
-          "host": "",
           "remote": false,
         },
       ]
