@@ -11,11 +11,11 @@ export function breadc(name: string, config: AppOption = {}) {
   const allCommands: Command[] = [];
   const globalOptions: Option[] = [];
 
-  if (config.builtin?.version !== false) {
-    globalOptions.push(makeVersionCommand(name, config));
-  }
   if (config.builtin?.help !== false) {
     globalOptions.push(makeHelpCommand(name, config, allCommands));
+  }
+  if (config.builtin?.version !== false) {
+    globalOptions.push(makeVersionCommand(name, config));
   }
 
   const container = makePluginContainer(config.plugins);
