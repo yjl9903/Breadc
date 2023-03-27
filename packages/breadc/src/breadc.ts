@@ -21,14 +21,6 @@ export function breadc(name: string, config: AppOption = {}) {
       if (defaultCommand) {
         initContextOptions(defaultCommand._options, context);
       }
-
-      // initContextOptions(
-      //   [
-      //     makeHelpCommand(name, config, allCommands),
-      //     makeVersionCommand(name, config)
-      //   ],
-      //   context
-      // );
     }
   });
 
