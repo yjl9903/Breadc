@@ -1,21 +1,31 @@
 {
   "compilerOptions": {
-    "target": "es2018",
-    "module": "esnext",
-    "lib": ["esnext"],
+    "target": "ES2018",
+    "module": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true
-  },
-  "paths": {
-    "breadc": ["./packages/breadc/src/index.ts"],
-    "@breadc/color": ["./packages/color/src/index.ts"],
-    "@breadc/complete": ["./packages/complete/src/index.ts"],
-    "@breadc/progress": ["./packages/progress/src/index.ts"],
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "breadc": [
+        "./packages/breadc/src/index.ts"
+      ],
+      "@breadc/color": [
+        "./packages/color/src/index.ts"
+      ],
+      "@breadc/complete": [
+        "./packages/complete/src/index.ts"
+      ],
+      "@breadc/progress": [
+        "./packages/progress/src/index.ts"
+      ],
+    }
   },
   "exclude": [
     "**/dist/**",
