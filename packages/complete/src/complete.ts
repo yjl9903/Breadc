@@ -23,29 +23,17 @@ function makeCompleteOption(
   allCommands: Command[],
   globalOptions: Option[]
 ): Option {
-  const command: Command = {
-    async callback(result) {
-      const shell: string = detectShellType(result.options['shell']);
-      const text = generate(shell as any, breadc, allCommands, globalOptions);
-      console.log(text);
-      return text;
-    },
-    format: '-c, --complete <shell>',
-    description: 'Export shell complete script',
-    _arguments: [],
-    _options: [],
-    // @ts-ignore
-    option: undefined,
-    // @ts-ignore
-    alias: undefined,
-    // @ts-ignore
-    action: undefined
-  };
-
   const node = makeTreeNode({
-    command,
     next() {
       return false;
+    },
+    finish() {
+      return (result) => {
+        const shell: string = detectShellType(result.options['shell']);
+        const text = generate(shell as any, breadc, allCommands, globalOptions);
+        console.log(text);
+        return text;
+      };
     }
   });
 
@@ -57,7 +45,7 @@ function makeCompleteOption(
     initial: '',
     order: 999999999 - 1,
     description: 'Export shell complete script',
-    action() {
+    parse() {
       return node;
     }
   };

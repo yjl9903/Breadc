@@ -410,22 +410,49 @@ describe('Plugin', () => {
       {
         "--": [],
         "arguments": [],
-        "command": {
-          "_arguments": [
-            {
-              "name": "abc",
-              "type": "const",
+        "callback": [Function],
+        "matched": {
+          "command": {
+            "_arguments": [
+              {
+                "name": "abc",
+                "type": "const",
+              },
+            ],
+            "_default": false,
+            "_options": [],
+            "action": [Function],
+            "alias": [Function],
+            "callback": [Function],
+            "description": "",
+            "format": "abc",
+            "option": [Function],
+          },
+          "node": {
+            "children": Map {},
+            "command": {
+              "_arguments": [
+                {
+                  "name": "abc",
+                  "type": "const",
+                },
+              ],
+              "_default": false,
+              "_options": [],
+              "action": [Function],
+              "alias": [Function],
+              "callback": [Function],
+              "description": "",
+              "format": "abc",
+              "option": [Function],
             },
-          ],
-          "_default": false,
-          "_options": [],
-          "action": [Function],
-          "alias": [Function],
-          "callback": [Function],
-          "description": "",
-          "format": "abc",
-          "option": [Function],
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
         },
+        "meta": {},
         "options": {},
       }
     `);
@@ -433,22 +460,49 @@ describe('Plugin', () => {
       {
         "--": [],
         "arguments": [],
-        "command": {
-          "_arguments": [
-            {
-              "name": "def",
-              "type": "const",
+        "callback": [Function],
+        "matched": {
+          "command": {
+            "_arguments": [
+              {
+                "name": "def",
+                "type": "const",
+              },
+            ],
+            "_default": false,
+            "_options": [],
+            "action": [Function],
+            "alias": [Function],
+            "callback": [Function],
+            "description": "",
+            "format": "def",
+            "option": [Function],
+          },
+          "node": {
+            "children": Map {},
+            "command": {
+              "_arguments": [
+                {
+                  "name": "def",
+                  "type": "const",
+                },
+              ],
+              "_default": false,
+              "_options": [],
+              "action": [Function],
+              "alias": [Function],
+              "callback": [Function],
+              "description": "",
+              "format": "def",
+              "option": [Function],
             },
-          ],
-          "_default": false,
-          "_options": [],
-          "action": [Function],
-          "alias": [Function],
-          "callback": [Function],
-          "description": "",
-          "format": "def",
-          "option": [Function],
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
         },
+        "meta": {},
         "options": {},
       }
     `);

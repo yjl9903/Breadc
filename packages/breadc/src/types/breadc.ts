@@ -1,4 +1,10 @@
-import type { ParseResult, TreeNode, Context, Token } from '../parser';
+import type {
+  Token,
+  Context,
+  TreeNode,
+  ParseResult,
+  BreadcParseResult
+} from '../parser';
 
 import type {
   ActionFn,
@@ -49,7 +55,7 @@ export interface Breadc<GlobalOption extends object = {}> {
     option?: CommandOption
   ): Command<F, ExtractCommand<F>, {}, GlobalOption>;
 
-  parse(args: string[]): { command?: Command } & ParseResult;
+  parse(args: string[]): BreadcParseResult;
 
   run<T = any>(args: string[]): Promise<T>;
 }
@@ -129,7 +135,7 @@ export interface Option<
   ) => R;
 
   // Replace the default option parser behavior
-  action?: (
+  parse?: (
     cursor: TreeNode,
     token: Token,
     context: Context

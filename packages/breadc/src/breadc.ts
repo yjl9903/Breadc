@@ -1,9 +1,10 @@
 import type { Breadc, AppOption, Command, Option } from './types';
 
+import { makeCommand } from './command';
 import { makePluginContainer } from './plugin';
 import { makeTreeNode, parse } from './parser';
 import { initContextOptions, makeOption } from './option';
-import { makeCommand, makeHelpCommand, makeVersionCommand } from './command';
+import { makeHelpCommand, makeVersionCommand } from './builtin';
 
 export function breadc(name: string, config: AppOption = {}) {
   let defaultCommand: Command | undefined = undefined;
@@ -28,8 +29,7 @@ export function breadc(name: string, config: AppOption = {}) {
       //   ],
       //   context
       // );
-    },
-    finish() {}
+    }
   });
 
   const breadc: Breadc = {
@@ -58,19 +58,16 @@ export function breadc(name: string, config: AppOption = {}) {
       return command;
     },
     parse(args: string[]) {
-      const result = parse(root, args);
-      return result;
+      return parse(root, args);
     },
     async run(args: string[]) {
       const result = breadc.parse(args);
-      const command = result.command;
-      if (command) {
-        if (command.callback) {
-          await container.preRun(breadc);
-          const r = await command.callback(result);
-          await container.postRun(breadc);
-          return r;
-        }
+      const callback = result.callback;
+      if (callback) {
+        await container.preRun(breadc);
+        const r = await callback(result);
+        await container.postRun(breadc);
+        return r;
       }
       return undefined as any;
     }

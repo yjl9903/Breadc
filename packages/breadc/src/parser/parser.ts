@@ -1,7 +1,7 @@
 import { camelCase } from '../utils';
 import { ParseError } from '../error';
 
-import type { Context, TreeNode } from './types';
+import type { BreadcParseResult, Context, TreeNode } from './types';
 
 import { Lexer, Token } from './lexer';
 
@@ -20,7 +20,9 @@ export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
         return node;
       }
     },
-    finish() {},
+    finish() {
+      return pnode.command?.callback;
+    },
     ...pnode
   };
   return node;
@@ -37,14 +39,19 @@ export function parseOption(
     const option = context.options.get(key)!;
     const name = camelCase(option.name);
 
-    if (option.action) {
-      return option.action(cursor, token, context);
+    if (option.parse) {
+      // Use custom option parser
+      return option.parse(cursor, token, context);
     } else if (option.type === 'boolean') {
+      // Parse boolean option
       context.result.options[name] = !key.startsWith('no-') ? true : false;
     } else if (option.type === 'string') {
+      // Parse string option
       if (rawV !== undefined) {
+        // Use "--key=value" format
         context.result.options[name] = rawV;
       } else {
+        // Use "--key value" format
         const value = context.lexer.next();
         if (value !== undefined && !value.isOption()) {
           context.result.options[name] = value.raw();
@@ -69,7 +76,7 @@ export function parseOption(
   /* c8 ignore next 1 */
 }
 
-export function parse(root: TreeNode, args: string[]) {
+export function parse(root: TreeNode, args: string[]): BreadcParseResult {
   const lexer = new Lexer(args);
   const context: Context = {
     lexer,
@@ -78,7 +85,9 @@ export function parse(root: TreeNode, args: string[]) {
       arguments: [],
       options: {},
       '--': []
-    }
+    },
+    meta: {},
+    parseOption
   };
 
   let cursor = root;
@@ -88,7 +97,7 @@ export function parse(root: TreeNode, args: string[]) {
     if (token.type() === '--') {
       break;
     } else if (token.isOption()) {
-      const res = parseOption(cursor, token, context);
+      const res = context.parseOption(cursor, token, context);
       /* c8 ignore next 2 */
       if (res === false) {
         break;
@@ -108,13 +117,22 @@ export function parse(root: TreeNode, args: string[]) {
     }
   }
 
-  cursor.finish(context);
+  // Get callback
+  const callback = cursor.finish(context);
+
+  // Pass rest arguments
   for (const token of lexer) {
     context.result['--'].push(token.raw());
   }
 
   return {
-    command: cursor.command,
+    callback,
+    matched: {
+      node: cursor,
+      command: cursor.command,
+      option: cursor.option
+    },
+    meta: context.meta,
     arguments: context.result.arguments,
     options: context.result.options,
     '--': context.result['--']

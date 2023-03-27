@@ -13,7 +13,18 @@ describe('Basic Parser', () => {
           "world",
         ],
         "arguments": [],
-        "command": undefined,
+        "callback": undefined,
+        "matched": {
+          "command": undefined,
+          "node": {
+            "children": Map {},
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
+        },
+        "meta": {},
         "options": {},
       }
     `);
@@ -257,7 +268,18 @@ describe('Option Parser', () => {
       {
         "--": [],
         "arguments": [],
-        "command": undefined,
+        "callback": undefined,
+        "matched": {
+          "command": undefined,
+          "node": {
+            "children": Map {},
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
+        },
+        "meta": {},
         "options": {
           "root": false,
         },
@@ -268,7 +290,18 @@ describe('Option Parser', () => {
       {
         "--": [],
         "arguments": [],
-        "command": undefined,
+        "callback": undefined,
+        "matched": {
+          "command": undefined,
+          "node": {
+            "children": Map {},
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
+        },
+        "meta": {},
         "options": {
           "root": true,
         },
@@ -279,7 +312,18 @@ describe('Option Parser', () => {
       {
         "--": [],
         "arguments": [],
-        "command": undefined,
+        "callback": undefined,
+        "matched": {
+          "command": undefined,
+          "node": {
+            "children": Map {},
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
+        },
+        "meta": {},
         "options": {
           "root": true,
         },
@@ -292,7 +336,18 @@ describe('Option Parser', () => {
           "root",
         ],
         "arguments": [],
-        "command": undefined,
+        "callback": undefined,
+        "matched": {
+          "command": undefined,
+          "node": {
+            "children": Map {},
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
+        },
+        "meta": {},
         "options": {
           "root": true,
         },
@@ -305,7 +360,18 @@ describe('Option Parser', () => {
           "root",
         ],
         "arguments": [],
-        "command": undefined,
+        "callback": undefined,
+        "matched": {
+          "command": undefined,
+          "node": {
+            "children": Map {},
+            "finish": [Function],
+            "init": [Function],
+            "next": [Function],
+          },
+          "option": undefined,
+        },
+        "meta": {},
         "options": {
           "root": true,
         },
