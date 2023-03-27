@@ -1,4 +1,4 @@
-import breadc from '../packages/breadc/src';
+import { breadc } from '../packages/breadc/src';
 
 const vite = breadc('vite', {
   version: '1.0.0',

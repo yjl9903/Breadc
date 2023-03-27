@@ -24,7 +24,7 @@ npm i breadc
 Try [./examples/echo.ts](./examples/echo.ts).
 
 ```ts
-import breadc from 'breadc'
+import { breadc } from 'breadc'
 
 const cli = breadc('echo', { version: '1.0.0' })
   .option('--host <host>', { default: 'localhost' })

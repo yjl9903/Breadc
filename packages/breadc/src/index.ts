@@ -1,5 +1,3 @@
-import { breadc } from './breadc';
-
 export type {
   AppOption,
   Breadc,
@@ -16,5 +14,3 @@ export { definePlugin } from './plugin';
 export { makeTreeNode } from './parser';
 
 export { ParseError, BreadcError } from './error';
-
-export default breadc;

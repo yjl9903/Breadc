@@ -1,4 +1,4 @@
-import breadc from '../packages/breadc/src';
+import { breadc } from '../packages/breadc/src';
 
 const cli = breadc('genType');
 

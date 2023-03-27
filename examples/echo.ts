@@ -1,4 +1,4 @@
-import breadc from '../packages/breadc/src';
+import { breadc } from '../packages/breadc/src';
 
 const cli = breadc('echo', { version: '1.0.0' })
   .option('--host <host>', { default: 'localhost' })
