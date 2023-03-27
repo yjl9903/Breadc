@@ -15,8 +15,10 @@
     "preversion": "pnpm test:ci && pnpm build"
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^8.2.4",
     "@types/node": "^18.15.10",
     "bumpp": "latest",
+    "size-limit": "^8.2.4",
     "turbo": "^1.8.5",
     "typescript": "^5.0.2",
     "unbuild": "latest",

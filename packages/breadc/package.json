@@ -38,6 +38,7 @@
     "build": "unbuild",
     "coverage": "vitest run --coverage",
     "format": "prettier --write src/**/*.ts test/*.ts",
+    "size": "size-limit",
     "test": "vitest",
     "test:bench": "vitest bench",
     "test:ci": "vitest --run",
@@ -53,5 +54,13 @@
     "@vitest/coverage-c8": "^0.29.7",
     "cac": "^6.7.14",
     "vitest": "0.29.7"
-  }
+  },
+  "size-limit": [
+    {
+      "path": "./dist/index.mjs"
+    },
+    {
+      "path": "./dist/index.cjs"
+    }
+  ]
 }
