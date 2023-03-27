@@ -6,6 +6,36 @@ import { breadc } from '../src';
 
 options.enabled = false;
 
+describe('Skip unknown options', () => {
+  it('should skip', async () => {
+    const cli = breadc('cli');
+    cli
+      .command('echo', { allowUnknownOption: 'skip' })
+      .action((options) => options['--']);
+    expect(await cli.run(['echo', '--test', '--check'])).toMatchInlineSnapshot(
+      '[]'
+    );
+  });
+
+  it('should add to rest args', async () => {
+    const cli = breadc('cli');
+    cli
+      .command('echo', 'Echo command', { allowUnknownOption: 'rest' })
+      .action((options) => options['--']);
+    expect(
+      await cli.run(['echo', '--test', 'abc', '--check'])
+    ).toMatchInlineSnapshot(
+      `
+      [
+        "--test",
+        "abc",
+        "--check",
+      ]
+    `
+    );
+  });
+});
+
 describe('Alias command', () => {
   it('should share alias', async () => {
     const cli = breadc('cli');

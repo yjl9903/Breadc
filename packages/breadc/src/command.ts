@@ -72,6 +72,8 @@ export function makeCommand<F extends string = string>(
     return makeTreeNode({
       command,
       init(context) {
+        context.config.allowUnknownOption =
+          config.allowUnknownOption ?? 'error';
         initContextOptions(options, context);
       },
       finish(context) {

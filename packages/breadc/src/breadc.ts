@@ -36,9 +36,11 @@ export function breadc(name: string, config: AppOption = {}) {
       globalOptions.push(option);
       return breadc;
     },
-    command(text, _config = {}) {
+    command(text, _config = {}, _config2: any = {}) {
       const config =
-        typeof _config === 'string' ? { description: _config } : _config;
+        typeof _config === 'string'
+          ? { description: _config, ..._config2 }
+          : _config;
 
       const command = makeCommand(text, config, root, container);
 

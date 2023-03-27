@@ -53,6 +53,13 @@ export interface Context {
    */
   meta: Record<string, any>;
 
+  /**
+   * Configuration
+   */
+  config: {
+    allowUnknownOption: 'error' | 'skip' | 'rest';
+  };
+
   parseOption(
     cursor: TreeNode,
     token: Token,

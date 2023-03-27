@@ -70,7 +70,15 @@ export function parseOption(
       context.result.options[name] = option.cast(context.result.options[name]);
     }
   } else {
-    throw new ParseError(`Unknown option ${token.raw()}`);
+    switch (context.config.allowUnknownOption) {
+      case 'rest':
+        context.result['--'].push(token.raw());
+      case 'skip':
+        break;
+      case 'error':
+      default:
+        throw new ParseError(`Unknown option ${token.raw()}`);
+    }
   }
   return cursor;
   /* c8 ignore next 1 */
@@ -87,6 +95,9 @@ export function parse(root: TreeNode, args: string[]): BreadcParseResult {
       '--': []
     },
     meta: {},
+    config: {
+      allowUnknownOption: 'error'
+    },
     parseOption
   };
 

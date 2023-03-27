@@ -48,7 +48,8 @@ export interface Breadc<GlobalOption extends object = {}> {
 
   command<F extends string = string>(
     format: F,
-    description?: string
+    description?: string,
+    option?: CommandOption
   ): Command<F, ExtractCommand<F>, {}, GlobalOption>;
   command<F extends string = string>(
     format: F,
@@ -103,10 +104,16 @@ export interface Command<
 
 export interface CommandOption {
   description?: string;
+
+  /**
+   * Config how to handle unknown options
+   */
+  allowUnknownOption?: 'error' | 'skip' | 'rest';
 }
 
 export interface Argument {
   type: 'const' | 'require' | 'optional' | 'rest';
+
   name: string;
 }
 
