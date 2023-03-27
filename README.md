@@ -8,7 +8,6 @@ Yet another Command Line Application Framework with fully strong **[TypeScript](
 
 ## Features
 
-+ ⚡️ **Light-weight**: Only 75 kB (Unpacked);
 + 🔍 **TypeScript Infer**: IDE will automatically infer the type of your command action function;
 + 💻 **Commands**: Support default command, command alias and sub-commands like `git remote add <name> <url>`;
 + 📖 **East to Learn**: Breadc is very similar with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `breadc`, `command`, `option`, `action`, `run`.
