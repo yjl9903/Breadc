@@ -21,6 +21,7 @@ export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
       }
     },
     finish() {
+      /* c8 ignore next 1 */
       return pnode.command?.callback;
     },
     ...pnode
