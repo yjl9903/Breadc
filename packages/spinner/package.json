@@ -19,6 +19,7 @@
   "license": "MIT",
   "author": "XLor",
   "sideEffects": false,
+  "type": "module",
   "exports": {
     ".": {
       "require": "./dist/index.cjs",
@@ -39,11 +40,11 @@
     "test:ci": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "string-width": "^5.1.2"
+  },
   "devDependencies": {
     "@types/node": "^18.15.10",
     "vitest": "0.29.7"
-  },
-  "dependencies": {
-    "string-width": "^5.1.2"
   }
 }
