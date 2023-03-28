@@ -45,6 +45,6 @@
   },
   "devDependencies": {
     "@types/node": "^18.15.10",
-    "vitest": "0.29.7"
+    "vitest": "0.29.8"
   }
 }

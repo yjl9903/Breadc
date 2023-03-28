@@ -23,7 +23,7 @@
     "typescript": "^5.0.2",
     "unbuild": "latest",
     "vite": "^4.2.1",
-    "vitest": "0.29.7"
+    "vitest": "0.29.8"
   },
   "packageManager": "pnpm@8.0.0"
 }
