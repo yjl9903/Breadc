@@ -19,7 +19,7 @@
     "@types/node": "^18.15.11",
     "bumpp": "latest",
     "size-limit": "^8.2.4",
-    "turbo": "^1.8.8",
+    "turbo": "^1.9.0",
     "typescript": "^5.0.4",
     "unbuild": "latest",
     "vite": "^4.2.1",
