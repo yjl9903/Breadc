@@ -27,9 +27,9 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -40,11 +40,11 @@
     "test:ci": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "string-width": "^5.1.2"
+  },
   "devDependencies": {
     "@types/node": "^18.15.11",
     "vitest": "0.30.1"
-  },
-  "dependencies": {
-    "string-width": "^5.1.2"
   }
 }
