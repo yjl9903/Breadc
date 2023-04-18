@@ -26,8 +26,8 @@ importers:
         specifier: latest
         version: 1.2.1
       vite:
-        specifier: ^4.2.1
-        version: 4.2.1(@types/node@18.15.11)
+        specifier: ^4.2.2
+        version: 4.2.2(@types/node@18.15.11)
       vitest:
         specifier: 0.30.1
         version: 0.30.1
@@ -2136,14 +2136,6 @@ packages:
       '@babel/code-frame': 7.21.4
     dev: true
 
-  /rollup@3.19.1:
-    resolution: {integrity: sha512-lAbrdN7neYCg/8WaoWn/ckzCtz+jr70GFfYdlf50OF7387HTg+wiuiqJRFYawwSPpqfqDNYqK7smY/ks2iAudg==}
-    engines: {node: '>=14.18.0', npm: '>=8.0.0'}
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
-
   /rollup@3.20.2:
     resolution: {integrity: sha512-3zwkBQl7Ai7MFYQE0y1MeQ15+9jsi7XxfrqwTb/9EK8D9C9+//EBR4M+CuA1KODRaNbFez/lWxA5vhEGZp4MUg==}
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
@@ -2518,7 +2510,7 @@ packages:
       mlly: 1.2.0
       pathe: 1.1.0
       picocolors: 1.0.0
-      vite: 4.2.1(@types/node@18.15.11)
+      vite: 4.2.2(@types/node@18.15.11)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -2555,10 +2547,44 @@ packages:
         optional: true
     dependencies:
       '@types/node': 18.15.11
-      esbuild: 0.17.8
+      esbuild: 0.17.17
       postcss: 8.4.21
       resolve: 1.22.1
-      rollup: 3.19.1
+      rollup: 3.20.2
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
+  /vite@4.2.2(@types/node@18.15.11):
+    resolution: {integrity: sha512-PcNtT5HeDxb3QaSqFYkEum8f5sCVe0R3WK20qxgIvNBZPXU/Obxs/+ubBMeE7nLWeCo2LDzv+8hRYSlcaSehig==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 18.15.11
+      esbuild: 0.17.17
+      postcss: 8.4.21
+      resolve: 1.22.1
+      rollup: 3.20.2
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
