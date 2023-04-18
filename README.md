@@ -4,7 +4,7 @@
 
 Yet another Command Line Application Framework with fully strong **[TypeScript](https://www.typescriptlang.org/) support**.
 
-![vscode](./images/vscode.png)
+![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/images/vscode.png)
 
 ## Features
 
@@ -43,7 +43,7 @@ cli.run(process.argv.slice(2)).catch(err => console.error(err))
 
 If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), input something using `option`, and then you will find the `option` is automatically typed with `{ host: string, port: number }`. In the figure below, [Visual Studio Code](https://code.visualstudio.com/) will automatically infer that the type of `option.host` is `string` and the type of `option.port` is `number`.
 
-![vscode](./images/vscode.png)
+![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/images/vscode.png)
 
 ### Limitation
 
