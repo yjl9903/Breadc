@@ -41,7 +41,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "string-width": "^5.1.2"
+    "string-width": "^6.1.0"
   },
   "devDependencies": {
     "@types/node": "^18.16.5",
