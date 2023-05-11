@@ -1,1 +1,1 @@
-export function onDeath() {}
+export * from './death';
