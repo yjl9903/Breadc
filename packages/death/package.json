@@ -1,7 +1,7 @@
 {
   "name": "@breadc/death",
   "version": "0.9.3",
-  "description": "Cleanup callback support after receiving termination signals",
+  "description": "Easily register termination signals callbacks.",
   "keywords": [
     "breadc",
     "death",
@@ -10,14 +10,14 @@
     "cli",
     "command-line"
   ],
-  "homepage": "https://github.com/yjl9903/Breadc#readme",
+  "homepage": "https://github.com/yjl9903/Breadc/tree/main/packages/death#readme",
   "bugs": {
     "url": "https://github.com/yjl9903/Breadc/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yjl9903/Breadc.git",
-    "directory": "packages/color"
+    "directory": "packages/death"
   },
   "license": "MIT",
   "author": "XLor",
