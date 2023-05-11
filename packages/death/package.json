@@ -1,14 +1,16 @@
 {
-  "name": "@breadc/color",
+  "name": "@breadc/death",
   "version": "0.9.3",
-  "description": "Terminal color for Breadc",
+  "description": "Cleanup callback support after receiving termination signals",
   "keywords": [
     "breadc",
-    "progress",
+    "death",
+    "terminal",
+    "signal",
     "cli",
     "command-line"
   ],
-  "homepage": "https://github.com/yjl9903/Breadc/tree/main/packages/color#readme",
+  "homepage": "https://github.com/yjl9903/Breadc#readme",
   "bugs": {
     "url": "https://github.com/yjl9903/Breadc/issues"
   },

@@ -82,6 +82,15 @@ importers:
         specifier: 0.31.0
         version: 0.31.0
 
+  packages/death:
+    devDependencies:
+      '@types/node':
+        specifier: ^18.16.7
+        version: 18.16.7
+      vitest:
+        specifier: ^0.31.0
+        version: 0.31.0
+
   packages/progress:
     dependencies:
       string-width:

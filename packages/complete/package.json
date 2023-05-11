@@ -15,7 +15,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yjl9903/Breadc.git"
+    "url": "git+https://github.com/yjl9903/Breadc.git",
+    "directory": "packages/complete"
   },
   "license": "MIT",
   "author": "XLor",
