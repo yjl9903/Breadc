@@ -40,18 +40,15 @@ export function onDeath(
 
   if (SIGINT) {
     registerCallback('SIGINT', handlers.SIGINT);
-    emitter.addListener('SIGINT', callback);
-    cleanUps.push(() => emitter.removeListener('SIGINT', callback));
+    cleanUps.push(handlers.SIGINT.addCallback(callback));
   }
   if (SIGTERM) {
     registerCallback('SIGTERM', handlers.SIGTERM);
-    emitter.addListener('SIGTERM', callback);
-    cleanUps.push(() => emitter.removeListener('SIGTERM', callback));
+    cleanUps.push(handlers.SIGTERM.addCallback(callback));
   }
   if (SIGQUIT) {
     registerCallback('SIGQUIT', handlers.SIGQUIT);
-    emitter.addListener('SIGQUIT', callback);
-    cleanUps.push(() => emitter.removeListener('SIGQUIT', callback));
+    cleanUps.push(handlers.SIGQUIT.addCallback(callback));
   }
 
   return () => {
@@ -64,14 +61,36 @@ export function onDeath(
 function registerCallback(signal: DeathSignals, handler: Handler) {
   if (handler.count === 0) {
     handler.count += 1;
-    process.on(signal, handler.handle);
+    process.on(signal, handler.listener);
   }
 }
 
 function makeHandler(signal: DeathSignals): Handler {
+  const callbacks = new WeakMap<OnDeathCallback, number>();
   return {
     count: 0,
-    async handle(signal: NodeJS.Signals) {
+    callbacks,
+    addCallback(callback: OnDeathCallback) {
+      {
+        const count = callbacks.get(callback);
+        if (count !== undefined) {
+          callbacks.set(callback, count + 1);
+        } else {
+          callbacks.set(callback, 1);
+          emitter.addListener(signal, callback);
+        }
+      }
+      return () => {
+        const count = callbacks.get(callback);
+        if (count === undefined || count <= 1) {
+          callbacks.delete(callback);
+          emitter.removeListener(signal, callback);
+        } else {
+          callbacks.set(callback, count - 1);
+        }
+      };
+    },
+    async listener(signal: NodeJS.Signals) {
       const listeners = emitter.listeners(signal);
       const context: OnDeathContext = {
         terminate: 'kill',
@@ -85,9 +104,9 @@ function makeHandler(signal: DeathSignals): Handler {
       }
 
       if (context.terminate === 'kill' || context.terminate === 'exit') {
-        process.removeListener('SIGINT', handlers.SIGINT.handle);
-        process.removeListener('SIGTERM', handlers.SIGTERM.handle);
-        process.removeListener('SIGQUIT', handlers.SIGQUIT.handle);
+        process.removeListener('SIGINT', handlers.SIGINT.listener);
+        process.removeListener('SIGTERM', handlers.SIGTERM.listener);
+        process.removeListener('SIGQUIT', handlers.SIGQUIT.listener);
         if (context.terminate === 'kill') {
           process.kill(process.pid, context.kill);
         } else {
@@ -99,7 +118,15 @@ function makeHandler(signal: DeathSignals): Handler {
 }
 
 interface Handler {
-  handle: NodeJS.SignalsListener;
-
+  // Listener reference counting
   count: number;
+
+  // process.on(SIGNAL) listener
+  listener: NodeJS.SignalsListener;
+
+  // Callbacks reference counting
+  callbacks: WeakMap<OnDeathCallback, number>;
+
+  // Add callback, and return cleanUp function
+  addCallback: (callback: OnDeathCallback) => () => void;
 }
