@@ -1,6 +1,6 @@
 {
   "name": "@breadc/complete",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Autocompletion generation support for Breadc",
   "keywords": [
     "breadc",
