@@ -1,6 +1,8 @@
 # @breadc/complete
 
-[![version](https://img.shields.io/npm/v/@breadc/complete?complete=rgb%2850%2C203%2C86%29&label=@breadc/complete)](https://www.npmjs.com/package/@breadc/complete) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
+[![version](https://img.shields.io/npm/v/@breadc/complete?label=@breadc/complete)](https://www.npmjs.com/package/@breadc/complete) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
+
+👷 Work in progress.
 
 ## Installation
 

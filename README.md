@@ -1,6 +1,6 @@
 # 🥪 Breadc
 
-[![version](https://img.shields.io/npm/v/breadc?color=rgb%2850%2C203%2C86%29&label=Breadc)](https://www.npmjs.com/package/breadc) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/yjl9903/Breadc/branch/main/graph/badge.svg?token=F7PGOG62EF)](https://codecov.io/gh/yjl9903/Breadc)
+[![version](https://img.shields.io/npm/v/breadc?label=Breadc)](https://www.npmjs.com/package/breadc) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/yjl9903/Breadc/branch/main/graph/badge.svg?token=F7PGOG62EF)](https://codecov.io/gh/yjl9903/Breadc)
 
 Yet another Command Line Application Framework with fully strong **[TypeScript](https://www.typescriptlang.org/) support**.
 
@@ -9,8 +9,9 @@ Yet another Command Line Application Framework with fully strong **[TypeScript](
 ## Features
 
 + 🔍 **TypeScript Infer**: IDE will automatically infer the type of your command action function;
-+ 💻 **Commands**: Support default command, command alias and sub-commands like `git remote add <name> <url>`;
-+ 📖 **East to Learn**: Breadc is very similar with [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `breadc`, `command`, `option`, `action`, `run`.
++ 💻 **Commands**: support default command, command alias and sub-commands like `git remote add <name> <url>`;
++ 📖 **East to Learn**: very similar with [commander.js](https://github.com/tj/commander.js/), [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `breadc`, `command`, `option`, `action`, `run`.
++ 🧰 **Toolkit**: contains many useful tools to build your next CLI application, such as [ansi color](https://github.com/yjl9903/Breadc/tree/main/packages/color), [process death handler](https://github.com/yjl9903/Breadc/tree/main/packages/death), [shell compelete script generation](https://github.com/yjl9903/Breadc/tree/main/packages/complete) and so on.
 
 ## Installation
 
