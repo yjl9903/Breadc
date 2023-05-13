@@ -45,7 +45,7 @@
     "string-width": "^6.1.0"
   },
   "devDependencies": {
-    "@types/node": "^18.16.8",
+    "@types/node": "^18.16.9",
     "vitest": "0.31.0"
   }
 }
