@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@breadc/color": "workspace:*",
-    "@types/node": "^18.16.10",
+    "@types/node": "^18.16.12",
     "breadc": "workspace:*",
     "typescript": "^5.0.4",
     "vitest": "0.31.0"
