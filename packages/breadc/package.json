@@ -51,9 +51,9 @@
   },
   "devDependencies": {
     "@types/node": "^18.16.16",
-    "@vitest/coverage-c8": "^0.31.1",
+    "@vitest/coverage-c8": "^0.31.2",
     "cac": "^6.7.14",
-    "vitest": "0.31.1"
+    "vitest": "0.31.2"
   },
   "size-limit": [
     {
