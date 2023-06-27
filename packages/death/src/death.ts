@@ -3,6 +3,9 @@ import { EventEmitter } from 'node:events';
 export type DeathSignals = 'SIGINT' | 'SIGTERM' | 'SIGQUIT';
 
 export interface OnDeathContext {
+  // Whether the event is being triggered, make sure that there is only one listener is running
+  triggered: boolean;
+
   // Terminate process by which method or does nothing when callbacks are done
   terminate: 'exit' | 'kill' | false;
 
@@ -25,6 +28,13 @@ export interface OnDeathOptions {
 }
 
 const emitter = new EventEmitter();
+
+const context: OnDeathContext = {
+  triggered: false,
+  terminate: 'kill',
+  exit: undefined,
+  kill: undefined
+};
 
 const handlers: Record<DeathSignals, Handler> = {
   SIGINT: makeHandler('SIGINT'),
@@ -61,12 +71,13 @@ export function onDeath(
 function registerCallback(signal: DeathSignals, handler: Handler) {
   if (handler.count === 0) {
     handler.count += 1;
-    process.on(signal, handler.listener);
+    process.addListener(signal, handler.listener);
   }
 }
 
 function makeHandler(signal: DeathSignals): Handler {
   const callbacks = new WeakMap<OnDeathCallback, number>();
+
   return {
     count: 0,
     callbacks,
@@ -80,6 +91,7 @@ function makeHandler(signal: DeathSignals): Handler {
           emitter.addListener(signal, callback);
         }
       }
+
       return () => {
         const count = callbacks.get(callback);
         if (count === undefined || count <= 1) {
@@ -91,12 +103,14 @@ function makeHandler(signal: DeathSignals): Handler {
       };
     },
     async listener(signal: NodeJS.Signals) {
-      const listeners = emitter.listeners(signal);
-      const context: OnDeathContext = {
-        terminate: 'kill',
-        exit: undefined,
-        kill: signal
-      };
+      if (context.triggered) {
+        return;
+      }
+
+      context.triggered = true;
+      context.kill = signal;
+
+      const listeners = [...emitter.listeners(signal)];
 
       // Iterate all the listener by reverse
       for (const listener of listeners.reverse()) {
@@ -107,12 +121,16 @@ function makeHandler(signal: DeathSignals): Handler {
         process.removeListener('SIGINT', handlers.SIGINT.listener);
         process.removeListener('SIGTERM', handlers.SIGTERM.listener);
         process.removeListener('SIGQUIT', handlers.SIGQUIT.listener);
+
         if (context.terminate === 'kill') {
           process.kill(process.pid, context.kill);
         } else {
           process.exit(context.exit);
         }
       }
+
+      context.triggered = false;
+      context.kill = undefined;
     }
   };
 }
