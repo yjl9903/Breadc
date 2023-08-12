@@ -53,7 +53,9 @@ For the limitation of TypeScript, in the command format string, you can only wri
 You should always use method chaining when registering options and commands. The example below will fail to infer the option `--host`.
 
 ```ts
-const cli = Breadc('cli')
+import { breadc } from 'breadc'
+
+const cli = breadc('cli')
 
 cli
   .option('--host')
