@@ -96,6 +96,10 @@ importers:
         version: 0.33.0
 
   packages/logger:
+    dependencies:
+      std-env:
+        specifier: ^3.3.3
+        version: 3.3.3
     devDependencies:
       '@types/node':
         specifier: ^18.17.5
@@ -2154,7 +2158,6 @@ packages:
 
   /std-env@3.3.3:
     resolution: {integrity: sha512-Rz6yejtVyWnVjC1RFvNmYL10kgjC49EOghxWn0RFqlCHGFpQx+Xe7yW3I4ceK1SGrWIGMjD5Kbue8W/udkbMJg==}
-    dev: true
 
   /string-argv@0.3.2:
     resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}

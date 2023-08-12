@@ -1,4 +1,6 @@
-import type { LogLevel, Reporter, FormatOptions } from './types';
+import type { Reporter, FormatOptions, InputLogObject } from './types';
+
+import { LogLevel } from './level';
 
 export interface LoggerPlugin {}
 
@@ -27,17 +29,29 @@ export class BreadcLogger {
   }
 
   // --- Log ---
-  private _log(message: string) {
+  private print(defaults: InputLogObject, message: string, args: any[]) {
+    const date = new Date();
     for (const reporter of this.options.reporter) {
-      reporter.print({ message });
+      reporter.print({
+        ...defaults,
+        level: 0,
+        type: 'info',
+        date,
+        message,
+        args
+      });
     }
   }
 
-  public log(message: string) {
-    this._log(message);
+  public log(message: string, ...args: any[]) {
+    this.print({}, message, args);
   }
 
-  public info(message: string) {
-    this._log(message);
+  public info(message: string, ...args: any[]) {
+    this.print({}, message, args);
   }
 }
+
+export type LogFn = (message: string, ...args: any[]) => void;
+
+export type BreadcLoggerInstance = BreadcLogger & {};

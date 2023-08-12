@@ -41,6 +41,10 @@
     "test:ci": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@breadc/color": "workspace:*",
+    "std-env": "^3.3.3"
+  },
   "devDependencies": {
     "@types/node": "^18.17.5",
     "vitest": "0.33.0"
