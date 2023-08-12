@@ -6,7 +6,7 @@ export * from './logger';
 export const Logger = (options: Partial<LoggerOptions> = {}) => {
   return new BreadcLogger({
     reporter: [FancyReporter()],
-    level: 'info',
+    level: 0,
     format: {},
     stdout: process?.stdout,
     stderr: process?.stderr,
