@@ -1,6 +1,6 @@
 {
   "name": "@breadc/monorepo",
-  "version": "0.9.6",
+  "version": "0.9.7-beta.0",
   "private": true,
   "scripts": {
     "build": "turbo run build",

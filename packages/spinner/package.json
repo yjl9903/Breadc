@@ -1,6 +1,6 @@
 {
   "name": "@breadc/spinner",
-  "version": "0.9.6",
+  "version": "0.9.7-beta.0",
   "description": "CLI spinner bar for Breadc",
   "keywords": [
     "breadc",

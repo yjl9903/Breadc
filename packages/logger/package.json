@@ -1,6 +1,6 @@
 {
   "name": "@breadc/logger",
-  "version": "0.9.6",
+  "version": "0.9.7-beta.0",
   "description": "CLI logger for Breadc",
   "keywords": [
     "breadc",
