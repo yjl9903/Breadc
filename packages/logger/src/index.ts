@@ -3,16 +3,19 @@ import { hasTTY, isDebug, isTest, isCI } from 'std-env';
 import { BasicReporter } from './reporters/basic';
 import { FancyReporter } from './reporters/fancy';
 
-import { LogLevels } from './level';
-import { BreadcLogger, LoggerOptions } from './logger';
+import type { LoggerOptions } from './types';
 
+import { LogLevels } from './level';
+import { BreadcLogger, BreadcLoggerInstance } from './logger';
+
+export * from './level';
 export * from './types';
 export * from './logger';
 export * from './reporters';
 
 export const Logger = (
   options: Partial<LoggerOptions> & { fancy?: boolean } = {}
-) => {
+): BreadcLoggerInstance => {
   const level = getDefaultLogLevel();
   const isFancy =
     options.fancy === true || (options.fancy === undefined && hasTTY);

@@ -1,5 +1,16 @@
 import { LogLevel, LogType } from './level';
 
+export interface LoggerPlugin {}
+
+export interface LoggerOptions {
+  reporter: Reporter[];
+  level: LogLevel;
+  format: FormatOptions;
+  stdout?: NodeJS.WriteStream;
+  stderr?: NodeJS.WriteStream;
+  plugins: LoggerPlugin[];
+}
+
 export interface InputLogObject {
   level?: LogLevel;
   type?: LogType;
@@ -16,10 +27,17 @@ export interface LogObject extends InputLogObject {
   date: Date;
 }
 
-export type InputLogItem = string | number | InputLogObject;
+export type InputLogItem =
+  | string
+  | number
+  | Omit<InputLogObject, 'level' | 'type'>;
+
+export interface PrintContext {
+  options: LoggerOptions;
+}
 
 export interface Reporter {
-  print: (log: LogObject) => void;
+  print: (log: LogObject, ctx: PrintContext) => void;
 }
 
 /**
