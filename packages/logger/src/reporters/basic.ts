@@ -6,9 +6,13 @@ import { LogLevels } from '../level';
 import { bracket } from '../utils/format';
 import { writeStream } from '../utils/stream';
 
-import type { FormatReporter } from './types';
+import type { FormatReporter, FormatReporterOptions } from './types';
 
-export const BasicReporter = (): FormatReporter => {
+export interface BasicReporterOptions extends FormatReporterOptions {}
+
+export const BasicReporter = (
+  options: Partial<BasicReporterOptions> = {}
+): FormatReporter => {
   return {
     formatArgs(opts: FormatOptions, message?: string, args: any[] = []) {
       return formatWithOptions(opts, message, ...args);
@@ -21,6 +25,7 @@ export const BasicReporter = (): FormatReporter => {
       );
 
       return [
+        options.prefix,
         bracket(obj.type === 'log' ? undefined : obj.type),
         bracket(obj.tag),
         message

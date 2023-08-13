@@ -28,4 +28,34 @@ describe('Basic Logger', () => {
       ]
     `);
   });
+
+  it('should format tag', () => {
+    const reporter = MockReporter(BasicReporter());
+    const logger = Logger({
+      level: LogLevels.verbose,
+      reporter: [reporter]
+    }).withTag('Test');
+
+    logger.log('Hello %s', 'world');
+    expect(reporter.history.map((obj) => obj.output)).toMatchInlineSnapshot(`
+      [
+        "[Test] Hello world",
+      ]
+    `);
+  });
+
+  it('should use custom reporter', () => {
+    const reporter = MockReporter(BasicReporter({ prefix: '  ' }));
+    const logger = Logger({
+      level: LogLevels.verbose,
+      reporter: [reporter]
+    }).withTag('Test');
+
+    logger.log('Hello %s', 'world');
+    expect(reporter.history.map((obj) => obj.output)).toMatchInlineSnapshot(`
+      [
+        "   [Test] Hello world",
+      ]
+    `);
+  });
 });

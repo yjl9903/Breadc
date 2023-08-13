@@ -1,11 +1,9 @@
-import { hasTTY, isDebug, isTest, isCI } from 'std-env';
-
-import { BasicReporter } from './reporters/basic';
-import { FancyReporter } from './reporters/fancy';
+import { isDebug, isTest } from 'std-env';
 
 import type { LoggerOptions } from './types';
 
 import { LogLevels } from './level';
+import { FormatReporter } from './reporters';
 import { BreadcLogger, BreadcLoggerInstance } from './logger';
 
 export * from './level';
@@ -17,14 +15,11 @@ export const Logger = (
   options: Partial<LoggerOptions> & { fancy?: boolean } = {}
 ): BreadcLoggerInstance => {
   const level = getDefaultLogLevel();
-  const isFancy =
-    options.fancy === true || (options.fancy === undefined && hasTTY);
 
   return new BreadcLogger({
-    reporter: [
-      isFancy && !(isCI || isTest) ? FancyReporter() : BasicReporter()
-    ],
+    reporter: options.reporter || [FormatReporter({ fancy: options.fancy })],
     level,
+    defaults: {},
     format: {},
     stdout: process?.stdout,
     stderr: process?.stderr,

@@ -22,6 +22,24 @@ export class BreadcLogger {
     this.options.level = level;
   }
 
+  public withDefaults(defaults: InputLogObject): BreadcLoggerInstance {
+    return new BreadcLogger({
+      ...this.options,
+      defaults: {
+        ...this.options.defaults,
+        ...defaults
+      }
+    });
+  }
+
+  public withTag(tag: string): BreadcLoggerInstance {
+    return this.withDefaults({
+      tag: this.options.defaults.tag
+        ? this.options.defaults.tag + ':' + tag
+        : tag
+    });
+  }
+
   // --- Log ---
   private shouldPrint(obj: LogObject) {
     return obj.level <= this.level;
@@ -32,9 +50,10 @@ export class BreadcLogger {
     const obj: LogObject = {
       level: LogLevels['log'],
       type: 'log',
-      date,
+      ...this.options.defaults,
       ...defaults,
-      ...input
+      ...input,
+      date
     };
     if (this.shouldPrint(obj)) {
       for (const reporter of this.options.reporter) {

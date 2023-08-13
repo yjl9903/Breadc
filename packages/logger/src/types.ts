@@ -5,6 +5,7 @@ export interface LoggerPlugin {}
 export interface LoggerOptions {
   reporter: Reporter[];
   level: LogLevel;
+  defaults: InputLogObject;
   format: FormatOptions;
   stdout?: NodeJS.WriteStream;
   stderr?: NodeJS.WriteStream;
