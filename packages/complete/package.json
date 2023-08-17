@@ -50,7 +50,7 @@
     "@types/node": "^18.17.5",
     "breadc": "workspace:*",
     "typescript": "^5.1.6",
-    "vitest": "0.34.1"
+    "vitest": "0.34.2"
   },
   "peerDependencies": {
     "@breadc/color": "workspace:*",
