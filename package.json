@@ -2,8 +2,12 @@
   "name": "@breadc/monorepo",
   "version": "0.9.7-beta.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
+    "docs:build": "vitepress build docs",
+    "docs:dev": "vitepress dev docs",
+    "docs:preview": "vitepress preview docs",
     "format": "turbo run format",
     "release": "bumpp package.json packages/*/package.json --commit --push --tag && pnpm -r publish --access public",
     "test": "pnpm -C packages/breadc test",
@@ -12,10 +16,7 @@
     "test:coverage": "turbo run test:coverage",
     "test:typecheck": "pnpm -C packages/breadc test:typecheck --run",
     "typecheck": "turbo run typecheck",
-    "preversion": "pnpm test:ci && pnpm build",
-    "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "preversion": "pnpm test:ci && pnpm build"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.2.6",
