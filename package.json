@@ -12,7 +12,10 @@
     "test:coverage": "turbo run test:coverage",
     "test:typecheck": "pnpm -C packages/breadc test:typecheck --run",
     "typecheck": "turbo run typecheck",
-    "preversion": "pnpm test:ci && pnpm build"
+    "preversion": "pnpm test:ci && pnpm build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.2.6",
@@ -23,7 +26,8 @@
     "typescript": "^5.1.6",
     "unbuild": "^1.2.1",
     "vite": "^4.4.9",
-    "vitest": "0.34.2"
+    "vitepress": "1.0.0-rc.4",
+    "vitest": "0.34.1"
   },
   "packageManager": "pnpm@8.6.12"
 }
