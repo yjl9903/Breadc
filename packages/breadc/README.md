@@ -11,7 +11,7 @@ Yet another Command Line Application Framework with fully strong **[TypeScript](
 + 🔍 **TypeScript Infer**: IDE will automatically infer the type of your command action function;
 + 💻 **Commands**: support default command, command alias and sub-commands like `git remote add <name> <url>`;
 + 📖 **East to Learn**: very similar with [commander.js](https://github.com/tj/commander.js/), [cac](https://github.com/cacjs/cac) and there are only 5 APIs for building a CLI application: `breadc`, `command`, `option`, `action`, `run`.
-+ 🧰 **Toolkit**: contains many useful tools to build your next CLI application, such as [ansi color](https://github.com/yjl9903/Breadc/tree/main/packages/color), [process death handler](https://github.com/yjl9903/Breadc/tree/main/packages/death), [shell compelete script generation](https://github.com/yjl9903/Breadc/tree/main/packages/complete) and so on.
++ 🧰 **Toolkits**: contains many useful tools to build your next CLI application, such as [ansi color](https://github.com/yjl9903/Breadc/tree/main/packages/color), [process death handler](https://github.com/yjl9903/Breadc/tree/main/packages/death), [shell compelete script generation](https://github.com/yjl9903/Breadc/tree/main/packages/complete) and so on.
 
 ## Installation
 

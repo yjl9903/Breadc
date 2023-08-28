@@ -1,25 +1,24 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
   name: "Breadc"
-  text: "Yet another Command Line Application Framework with fully TypeScript support"
-  tagline: My great project tagline
+  text: "Yet another CLI App Framework"
+  tagline: With fully strong TypeScript support
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Examples
+      link: /examples
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Toolkits
+      link: /toolkits
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: TypeScript Infer
+    details: IDE will automatically infer the type of your command action function
+  - title: Commands
+    details: Supports default command, command alias and sub-commands
+  - title: Toolkits
+    details: Contains many useful tools to build your next CLI application
 ---
 

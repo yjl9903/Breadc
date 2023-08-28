@@ -5,6 +5,7 @@ node_modules
 dist
 .turbo
 tsconfig.vitest-temp.json
+docs/.vitepress/cache
 
 # Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
