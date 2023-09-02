@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.2.6",
-    "@types/node": "^20.5.8",
+    "@types/node": "^20.5.9",
     "bumpp": "latest",
     "size-limit": "^8.2.6",
     "turbo": "^1.10.13",
