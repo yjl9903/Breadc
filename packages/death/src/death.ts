@@ -68,6 +68,19 @@ export function onDeath(
   };
 }
 
+export function useDeath(
+  callback: OnDeathCallback,
+  options: OnDeathOptions = {}
+) {
+  const cancel = onDeath(callback, options);
+
+  return {
+    [Symbol.dispose]: () => {
+      cancel();
+    }
+  };
+}
+
 function registerCallback(signal: DeathSignals, handler: Handler) {
   if (handler.count === 0) {
     handler.count += 1;
