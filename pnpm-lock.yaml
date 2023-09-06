@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@size-limit/preset-small-lib':
-        specifier: ^8.2.6
-        version: 8.2.6(size-limit@8.2.6)
+        specifier: ^9.0.0
+        version: 9.0.0(size-limit@8.2.6)
       '@types/node':
         specifier: ^20.5.9
         version: 20.5.9
@@ -1092,34 +1092,34 @@ packages:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
     dev: true
 
-  /@size-limit/esbuild@8.2.6(size-limit@8.2.6):
-    resolution: {integrity: sha512-a4c8xVDuDMYw5jF655ADjQDluw3jGPPYer6UJock5rSnUlWnIbmT/Ohud7gJGq5gqyLUQOCrBD7NB3g+mlhj4g==}
-    engines: {node: ^14.0.0 || ^16.0.0 || >=18.0.0}
+  /@size-limit/esbuild@9.0.0(size-limit@8.2.6):
+    resolution: {integrity: sha512-y3NY0inaFeLqV6SRXNVILhawQdQcODxF30qft6OalsrqtQtBjt++6ZeahYhUbrVexUEWRh6c7yPCe8RvHn8hlA==}
+    engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 8.2.6
+      size-limit: 9.0.0
     dependencies:
-      esbuild: 0.18.20
+      esbuild: 0.19.2
       nanoid: 3.3.6
       size-limit: 8.2.6
     dev: true
 
-  /@size-limit/file@8.2.6(size-limit@8.2.6):
-    resolution: {integrity: sha512-B7ayjxiJsbtXdIIWazJkB5gezi5WBMecdHTFPMDhI3NwEML1RVvUjAkrb1mPAAkIpt2LVHPnhdCUHjqDdjugwg==}
-    engines: {node: ^14.0.0 || ^16.0.0 || >=18.0.0}
+  /@size-limit/file@9.0.0(size-limit@8.2.6):
+    resolution: {integrity: sha512-oM2UaH2FRq4q22k+R+P6xCpzET10T94LFdSjb9svVu/vOD7NaB9LGcG6se8TW1BExXiyXO4GEhLsBt3uMKM3qA==}
+    engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 8.2.6
+      size-limit: 9.0.0
     dependencies:
-      semver: 7.5.3
+      semver: 7.5.4
       size-limit: 8.2.6
     dev: true
 
-  /@size-limit/preset-small-lib@8.2.6(size-limit@8.2.6):
-    resolution: {integrity: sha512-roanEuscDaaXDsT5Cg9agMbmsQVlMr66eRg3AwT2o4vE7WFLR8Z42p0AHZiwucW1nGpCxAh8E08Qa/yyVuj5nA==}
+  /@size-limit/preset-small-lib@9.0.0(size-limit@8.2.6):
+    resolution: {integrity: sha512-nkbZxn12pTpABYVyX5nsjQuLFpn8wDmd2XKoq/MiqKOc3ocz5BBwXTruqTL5ZKDW1OxEAWZMQlxf2kg3kY3X1Q==}
     peerDependencies:
-      size-limit: 8.2.6
+      size-limit: 9.0.0
     dependencies:
-      '@size-limit/esbuild': 8.2.6(size-limit@8.2.6)
-      '@size-limit/file': 8.2.6(size-limit@8.2.6)
+      '@size-limit/esbuild': 9.0.0(size-limit@8.2.6)
+      '@size-limit/file': 9.0.0(size-limit@8.2.6)
       size-limit: 8.2.6
     dev: true
 
@@ -2473,14 +2473,6 @@ packages:
   /semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
-    dev: true
-
-  /semver@7.5.3:
-    resolution: {integrity: sha512-QBlUtyVk/5EeHbi7X0fw6liDZc7BBmEaSYn01fMU1OUYbf6GPsbTtd8WmnqbI20SeycoHSeiybkE/q1Q+qlThQ==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dependencies:
-      lru-cache: 6.0.0
     dev: true
 
   /semver@7.5.4:
