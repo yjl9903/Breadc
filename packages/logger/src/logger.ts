@@ -24,6 +24,10 @@ export class BreadcLogger<T extends {}> {
     this.options.level = level;
   }
 
+  public get reporter() {
+    return this.options.reporter;
+  }
+
   public extend<U extends {}>(overrides: U): BreadcLogger<T & U> & T & U {
     const that = this as unknown as BreadcLogger<T & U> & T;
     Object.assign(that._overrides, overrides);
