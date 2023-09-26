@@ -7,32 +7,42 @@ import type {
 
 import { LogLevels } from './level';
 
-export class BreadcLogger {
+export class BreadcLogger<T extends {}> {
+  private _overrides: T = {} as T;
+
   readonly options: LoggerOptions;
 
   constructor(options: LoggerOptions) {
     this.options = options;
   }
 
-  get level() {
+  public get level() {
     return this.options.level;
   }
 
-  set level(level) {
+  public set level(level) {
     this.options.level = level;
   }
 
-  public withDefaults(defaults: InputLogObject): BreadcLoggerInstance {
-    return new BreadcLogger({
+  public extend<U extends {}>(overrides: U): BreadcLogger<T & U> & T & U {
+    const that = this as unknown as BreadcLogger<T & U> & T;
+    Object.assign(that._overrides, overrides);
+    return Object.assign(that, overrides);
+  }
+
+  public withDefaults(defaults: InputLogObject): BreadcLogger<T> & T {
+    const ins = new BreadcLogger<T>({
       ...this.options,
       defaults: {
         ...this.options.defaults,
         ...defaults
       }
     });
+    ins._overrides = this._overrides;
+    return Object.assign(ins, this._overrides);
   }
 
-  public withTag(tag: string): BreadcLoggerInstance {
+  public withTag(tag: string): BreadcLogger<T> & T {
     return this.withDefaults({
       tag: this.options.defaults.tag
         ? this.options.defaults.tag + ':' + tag
@@ -45,7 +55,7 @@ export class BreadcLogger {
     return obj.level <= this.level;
   }
 
-  private print(defaults: InputLogObject, input: InputLogObject) {
+  public print(defaults: InputLogObject, input: InputLogObject) {
     const date = new Date();
     const obj: LogObject = {
       level: LogLevels['log'],
@@ -62,7 +72,7 @@ export class BreadcLogger {
     }
   }
 
-  private resolveInput(input: InputLogItem, args: any[]) {
+  public resolveInput(input: InputLogItem, args: any[]) {
     if (typeof input === 'string') {
       return { message: input, args };
     } else if (typeof input === 'number') {
@@ -87,15 +97,6 @@ export class BreadcLogger {
     const defaults: InputLogObject = { type, level };
     this.print(defaults, this.resolveInput(input, args));
   }
-
-  public info(input: InputLogItem, ...args: any[]) {
-    const type = 'info';
-    const level = LogLevels[type];
-    const defaults: InputLogObject = { type, level };
-    this.print(defaults, this.resolveInput(input, args));
-  }
 }
 
-export type LogFn = (message: string, ...args: any[]) => void;
-
-export type BreadcLoggerInstance = BreadcLogger & {};
+export type LogFn = (message: InputLogItem, ...args: any[]) => void;

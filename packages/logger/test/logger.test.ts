@@ -58,4 +58,19 @@ describe('Basic Logger', () => {
       ]
     `);
   });
+
+  it('should print info', () => {
+    const reporter = MockReporter(BasicReporter({ prefix: '  ' }));
+    const logger = Logger({
+      level: LogLevels.verbose,
+      reporter: [reporter]
+    });
+
+    logger.info('Hello %s', 'world');
+    expect(reporter.history.map((obj) => obj.output)).toMatchInlineSnapshot(`
+      [
+        "   [info] Hello world",
+      ]
+    `);
+  });
 });

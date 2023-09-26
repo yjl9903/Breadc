@@ -1,10 +1,10 @@
 import { isDebug, isTest } from 'std-env';
 
-import type { LoggerOptions } from './types';
+import type { InputLogItem, InputLogObject, LoggerOptions } from './types';
 
-import { LogLevels } from './level';
 import { FormatReporter } from './reporters';
-import { BreadcLogger, BreadcLoggerInstance } from './logger';
+import { LogLevels, LogType } from './level';
+import { BreadcLogger, LogFn } from './logger';
 
 export * from './level';
 export * from './types';
@@ -13,10 +13,10 @@ export * from './reporters';
 
 export const Logger = (
   options: Partial<LoggerOptions> & { fancy?: boolean } = {}
-): BreadcLoggerInstance => {
+): BreadcLogger<Record<LogType, LogFn>> & Record<LogType, LogFn> => {
   const level = getDefaultLogLevel();
 
-  return new BreadcLogger({
+  const logger = new BreadcLogger({
     reporter: options.reporter || [FormatReporter({ fancy: options.fancy })],
     level,
     defaults: {},
@@ -26,6 +26,41 @@ export const Logger = (
     plugins: [],
     ...options
   });
+
+  const types: LogType[] = [
+    'fatal',
+    'error',
+    'warn',
+    'info',
+    'fail',
+    'ready',
+    'box',
+    'start',
+    'success',
+    'debug',
+    'trace',
+    'verbose'
+  ];
+
+  const fns = Object.fromEntries(
+    types.map(
+      (type) =>
+        [
+          type,
+          function (
+            this: BreadcLogger<{}>,
+            input: InputLogItem,
+            ...args: any[]
+          ) {
+            const level = LogLevels[type];
+            const defaults: InputLogObject = { type, level };
+            this.print(defaults, this.resolveInput(input, args));
+          }
+        ] as const
+    )
+  ) as Record<LogType, LogFn>;
+
+  return logger.extend(fns);
 };
 
 function getDefaultLogLevel() {
