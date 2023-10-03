@@ -30,8 +30,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(typescript@5.2.2)
       vite:
-        specifier: ^4.4.9
-        version: 4.4.9(@types/node@20.8.2)
+        specifier: ^4.4.10
+        version: 4.4.10(@types/node@20.8.2)
       vitepress:
         specifier: 1.0.0-rc.20
         version: 1.0.0-rc.20(@algolia/client-search@4.20.0)(@types/node@20.8.2)(search-insights@2.8.2)
@@ -2831,7 +2831,7 @@ packages:
       mlly: 1.4.2
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 4.4.9(@types/node@20.8.2)
+      vite: 4.4.10(@types/node@20.8.2)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -2841,6 +2841,42 @@ packages:
       - sugarss
       - supports-color
       - terser
+    dev: true
+
+  /vite@4.4.10(@types/node@20.8.2):
+    resolution: {integrity: sha512-TzIjiqx9BEXF8yzYdF2NTf1kFFbjMjUSV0LFZ3HyHoI3SGSPLnnFUKiIQtL3gl2AjHvMrprOvQ3amzaHgQlAxw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 20.8.2
+      esbuild: 0.18.20
+      postcss: 8.4.30
+      rollup: 3.29.3
+    optionalDependencies:
+      fsevents: 2.3.3
     dev: true
 
   /vite@4.4.9(@types/node@20.8.2):
@@ -2901,7 +2937,7 @@ packages:
       mark.js: 8.11.1
       minisearch: 6.1.0
       shiki: 0.14.4
-      vite: 4.4.9(@types/node@20.8.2)
+      vite: 4.4.10(@types/node@20.8.2)
       vue: 3.3.4
     transitivePeerDependencies:
       - '@algolia/client-search'
