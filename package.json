@@ -27,7 +27,7 @@
     "typescript": "^5.2.2",
     "unbuild": "^2.0.0",
     "vite": "^4.4.11",
-    "vitepress": "1.0.0-rc.21",
+    "vitepress": "1.0.0-rc.22",
     "vitest": "0.34.6"
   },
   "packageManager": "pnpm@8.9.0"
