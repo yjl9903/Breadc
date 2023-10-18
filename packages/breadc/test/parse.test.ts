@@ -492,79 +492,32 @@ describe('Option Parser', () => {
   });
 
   it('should parse boolean option with value', async () => {
-    const cli = breadc('cli');
-    cli.option('--open');
-    cli.command('').action((o) => o);
+    const cli = breadc('cli').option('--open');
+    cli.command('').action((o) => o.open);
 
-    expect(await cli.run(['--open=true'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": true,
-      }
-    `);
+    expect(await cli.run(['--open=true'])).toMatchInlineSnapshot('true');
 
-    expect(await cli.run(['--open=YES'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": true,
-      }
-    `);
+    expect(await cli.run(['--open=YES'])).toMatchInlineSnapshot('true');
 
-    expect(await cli.run(['--open=T'])).toMatchInlineSnapshot(`
-    {
-      "--": [],
-      "open": true,
-    }
-  `);
+    expect(await cli.run(['--open=T'])).toMatchInlineSnapshot('true');
 
-    expect(await cli.run(['--open=y'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": true,
-      }
-    `);
+    expect(await cli.run(['--open=y'])).toMatchInlineSnapshot('true');
 
-    expect(await cli.run(['--open=false'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": false,
-      }
-    `);
+    expect(await cli.run(['--open=false'])).toMatchInlineSnapshot('false');
 
-    expect(await cli.run(['--open=No'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": false,
-      }
-    `);
+    expect(await cli.run(['--open=No'])).toMatchInlineSnapshot('false');
 
-    expect(await cli.run(['--open=f'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": false,
-      }
-    `);
+    expect(await cli.run(['--open=f'])).toMatchInlineSnapshot('false');
 
-    expect(await cli.run(['--open=N'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": false,
-      }
-    `);
+    expect(await cli.run(['--open=N'])).toMatchInlineSnapshot('false');
 
-    expect(await cli.run(['--no-open=true'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": false,
-      }
-    `);
+    expect(await cli.run(['--no-open=true'])).toMatchInlineSnapshot('false');
 
-    expect(await cli.run(['--no-open=false'])).toMatchInlineSnapshot(`
-      {
-        "--": [],
-        "open": true,
-      }
-    `);
+    expect(await cli.run(['--no-open=false'])).toMatchInlineSnapshot('true');
+
+    expect(
+      async () => await cli.run(['--open=hello'])
+    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unexpected value hello for --open"');
   });
 
   it('should parse string option', async () => {
