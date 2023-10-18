@@ -1,6 +1,6 @@
 {
   "name": "@breadc/monorepo",
-  "version": "0.9.7-beta.0",
+  "version": "0.9.7",
   "private": true,
   "type": "module",
   "scripts": {
