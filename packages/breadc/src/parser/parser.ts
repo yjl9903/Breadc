@@ -36,6 +36,7 @@ export function parseOption(
 ): TreeNode | false {
   const o = token.option();
   const [key, rawV] = o.split('=');
+
   if (context.options.has(key)) {
     const option = context.options.get(key)!;
     const name = camelCase(option.name);
@@ -45,7 +46,17 @@ export function parseOption(
       return option.parse(cursor, token, context);
     } else if (option.type === 'boolean') {
       // Parse boolean option
-      context.result.options[name] = !key.startsWith('no-') ? true : false;
+      const negative = key.startsWith('no-');
+      if (
+        rawV === undefined ||
+        ['true', 'yes', 't', 'y'].includes(rawV.toLowerCase())
+      ) {
+        context.result.options[name] = !negative ? true : false;
+      } else if (['false', 'no', 'f', 'n'].includes(rawV.toLowerCase())) {
+        context.result.options[name] = !negative ? false : true;
+      } else {
+        throw new ParseError(`Unexpected value ${rawV} for ${option.format}`);
+      }
     } else if (option.type === 'string') {
       // Parse string option
       if (rawV !== undefined) {

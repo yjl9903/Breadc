@@ -491,6 +491,82 @@ describe('Option Parser', () => {
     `);
   });
 
+  it('should parse boolean option with value', async () => {
+    const cli = breadc('cli');
+    cli.option('--open');
+    cli.command('').action((o) => o);
+
+    expect(await cli.run(['--open=true'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": true,
+      }
+    `);
+
+    expect(await cli.run(['--open=YES'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": true,
+      }
+    `);
+
+    expect(await cli.run(['--open=T'])).toMatchInlineSnapshot(`
+    {
+      "--": [],
+      "open": true,
+    }
+  `);
+
+    expect(await cli.run(['--open=y'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": true,
+      }
+    `);
+
+    expect(await cli.run(['--open=false'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": false,
+      }
+    `);
+
+    expect(await cli.run(['--open=No'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": false,
+      }
+    `);
+
+    expect(await cli.run(['--open=f'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": false,
+      }
+    `);
+
+    expect(await cli.run(['--open=N'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": false,
+      }
+    `);
+
+    expect(await cli.run(['--no-open=true'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": false,
+      }
+    `);
+
+    expect(await cli.run(['--no-open=false'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "open": true,
+      }
+    `);
+  });
+
   it('should parse string option', async () => {
     const cli = breadc('cli');
     cli.option('--flag');
