@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@size-limit/preset-small-lib':
-        specifier: ^10.0.1
-        version: 10.0.1(size-limit@10.0.1)
+        specifier: ^10.0.2
+        version: 10.0.2(size-limit@10.0.1)
       '@types/node':
         specifier: ^20.8.10
         version: 20.8.10
@@ -1092,34 +1092,34 @@ packages:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
     dev: true
 
-  /@size-limit/esbuild@10.0.1(size-limit@10.0.1):
-    resolution: {integrity: sha512-lQeVqx1HW0PJq66d3fQmBHBGtvPKa6vyRpO2Rrh2ejOe9xP3NJ5xq6DWF7fZxDToDpPuLU5mQkvo7aWh4cLKiA==}
+  /@size-limit/esbuild@10.0.2(size-limit@10.0.1):
+    resolution: {integrity: sha512-RaVAAp4BDxMBkSAzv23Mk6rWw/tgmvcqhO7g9EF8Co2q2sEH2vTK1ucAwisJyO1frVSmmkS+MuYLIrmjW8CxEw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 10.0.1
+      size-limit: 10.0.2
     dependencies:
       esbuild: 0.19.5
       nanoid: 5.0.2
       size-limit: 10.0.1
     dev: true
 
-  /@size-limit/file@10.0.1(size-limit@10.0.1):
-    resolution: {integrity: sha512-xQMh/Hy8QgyHaac+DSSKcwmcJlQglDTY67L5ouUf78SlDxiKQrr8QMiYdCj7Zl5KM+gmee/eIbl6v2qbpf/Vxw==}
+  /@size-limit/file@10.0.2(size-limit@10.0.1):
+    resolution: {integrity: sha512-27jzgQtER/2WP4+ciLe8aExkceSfqQFSDEbFVhXnbpFvQBqGZ7uEQG9bDX7a5VGxTdMtGwzZndMsCOlinmLzSg==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 10.0.1
+      size-limit: 10.0.2
     dependencies:
       semver: 7.5.4
       size-limit: 10.0.1
     dev: true
 
-  /@size-limit/preset-small-lib@10.0.1(size-limit@10.0.1):
-    resolution: {integrity: sha512-VZL9aUezCpHddHudl9pUqtdFH+K48G5VrweBJjfe/NW5gbqn9ubJEW93Vl41bo500mvQ5EaLnAenGxM3mVq+Fw==}
+  /@size-limit/preset-small-lib@10.0.2(size-limit@10.0.1):
+    resolution: {integrity: sha512-VK9uKlGILqTYaBszvJ8eoiLoFbmb03/LpZanqs8jzKwdvexOEH86OHtfi9rin8VWseAfQYHHLklJ3xwbSb4xCQ==}
     peerDependencies:
-      size-limit: 10.0.1
+      size-limit: 10.0.2
     dependencies:
-      '@size-limit/esbuild': 10.0.1(size-limit@10.0.1)
-      '@size-limit/file': 10.0.1(size-limit@10.0.1)
+      '@size-limit/esbuild': 10.0.2(size-limit@10.0.1)
+      '@size-limit/file': 10.0.2(size-limit@10.0.1)
       size-limit: 10.0.1
     dev: true
 
