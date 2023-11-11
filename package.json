@@ -22,7 +22,7 @@
     "@size-limit/preset-small-lib": "^10.0.3",
     "@types/node": "^20.9.0",
     "bumpp": "latest",
-    "size-limit": "^10.0.2",
+    "size-limit": "^10.0.3",
     "turbo": "^1.10.16",
     "typescript": "^5.2.2",
     "unbuild": "^2.0.0",
