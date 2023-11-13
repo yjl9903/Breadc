@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@size-limit/preset-small-lib':
         specifier: ^11.0.0
-        version: 11.0.0(size-limit@10.0.3)
+        version: 11.0.0(size-limit@11.0.0)
       '@types/node':
         specifier: ^20.9.0
         version: 20.9.0
@@ -18,8 +18,8 @@ importers:
         specifier: latest
         version: 9.2.0
       size-limit:
-        specifier: ^10.0.3
-        version: 10.0.3
+        specifier: ^11.0.0
+        version: 11.0.0
       turbo:
         specifier: ^1.10.16
         version: 1.10.16
@@ -1097,7 +1097,7 @@ packages:
     engines: {node: '>=18'}
     dev: true
 
-  /@size-limit/esbuild@11.0.0(size-limit@10.0.3):
+  /@size-limit/esbuild@11.0.0(size-limit@11.0.0):
     resolution: {integrity: sha512-OOmba2ZuMpaUhmBXgCfgrO7L6zkUDwvFFfW8T+dK08968LQ79Q+kNgEXQAd+dhj9TlTkHyyEDczWmx16e9cXoQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
@@ -1105,26 +1105,26 @@ packages:
     dependencies:
       esbuild: 0.19.5
       nanoid: 5.0.3
-      size-limit: 10.0.3
+      size-limit: 11.0.0
     dev: true
 
-  /@size-limit/file@11.0.0(size-limit@10.0.3):
+  /@size-limit/file@11.0.0(size-limit@11.0.0):
     resolution: {integrity: sha512-tTg6sSiFbiogiof3GV4iIRCPS4+46Hvq4QWXGXp00Be/tOnpglXF62xNpCfFwefx9YCXxCyeYSqqaRBjpRCsmQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       size-limit: 11.0.0
     dependencies:
-      size-limit: 10.0.3
+      size-limit: 11.0.0
     dev: true
 
-  /@size-limit/preset-small-lib@11.0.0(size-limit@10.0.3):
+  /@size-limit/preset-small-lib@11.0.0(size-limit@11.0.0):
     resolution: {integrity: sha512-B4KDPbx5E8Vsn/aXilt2iAeofRBJdT8svQRSylTQPw5RkrumXUBKioM1dmWUXcnuHR2zUveJXlMxGmbdmxbJpQ==}
     peerDependencies:
       size-limit: 11.0.0
     dependencies:
-      '@size-limit/esbuild': 11.0.0(size-limit@10.0.3)
-      '@size-limit/file': 11.0.0(size-limit@10.0.3)
-      size-limit: 10.0.3
+      '@size-limit/esbuild': 11.0.0(size-limit@11.0.0)
+      '@size-limit/file': 11.0.0(size-limit@11.0.0)
+      size-limit: 11.0.0
     dev: true
 
   /@types/chai-subset@1.3.5:
@@ -2546,8 +2546,8 @@ packages:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
     dev: true
 
-  /size-limit@10.0.3:
-    resolution: {integrity: sha512-5k1k2Kykueq5K/PJQclKx2GS1prz4WNNvm+x5CQ2oWLHwmuFnb1z1g412O9aoOFqafXicJTZgZHXRyIe2GZQfA==}
+  /size-limit@11.0.0:
+    resolution: {integrity: sha512-6+i4rE1GRzx/vRpuitRYQiZJNTXJjde+4P2NPg8AK7pURrE1+hA3mGstzvT8vQ8DuYFnvp9fh4CHM7Heq3EKXA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     dependencies:
