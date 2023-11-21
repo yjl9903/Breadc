@@ -46,7 +46,7 @@
     "std-env": "^3.5.0"
   },
   "devDependencies": {
-    "@types/node": "^20.9.2",
+    "@types/node": "^20.9.3",
     "vitest": "0.34.6"
   }
 }
