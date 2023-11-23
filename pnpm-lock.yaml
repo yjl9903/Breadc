@@ -12,8 +12,8 @@ importers:
         specifier: ^11.0.0
         version: 11.0.0(size-limit@11.0.0)
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       bumpp:
         specifier: latest
         version: 9.2.0
@@ -31,10 +31,10 @@ importers:
         version: 2.0.0(typescript@5.3.2)
       vite:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@20.9.4)
+        version: 5.0.2(@types/node@20.9.5)
       vitepress:
         specifier: 1.0.0-rc.30
-        version: 1.0.0-rc.30(@algolia/client-search@4.20.0)(@types/node@20.9.4)(search-insights@2.11.0)(typescript@5.3.2)
+        version: 1.0.0-rc.30(@algolia/client-search@4.20.0)(@types/node@20.9.5)(search-insights@2.11.0)(typescript@5.3.2)
       vitest:
         specifier: 0.34.6
         version: 0.34.6
@@ -46,8 +46,8 @@ importers:
         version: link:../color
     devDependencies:
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       '@vitest/coverage-v8':
         specifier: ^0.34.6
         version: 0.34.6(vitest@0.34.6)
@@ -61,8 +61,8 @@ importers:
   packages/color:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -77,8 +77,8 @@ importers:
         specifier: workspace:*
         version: link:../color
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       breadc:
         specifier: workspace:*
         version: link:../breadc
@@ -92,8 +92,8 @@ importers:
   packages/death:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       vitest:
         specifier: ^0.34.6
         version: 0.34.6
@@ -108,8 +108,8 @@ importers:
         version: 3.5.0
     devDependencies:
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       vitest:
         specifier: 0.34.6
         version: 0.34.6
@@ -121,8 +121,8 @@ importers:
         version: 7.0.0
     devDependencies:
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       vitest:
         specifier: 0.34.6
         version: 0.34.6
@@ -134,8 +134,8 @@ importers:
         version: 7.0.0
     devDependencies:
       '@types/node':
-        specifier: ^20.9.4
-        version: 20.9.4
+        specifier: ^20.9.5
+        version: 20.9.5
       vitest:
         specifier: 0.34.6
         version: 0.34.6
@@ -1070,8 +1070,8 @@ packages:
     resolution: {integrity: sha512-6L6VymKTzYSrEf4Nev4Xa1LCHKrlTlYCBMTlQKFuddo1CvQcE52I0mwfOJayueUC7MJuXOeHTcIU683lzd0cUA==}
     dev: true
 
-  /@types/node@20.9.4:
-    resolution: {integrity: sha512-wmyg8HUhcn6ACjsn8oKYjkN/zUzQeNtMy44weTJSM6p4MMzEOuKbA3OjJ267uPCOW7Xex9dyrNTful8XTQYoDA==}
+  /@types/node@20.9.5:
+    resolution: {integrity: sha512-Uq2xbNq0chGg+/WQEU0LJTSs/1nKxz6u1iemLcGomkSnKokbW1fbLqc3HOqCf2JP7KjlL4QkS7oZZTrOQHQYgQ==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -1099,7 +1099,7 @@ packages:
       vite: ^4.0.0 || ^5.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 5.0.2(@types/node@20.9.4)
+      vite: 5.0.2(@types/node@20.9.5)
       vue: 3.3.8(typescript@5.3.2)
     dev: true
 
@@ -2997,7 +2997,7 @@ packages:
       vfile-message: 4.0.2
     dev: true
 
-  /vite-node@0.34.6(@types/node@20.9.4):
+  /vite-node@0.34.6(@types/node@20.9.5):
     resolution: {integrity: sha512-nlBMJ9x6n7/Amaz6F3zJ97EBwR2FkzhBRxF5e+jE6LA3yi6Wtc2lyTij1OnDMIr34v5g/tVQtsVAzhT0jc5ygA==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
@@ -3007,7 +3007,7 @@ packages:
       mlly: 1.4.2
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 5.0.2(@types/node@20.9.4)
+      vite: 5.0.2(@types/node@20.9.5)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -3019,7 +3019,7 @@ packages:
       - terser
     dev: true
 
-  /vite@5.0.0(@types/node@20.9.4):
+  /vite@5.0.0(@types/node@20.9.5):
     resolution: {integrity: sha512-ESJVM59mdyGpsiNAeHQOR/0fqNoOyWPYesFto8FFZugfmhdHx8Fzd8sF3Q/xkVhZsyOxHfdM7ieiVAorI9RjFw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -3047,7 +3047,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.9.4
+      '@types/node': 20.9.5
       esbuild: 0.19.6
       postcss: 8.4.31
       rollup: 4.5.0
@@ -3055,7 +3055,7 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /vite@5.0.2(@types/node@20.9.4):
+  /vite@5.0.2(@types/node@20.9.5):
     resolution: {integrity: sha512-6CCq1CAJCNM1ya2ZZA7+jS2KgnhbzvxakmlIjN24cF/PXhRMzpM/z8QgsVJA/Dm5fWUWnVEsmtBoMhmerPxT0g==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -3083,7 +3083,7 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.9.4
+      '@types/node': 20.9.5
       esbuild: 0.19.6
       postcss: 8.4.31
       rollup: 4.5.0
@@ -3091,7 +3091,7 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /vitepress@1.0.0-rc.30(@algolia/client-search@4.20.0)(@types/node@20.9.4)(search-insights@2.11.0)(typescript@5.3.2):
+  /vitepress@1.0.0-rc.30(@algolia/client-search@4.20.0)(@types/node@20.9.5)(search-insights@2.11.0)(typescript@5.3.2):
     resolution: {integrity: sha512-OolAbFU2hjs0KuIpPq0wRd4vJlTMvrFgHSh/hB+XQid7U31KtB6F1NxWihMwKkwncpxu9mt2Somet5AGiyTgPA==}
     hasBin: true
     peerDependencies:
@@ -3116,7 +3116,7 @@ packages:
       mrmime: 1.0.1
       shikiji: 0.7.3
       shikiji-transformers: 0.7.3
-      vite: 5.0.2(@types/node@20.9.4)
+      vite: 5.0.2(@types/node@20.9.5)
       vue: 3.3.8(typescript@5.3.2)
     transitivePeerDependencies:
       - '@algolia/client-search'
@@ -3179,7 +3179,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.10
       '@types/chai-subset': 1.3.5
-      '@types/node': 20.9.4
+      '@types/node': 20.9.5
       '@vitest/expect': 0.34.6
       '@vitest/runner': 0.34.6
       '@vitest/snapshot': 0.34.6
@@ -3198,8 +3198,8 @@ packages:
       strip-literal: 1.3.0
       tinybench: 2.5.1
       tinypool: 0.7.0
-      vite: 5.0.0(@types/node@20.9.4)
-      vite-node: 0.34.6(@types/node@20.9.4)
+      vite: 5.0.0(@types/node@20.9.5)
+      vite-node: 0.34.6(@types/node@20.9.5)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less
