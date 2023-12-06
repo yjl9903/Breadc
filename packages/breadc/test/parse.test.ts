@@ -517,7 +517,7 @@ describe('Option Parser', () => {
 
     expect(
       async () => await cli.run(['--open=hello'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unexpected value hello for --open"');
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Unexpected value hello for --open]`);
   });
 
   it('should parse string option', async () => {

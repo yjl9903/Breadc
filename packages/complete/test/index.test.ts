@@ -57,7 +57,7 @@ describe('Complete', () => {
                   break
               }
           })
-          $completions.Where{ $_.CompletionText -like \\"$wordToComplete*\\" } |
+          $completions.Where{ $_.CompletionText -like "$wordToComplete*" } |
               Sort-Object -Property ListItemText
       }"
     `);
@@ -107,7 +107,7 @@ describe('Complete', () => {
                   break
               }
           })
-          $completions.Where{ $_.CompletionText -like \\"$wordToComplete*\\" } |
+          $completions.Where{ $_.CompletionText -like "$wordToComplete*" } |
               Sort-Object -Property ListItemText
       }"
     `);

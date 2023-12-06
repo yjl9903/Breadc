@@ -204,11 +204,11 @@ describe('Breadc', () => {
     expect(
       async () => await cli.run(['--flag'])
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '"You should provide arguments for --flag <value>"'
+      `[Error: You should provide arguments for --flag <value>]`
     );
     expect(
       async () => await cli.run(['--no-flag'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown option --no-flag"');
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Unknown option --no-flag]`);
   });
 });
 
@@ -221,68 +221,68 @@ describe('Breadc Error', () => {
   it('has wrong command format', () => {
     const cli = breadc('cli');
     expect(() => cli.command('[abc] abc')).toThrowErrorMatchingInlineSnapshot(
-      '"Sub-command should be placed at the beginning"'
+      `[Error: Sub-command should be placed at the beginning]`
     );
     expect(() =>
       cli.command('[...abc] abc')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Sub-command should be placed at the beginning"'
+      `[Error: Sub-command should be placed at the beginning]`
     );
     expect(() => cli.command('<abc> abc')).toThrowErrorMatchingInlineSnapshot(
-      '"Sub-command should be placed at the beginning"'
+      `[Error: Sub-command should be placed at the beginning]`
     );
     expect(() =>
       cli.command('abc <abc> abc')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Sub-command should be placed at the beginning"'
+      `[Error: Sub-command should be placed at the beginning]`
     );
     expect(() =>
       cli.command('def [abc] abc')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Sub-command should be placed at the beginning"'
+      `[Error: Sub-command should be placed at the beginning]`
     );
     expect(() =>
       cli.command('ghi [...abc] abc')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Sub-command should be placed at the beginning"'
+      `[Error: Sub-command should be placed at the beginning]`
     );
     expect(() =>
       cli.command('[ghi] <abc> abc')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Required arguments should be placed before optional or rest arguments"'
+      `[Error: Required arguments should be placed before optional or rest arguments]`
     );
     expect(() => cli.command('[abc] [ghi]')).toThrowErrorMatchingInlineSnapshot(
-      '"There is at most one optional or rest arguments"'
+      `[Error: There is at most one optional or rest arguments]`
     );
   });
 
   it('has wrong option format', () => {
     const cli = breadc('cli');
     expect(() => cli.option('abc')).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (abc)"'
+      `[Error: Can not parse option format (abc)]`
     );
     expect(() => cli.option('-r')).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (-r)"'
+      `[Error: Can not parse option format (-r)]`
     );
     expect(() =>
       cli.option('--root [...files]')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (--root [...files])"'
+      `[Error: Can not parse option format (--root [...files])]`
     );
     expect(() =>
       cli.option('--root [files]')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (--root [files])"'
+      `[Error: Can not parse option format (--root [files])]`
     );
     expect(() =>
       cli.option('--root <...files>')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (--root <...files>)"'
+      `[Error: Can not parse option format (--root <...files>)]`
     );
     expect(() =>
       cli.option('--no-root <root>')
     ).toThrowErrorMatchingInlineSnapshot(
-      '"Can not parse option format (--no-root <root>)"'
+      `[Error: Can not parse option format (--no-root <root>)]`
     );
   });
 });
@@ -294,7 +294,7 @@ describe('Parse Error', () => {
     expect(
       async () => await cli.run(['run'])
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '"You must provide require argument dir"'
+      `[Error: You must provide require argument dir]`
     );
   });
 
@@ -303,11 +303,11 @@ describe('Parse Error', () => {
     cli.command('page get <page>').action((p) => p);
     expect(async () =>
       cli.run(['page'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot('"Unknown sub-command"');
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Unknown sub-command]`);
     expect(async () =>
       cli.run(['page', 'post'])
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '"Unknown sub-command (post)"'
+      `[Error: Unknown sub-command (post)]`
     );
   });
 });

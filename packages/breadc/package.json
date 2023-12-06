@@ -44,16 +44,14 @@
     "test:ci": "vitest --run",
     "test:coverage": "vitest run --coverage",
     "test:typecheck": "vitest typecheck",
-    "typecheck": "tsc --noEmit && vitest typecheck --run"
+    "typecheck": "tsc --noEmit && vitest --typecheck.only --run"
   },
   "dependencies": {
     "@breadc/color": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.10.3",
-    "@vitest/coverage-v8": "^0.34.6",
-    "cac": "^6.7.14",
-    "vitest": "0.34.6"
+    "cac": "^6.7.14"
   },
   "size-limit": [
     {
