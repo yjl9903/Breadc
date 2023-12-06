@@ -43,7 +43,7 @@
     "test:bench": "vitest bench",
     "test:ci": "vitest --run",
     "test:coverage": "vitest run --coverage",
-    "test:typecheck": "vitest typecheck",
+    "test:typecheck": "vitest --typecheck.only --run",
     "typecheck": "tsc --noEmit && vitest --typecheck.only --run"
   },
   "dependencies": {
