@@ -81,8 +81,8 @@ export function makeCommand<F extends string = string>(
 
         for (let i = 0; i < args.length; i++) {
           if (args[i].type === 'const') {
-            /* c8 ignore next 3 */
             if (rest[i] !== args[i].name) {
+              /* c8 ignore next 2 */
               throw new ParseError(`Sub-command ${args[i].name} mismatch`);
             }
           } else if (args[i].type === 'require') {

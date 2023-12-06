@@ -1,3 +1,5 @@
+/* c8 ignore start */
+
 import type { Letter, Prettify } from './utils';
 
 /**
@@ -161,3 +163,5 @@ export type ExtractCommand<T extends string> =
     : T extends ``
     ? []
     : never;
+
+/* c8 ignore end */

@@ -1,3 +1,5 @@
+/* c8 ignore start */
+
 // See https://twitter.com/mattpocockuk/status/1622730173446557697
 // export type Identity<T> = T;
 // type Prettify<T> = Identity<{ [K in keyof T]: T[K] }>
@@ -66,3 +68,5 @@ export type Uppercase =
 export type Letter = Lowercase | Uppercase;
 
 export type Dash = '-';
+
+/* c8 ignore end */

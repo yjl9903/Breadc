@@ -1,3 +1,5 @@
+/* c8 ignore start */
+
 import type {
   Token,
   Context,
@@ -170,3 +172,5 @@ export interface Plugin {
   onPostCommand?: Record<string, CommandHookFn> | CommandHookFn;
   onPostRun?(breadc: Breadc): void | Promise<void>;
 }
+
+/* c8 ignore end */
