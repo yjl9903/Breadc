@@ -43,6 +43,6 @@
   },
   "dependencies": {
     "@breadc/color": "workspace:*",
-    "std-env": "^3.6.0"
+    "std-env": "^3.7.0"
   }
 }
