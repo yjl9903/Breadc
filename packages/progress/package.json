@@ -42,6 +42,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "string-width": "^7.0.0"
+    "string-width": "^7.1.0"
   }
 }
