@@ -50,7 +50,7 @@
     "@breadc/color": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.11.17",
+    "@types/node": "^20.11.18",
     "cac": "^6.7.14"
   },
   "size-limit": [
