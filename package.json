@@ -31,5 +31,5 @@
     "vitepress": "1.0.0-rc.44",
     "vitest": "1.2.2"
   },
-  "packageManager": "pnpm@8.15.3"
+  "packageManager": "pnpm@8.15.4"
 }
