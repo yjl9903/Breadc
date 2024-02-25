@@ -6,14 +6,14 @@ import type {
   TreeNode,
   ParseResult,
   BreadcParseResult
-} from '../parser';
+} from '../parser/index.ts';
 
 import type {
   ActionFn,
   ExtractCommand,
   ExtractOption,
   ExtractOptionType
-} from './extract';
+} from './extract.ts';
 
 export interface AppOption {
   version?: string;

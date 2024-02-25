@@ -1,8 +1,8 @@
 import { bold, underline } from '@breadc/color';
 
-import { twoColumn } from './utils';
-import { makeTreeNode, TreeNode } from './parser';
-import { AppOption, Command, Option } from './types';
+import { twoColumn } from './utils.ts';
+import { makeTreeNode, TreeNode } from './parser/index.ts';
+import { AppOption, Command, Option } from './types/index.ts';
 
 export function makeVersionCommand(name: string, config: AppOption): Option {
   let description = 'Print version';

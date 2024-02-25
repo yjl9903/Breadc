@@ -1,9 +1,9 @@
-import { camelCase } from '../utils';
-import { ParseError } from '../error';
+import { camelCase } from '../utils.ts';
+import { ParseError } from '../error.ts';
 
-import type { BreadcParseResult, Context, TreeNode } from './types';
+import type { BreadcParseResult, Context, TreeNode } from './types.ts';
 
-import { Lexer, Token } from './lexer';
+import { Lexer, Token } from './lexer.ts';
 
 export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
   const node: TreeNode = {

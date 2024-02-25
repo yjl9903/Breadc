@@ -1,5 +1,5 @@
-export * from './lexer';
+export * from './lexer.ts';
 
-export * from './types';
+export * from './types.ts';
 
-export * from './parser';
+export * from './parser.ts';

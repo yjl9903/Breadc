@@ -1,10 +1,10 @@
-import type { Breadc, AppOption, Command, Option } from './types';
+import type { Breadc, AppOption, Command, Option } from './types/index.ts';
 
-import { makeCommand } from './command';
-import { makePluginContainer } from './plugin';
-import { makeTreeNode, parse } from './parser';
-import { initContextOptions, makeOption } from './option';
-import { makeHelpCommand, makeVersionCommand } from './builtin';
+import { makeCommand } from './command.ts';
+import { makePluginContainer } from './plugin.ts';
+import { makeTreeNode, parse } from './parser/index.ts';
+import { initContextOptions, makeOption } from './option.ts';
+import { makeHelpCommand, makeVersionCommand } from './builtin.ts';
 
 export function breadc(name: string, config: AppOption = {}) {
   let defaultCommand: Command | undefined = undefined;

@@ -1,8 +1,8 @@
-import type { ExtractOptionType, Option, OptionOption } from './types';
+import type { ExtractOptionType, Option, OptionOption } from './types/index.ts';
 
-import { Context } from './parser';
-import { camelCase } from './utils';
-import { BreadcError } from './error';
+import { Context } from './parser/index.ts';
+import { camelCase } from './utils.ts';
+import { BreadcError } from './error.ts';
 
 const OptionRE = /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)( <[a-zA-Z0-9\-]+>)?$/;
 

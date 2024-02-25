@@ -1,7 +1,7 @@
-import type { Prettify } from '../types/utils';
-import type { Option, Command } from '../types/breadc';
+import type { Prettify } from '../types/utils.ts';
+import type { Option, Command } from '../types/breadc.ts';
 
-import type { Lexer, Token } from './lexer';
+import type { Lexer, Token } from './lexer.ts';
 
 export type CallbackFn = (result: BreadcParseResult) => any;
 

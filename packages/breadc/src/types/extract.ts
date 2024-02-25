@@ -1,6 +1,6 @@
 /* c8 ignore start */
 
-import type { Letter, Prettify } from './utils';
+import type { Letter, Prettify } from './utils.ts';
 
 /**
  * Extract option type, boolean or string

@@ -5,12 +5,12 @@ export type {
   Option,
   Argument,
   Plugin
-} from './types';
+} from './types/index.ts';
 
-export { breadc } from './breadc';
+export { breadc } from './breadc.ts';
 
-export { definePlugin } from './plugin';
+export { definePlugin } from './plugin.ts';
 
-export { makeTreeNode } from './parser';
+export { makeTreeNode } from './parser/index.ts';
 
-export { ParseError, BreadcError } from './error';
+export { ParseError, BreadcError } from './error.ts';

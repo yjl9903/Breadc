@@ -13,6 +13,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "breadc": [
         "./packages/breadc/src/index.ts"

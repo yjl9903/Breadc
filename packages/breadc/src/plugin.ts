@@ -1,5 +1,5 @@
-import type { ParseResult } from './parser';
-import type { Breadc, Command, Option, Plugin } from './types';
+import type { ParseResult } from './parser/index.ts';
+import type { Breadc, Command, Option, Plugin } from './types/index.ts';
 
 export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
   type Container = Record<

@@ -1,9 +1,14 @@
-import type { PluginContainer } from './plugin';
-import type { Command, CommandOption, Argument, Option } from './types';
+import type { PluginContainer } from './plugin.ts';
+import type {
+  Command,
+  CommandOption,
+  Argument,
+  Option
+} from './types/index.ts';
 
-import { ParseError, BreadcError } from './error';
-import { makeOption, initContextOptions } from './option';
-import { TreeNode, makeTreeNode, Token } from './parser';
+import { ParseError, BreadcError } from './error.ts';
+import { TreeNode, makeTreeNode, Token } from './parser/index.ts';
+import { makeOption, initContextOptions } from './option.ts';
 
 export function makeCommand<F extends string = string>(
   format: F,
