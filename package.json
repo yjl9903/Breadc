@@ -24,7 +24,7 @@
     "@vitest/coverage-v8": "1.2.2",
     "bumpp": "latest",
     "size-limit": "^11.0.2",
-    "turbo": "^1.12.4",
+    "turbo": "^1.12.5",
     "typescript": "^5.3.3",
     "unbuild": "^2.0.0",
     "vite": "^5.1.5",
