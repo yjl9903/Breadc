@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@size-limit/preset-small-lib':
         specifier: ^11.1.1
-        version: 11.1.1(size-limit@11.1.0)
+        version: 11.1.1(size-limit@11.1.1)
       '@types/node':
         specifier: ^20.11.28
         version: 20.11.28
@@ -21,8 +21,8 @@ importers:
         specifier: latest
         version: 9.4.0
       size-limit:
-        specifier: ^11.1.0
-        version: 11.1.0
+        specifier: ^11.1.1
+        version: 11.1.1
       turbo:
         specifier: ^1.12.5
         version: 1.12.5
@@ -1182,7 +1182,7 @@ packages:
     engines: {node: '>=18'}
     dev: true
 
-  /@size-limit/esbuild@11.1.1(size-limit@11.1.0):
+  /@size-limit/esbuild@11.1.1(size-limit@11.1.1):
     resolution: {integrity: sha512-+lWZbLc0X3c8uh6wdYv/5CGn58x1IgYAhCLQXvojxgn/j3TP72H2EigXLMcDXOgN3aps44yV3Qb2HIJppE+jYw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
@@ -1190,26 +1190,26 @@ packages:
     dependencies:
       esbuild: 0.20.2
       nanoid: 5.0.6
-      size-limit: 11.1.0
+      size-limit: 11.1.1
     dev: true
 
-  /@size-limit/file@11.1.1(size-limit@11.1.0):
+  /@size-limit/file@11.1.1(size-limit@11.1.1):
     resolution: {integrity: sha512-c4XXp2CLvfx2RfzAqIAlxV6OWAQSVquLMNKKD6x9urJD7knjnTesPkbMcf3SkQbjCY4PlLL6kYhaO9drCWGM6g==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       size-limit: 11.1.1
     dependencies:
-      size-limit: 11.1.0
+      size-limit: 11.1.1
     dev: true
 
-  /@size-limit/preset-small-lib@11.1.1(size-limit@11.1.0):
+  /@size-limit/preset-small-lib@11.1.1(size-limit@11.1.1):
     resolution: {integrity: sha512-GW3T//znZXnk+a0VxkP241GCYZUn/RDr8Pn8p6pjdFqQy3PFrKiMq2QHyJLtGT/eRoYHL8e32mkNciQtQjZ4sQ==}
     peerDependencies:
       size-limit: 11.1.1
     dependencies:
-      '@size-limit/esbuild': 11.1.1(size-limit@11.1.0)
-      '@size-limit/file': 11.1.1(size-limit@11.1.0)
-      size-limit: 11.1.0
+      '@size-limit/esbuild': 11.1.1(size-limit@11.1.1)
+      '@size-limit/file': 11.1.1(size-limit@11.1.1)
+      size-limit: 11.1.1
     dev: true
 
   /@trysound/sax@0.2.0:
@@ -3271,8 +3271,8 @@ packages:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
     dev: true
 
-  /size-limit@11.1.0:
-    resolution: {integrity: sha512-HvqVEUDJ3y/XL69pR3vxTavPr6s4S9ScJhHjLEjpctF0Ymgo1StmHgFeQoyQYb/1ip7olkWxJG3wRcZk1hZcPg==}
+  /size-limit@11.1.1:
+    resolution: {integrity: sha512-0d06gwp+hBuhNQyAyewalfMLhGCnjt15MyDxqouzxN4+85vjAUdRKSNuR1kcyxaS9Ml98q120U0PgRPocPJWiw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     dependencies:
