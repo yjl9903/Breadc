@@ -41,9 +41,7 @@
     "size": "size-limit",
     "test": "vitest",
     "test:bench": "vitest bench",
-    "test:ci": "vitest --run",
-    "test:coverage": "vitest run --coverage --typecheck",
-    "typecheck": "tsc --noEmit && vitest --typecheck.only --run"
+    "test:ci": "vitest --run"
   },
   "dependencies": {
     "@breadc/color": "workspace:*"
