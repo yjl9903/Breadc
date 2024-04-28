@@ -1,10 +1,12 @@
 import { bench, describe } from 'vitest';
 
 import cac from 'cac';
+import { Command } from 'commander';
+
 import { breadc } from '../src';
 
 describe('Init empty cli', () => {
-  bench('Breadc', () => {
+  bench('breadc', () => {
     breadc('cli', { version: '0.0.0', description: 'This is an empty cli' });
   });
 
@@ -13,27 +15,45 @@ describe('Init empty cli', () => {
     cli.help();
     cli.version('0.0.0');
   });
+
+  bench('commander.js', () => {
+    const program = new Command();
+    program.name('cli').description('This is an empty cli').version('0.0.0');
+  });
 });
 
 describe('Parse simple option', () => {
+  // breadc
   const b = breadc('cli');
   b.option('--flag')
     .command('')
     .action(() => {});
 
+  // cac
   const c = cac('cli');
   c.option('--flag', '')
     .command('')
     .action(() => {});
 
-  const args = ['--flag'];
+  // commander.js
+  const d = new Command();
+  d.name('cli');
+  d.option('--flag', '');
+  d.action(() => {});
 
-  bench('Breadc', () => {
+  const args = ['--flag'];
+  const argv = ['node', 'cli', ...args];
+
+  bench('breadc', () => {
     b.parse(args);
   });
 
   bench('cac', () => {
     c.parse(args);
+  });
+
+  bench('commander.js', () => {
+    d.parse(argv);
   });
 });
 
@@ -54,21 +74,34 @@ describe('Parse more option', () => {
     .command('')
     .action(() => {});
 
-  const args = ['--flag', '--host', '1.1.1.1', '--local', '--root=./'];
+  const d = new Command();
+  d.name('cli');
+  d.option('--flag', '')
+    .option('--host <addr>', '')
+    .option('--local', '')
+    .option('--root <root>', '');
+  d.action(() => {});
 
-  bench('Breadc', () => {
+  const args = ['--flag', '--host', '1.1.1.1', '--local', '--root=./'];
+  const argv = ['node', 'cli', ...args];
+
+  bench('breadc', () => {
     b.parse(args);
   });
 
   bench('cac', () => {
     c.parse(args);
   });
+
+  bench('commander.js', () => {
+    d.parse(argv);
+  });
 });
 
 describe('Parse sub-commands', () => {
   const action = () => {};
 
-  bench('Breadc', () => {
+  bench('breadc', () => {
     const b = breadc('cli');
     b.command('[op]').action(action);
     b.command('dev').action(action);
@@ -102,5 +135,24 @@ describe('Parse sub-commands', () => {
     c.parse(['test']);
     c.parse(['test', '1']);
     c.parse(['run', 'a', 'b', 'c', 'd', 'e']);
+  });
+
+  bench('commander.js', () => {
+    const d = new Command();
+    d.name('cli');
+    d.argument('[op]').action(action);
+    d.command('dev').action(action);
+    d.command('build <root>').action(action);
+    d.command('preview').action(action);
+    d.command('test [case]').action(action);
+    d.command('run [...args]').action(action);
+
+    d.parse(['node', 'cli', 'op']);
+    d.parse(['node', 'cli', 'dev']);
+    d.parse(['node', 'cli', 'build', 'root']);
+    d.parse(['node', 'cli', 'preview']);
+    d.parse(['node', 'cli', 'test']);
+    d.parse(['node', 'cli', 'test', '1']);
+    d.parse(['node', 'cli', 'run', 'a', 'b', 'c', 'd', 'e']);
   });
 });
