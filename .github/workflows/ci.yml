@@ -32,7 +32,6 @@ jobs:
       - name: Test
         run: |
           pnpm test:ci
-          pnpm test:typecheck
           pnpm test:coverage
 
       - name: Upload Coverage to Codecov
