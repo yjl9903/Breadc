@@ -1,0 +1,63 @@
+{
+  "name": "@breadc/core",
+  "version": "0.9.7",
+  "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
+  "keywords": [
+    "breadc",
+    "cli",
+    "framework",
+    "command-line",
+    "typescript"
+  ],
+  "homepage": "https://github.com/yjl9903/Breadc#readme",
+  "bugs": {
+    "url": "https://github.com/yjl9903/Breadc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yjl9903/Breadc.git"
+  },
+  "license": "MIT",
+  "author": "XLor",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "coverage": "vitest run --coverage",
+    "format": "prettier --write src/**/*.ts test/*.ts",
+    "size": "size-limit",
+    "test": "vitest",
+    "test:bench": "vitest bench",
+    "test:ci": "vitest --run",
+    "test:coverage": "vitest run --coverage --typecheck",
+    "typecheck": "tsc --noEmit && vitest --typecheck.only --run"
+  },
+  "dependencies": {
+    "@breadc/color": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "cac": "^6.7.14"
+  },
+  "size-limit": [
+    {
+      "path": "./dist/index.mjs"
+    },
+    {
+      "path": "./dist/index.cjs"
+    }
+  ]
+}

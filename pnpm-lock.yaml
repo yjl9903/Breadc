@@ -70,6 +70,19 @@ importers:
         specifier: workspace:*
         version: link:../breadc
 
+  packages/core:
+    dependencies:
+      '@breadc/color':
+        specifier: workspace:*
+        version: link:../color
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.7
+        version: 20.12.7
+      cac:
+        specifier: ^6.7.14
+        version: 6.7.14
+
   packages/death: {}
 
   packages/logger:
