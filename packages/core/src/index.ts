@@ -1,1 +1,3 @@
-export const hello = 1;
+export type { BreadcOptions } from './breadc/types.ts';
+
+export { breadc } from './breadc/index.ts';
