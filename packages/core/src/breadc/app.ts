@@ -1,23 +1,31 @@
+import type { BreadcOptions } from './types.ts';
+
 export class Breadc {
-  private _name: string;
+  public name: string;
 
-  private _version: string | undefined = undefined;
+  public version: string | undefined = undefined;
 
-  private _description: string | undefined = undefined;
+  public description: string | undefined = undefined;
 
-  public constructor(name: string) {
-    this._name = name;
+  public constructor(name: string, options: BreadcOptions = {}) {
+    this.name = name;
   }
 
-  public version(version: string): this {
-    this._version = version;
-    return this;
+  // --- Builder ---
+
+  public option() {
+    // TODO
   }
 
-  public description(description: string): this {
-    this._description = description;
-    return this;
+  public command(command: string) {
+    // TODO
   }
+
+  public default() {
+    // TODO
+  }
+
+  // --- Parse ---
 
   public parse(args: string[]) {}
 

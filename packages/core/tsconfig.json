@@ -7,6 +7,9 @@
       "esnext",
       "dom"
     ],
+    "types": [
+      "vitest/importMeta"
+    ],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,

@@ -1,3 +1,3 @@
 export type { BreadcOptions } from './breadc/types.ts';
 
-export { breadc } from './breadc/index.ts';
+export { Breadc } from './breadc/app.ts';
