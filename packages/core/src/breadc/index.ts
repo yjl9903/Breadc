@@ -1,9 +1,3 @@
-import type { BreadcOptions } from './types.ts';
+export type { BreadcOptions } from './types.ts';
 
-import { Breadc } from './app.ts';
-
-export function breadc(name: string, options: BreadcOptions = {}) {
-  const program = new Breadc(name);
-
-  return program;
-}
+export { Breadc } from './app.ts';
