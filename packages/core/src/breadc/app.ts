@@ -13,17 +13,14 @@ export class Breadc {
 
   // --- Builder ---
 
-  public option() {
-    // TODO
-  }
+  // TODO
+  public option() {}
 
-  public command(command: string) {
-    // TODO
-  }
+  // TODO
+  public command(command: string) {}
 
-  public default() {
-    // TODO
-  }
+  // TODO
+  public default() {}
 
   // --- Parse ---
 
