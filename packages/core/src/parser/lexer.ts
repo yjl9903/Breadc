@@ -57,17 +57,17 @@ export class BreadcLexer {
 }
 
 export class Token {
-  public readonly arg: string;
+  public readonly text: string;
 
   public constructor(arg: string) {
-    this.arg = arg;
+    this.text = arg;
   }
 
   /**
    * @returns raw arg string
    */
   public toRaw(): string {
-    return this.arg;
+    return this.text;
   }
 
   // --- Parse ---
@@ -76,21 +76,21 @@ export class Token {
    * @returns whether arg is empty
    */
   public get isEmpty(): boolean {
-    return this.arg.length === 0;
+    return this.text.length === 0;
   }
 
   /**
    * @returns whether arg looks like a stdio argument (`-`)
    */
   public get isStdio(): boolean {
-    return this.arg === '-';
+    return this.text === '-';
   }
 
   /**
    * @returns whether arg looks like an argument escape (`--`)
    */
   public get isEscape(): boolean {
-    return this.arg === '--';
+    return this.text === '--';
   }
 
   /**
@@ -98,7 +98,7 @@ export class Token {
    */
   public get isNegativeNumber(): boolean {
     return (
-      this.arg.startsWith('-') && !Number.isNaN(Number.parseFloat(this.arg))
+      this.text.startsWith('-') && !Number.isNaN(Number.parseFloat(this.text))
     );
   }
 
@@ -106,14 +106,14 @@ export class Token {
    * @returns whether arg looks like a number (`123`, `-123`)
    */
   public get isNumber(): boolean {
-    return !Number.isNaN(Number.parseFloat(this.arg));
+    return !Number.isNaN(Number.parseFloat(this.text));
   }
 
   /**
    * @returns whether arg can treat as a long-flag
    */
   public get isLong(): boolean {
-    return this.arg.startsWith('--') && this.arg !== '--';
+    return this.text.startsWith('--') && this.text !== '--';
   }
 
   /**
@@ -122,7 +122,7 @@ export class Token {
    * @returns long-flag
    */
   public toLong(): [key: string, value: string | undefined] | undefined {
-    const remainder = stripPrefix(this.arg, '--');
+    const remainder = stripPrefix(this.text, '--');
     if (remainder === undefined) return undefined;
     // Should not be escape
     if (remainder.length === 0) return undefined;
@@ -135,7 +135,9 @@ export class Token {
    */
   public get isShort(): boolean {
     return (
-      this.arg.startsWith('-') && this.arg.startsWith('--') && this.arg !== '-'
+      this.text.startsWith('-') &&
+      this.text.startsWith('--') &&
+      this.text !== '-'
     );
   }
 
@@ -145,7 +147,7 @@ export class Token {
    * @returns short-flag
    */
   public toShort(): [key: string, value: string | undefined] | undefined {
-    const remainder = stripPrefix(this.arg, '--');
+    const remainder = stripPrefix(this.text, '--');
     if (remainder === undefined) return undefined;
     // Should not be '-'
     if (remainder.length === 0) return undefined;
@@ -158,14 +160,14 @@ export class Token {
   // --- String ---
 
   public get length() {
-    return this.arg.length;
+    return this.text.length;
   }
 
   public toString() {
-    return this.arg;
+    return this.text;
   }
 
   public [Symbol.iterator]() {
-    return this.arg[Symbol.iterator]();
+    return this.text[Symbol.iterator]();
   }
 }
