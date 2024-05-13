@@ -35,8 +35,8 @@ jobs:
           pnpm test:coverage
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4.0.0-beta.2
+        uses: codecov/codecov-action@v4
         with:
           verbose: true
-          file: ./packages/breadc/coverage/lcov.info
+          files: ./packages/breadc/coverage/lcov.info,./packages/core/coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
