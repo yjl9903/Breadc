@@ -20,6 +20,12 @@ importers:
       bumpp:
         specifier: latest
         version: 9.4.1
+      cac:
+        specifier: ^6.7.14
+        version: 6.7.14
+      commander:
+        specifier: ^12.0.0
+        version: 12.0.0
       size-limit:
         specifier: ^11.1.3
         version: 11.1.3
@@ -47,16 +53,6 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
-    devDependencies:
-      '@types/node':
-        specifier: ^20.12.11
-        version: 20.12.11
-      cac:
-        specifier: ^6.7.14
-        version: 6.7.14
-      commander:
-        specifier: ^12.0.0
-        version: 12.0.0
 
   packages/color: {}
 
@@ -78,13 +74,6 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
-    devDependencies:
-      '@types/node':
-        specifier: ^20.12.11
-        version: 20.12.11
-      cac:
-        specifier: ^6.7.14
-        version: 6.7.14
 
   packages/death: {}
 
