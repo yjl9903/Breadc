@@ -34,8 +34,8 @@ export class BreadcLexer {
    *
    * @returns all remaining raw arguments
    */
-  public remaining(): string[] {
-    const remaining = this.args.slice(this.cursor);
+  public remaining(): Token[] {
+    const remaining = this.args.slice(this.cursor).map((t) => new Token(t));
     this.cursor = this.args.length;
     return remaining;
   }
@@ -45,7 +45,7 @@ export class BreadcLexer {
    *
    * @returns whether has consumed all the args
    */
-  public isEnd(): boolean {
+  public get isEnd(): boolean {
     return this.args[this.cursor] === undefined;
   }
 
@@ -136,7 +136,7 @@ export class Token {
   public get isShort(): boolean {
     return (
       this.text.startsWith('-') &&
-      this.text.startsWith('--') &&
+      !this.text.startsWith('--') &&
       this.text !== '-'
     );
   }
@@ -147,7 +147,7 @@ export class Token {
    * @returns short-flag
    */
   public toShort(): [key: string, value: string | undefined] | undefined {
-    const remainder = stripPrefix(this.text, '--');
+    const remainder = stripPrefix(this.text, '-');
     if (remainder === undefined) return undefined;
     // Should not be '-'
     if (remainder.length === 0) return undefined;
