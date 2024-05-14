@@ -1,9 +1,9 @@
-import type { BreadcLexer } from './lexer.ts';
+import type { Lexer } from './lexer.ts';
 
-export class BreadcParser {
-  private readonly lexer: BreadcLexer;
+export class Parser {
+  private readonly lexer: Lexer;
 
-  public constructor(lexer: BreadcLexer) {
+  public constructor(lexer: Lexer) {
     this.lexer = lexer;
   }
 }
