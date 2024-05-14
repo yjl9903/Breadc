@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 
-import { BreadcLexer } from '../src/parser/lexer.ts';
+import { Lexer } from '../src/parser/lexer.ts';
 
 describe('lexer', () => {
   it('should list all arguments', () => {
-    const lexer = new BreadcLexer(['a', 'b', 'c']);
+    const lexer = new Lexer(['a', 'b', 'c']);
     expect([...lexer]).toMatchInlineSnapshot(`
       [
         Token {
@@ -21,7 +21,7 @@ describe('lexer', () => {
   });
 
   it('support mixed using for and next', () => {
-    const lexer = new BreadcLexer(['a', 'b', 'c']);
+    const lexer = new Lexer(['a', 'b', 'c']);
     for (const token of lexer) {
       if (token.toRaw() === 'a') {
         // Skip 'b'
@@ -34,7 +34,7 @@ describe('lexer', () => {
   });
 
   it('can get remaining args', () => {
-    const lexer = new BreadcLexer(['a', 'b', 'c']);
+    const lexer = new Lexer(['a', 'b', 'c']);
     expect(lexer.next()).toMatchInlineSnapshot(`
       Token {
         "text": "a",
@@ -55,7 +55,7 @@ describe('lexer', () => {
   });
 
   it('can receive empty string', () => {
-    const lexer = new BreadcLexer(['', 'a', '']);
+    const lexer = new Lexer(['', 'a', '']);
     expect([...lexer]).toMatchInlineSnapshot(`
       [
         Token {
@@ -72,7 +72,7 @@ describe('lexer', () => {
   });
 
   it('token treat as string', () => {
-    const lexer = new BreadcLexer(['abc', 'bc', 'c']);
+    const lexer = new Lexer(['abc', 'bc', 'c']);
     const token = lexer.next()!;
     expect(token.length).toMatchInlineSnapshot(`3`);
     expect(token.toString()).toMatchInlineSnapshot(`"abc"`);
@@ -86,7 +86,7 @@ describe('lexer', () => {
   });
 
   it('can parse arg type', () => {
-    const lexer = new BreadcLexer([
+    const lexer = new Lexer([
       '-',
       '123',
       'abc',
