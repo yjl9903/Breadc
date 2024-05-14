@@ -1,6 +1,6 @@
 import { splitOnce, stripPrefix } from '../utils/index.ts';
 
-export class BreadcLexer {
+export class Lexer {
   private readonly args: string[];
 
   private cursor = 0;

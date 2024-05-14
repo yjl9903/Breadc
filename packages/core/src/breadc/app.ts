@@ -1,3 +1,5 @@
+import { Context } from '../parser/context.ts';
+
 import type { BreadcOptions } from './types.ts';
 
 import { Option } from './option.ts';
@@ -16,8 +18,18 @@ export class Breadc<GO extends object = {}> {
 
   // --- Builder ---
 
+  public addOption<F extends string>(option: Option<F>): Breadc<GO> {
+    // TODO
+    return this;
+  }
+
   public option<F extends string>(format: F): Breadc<GO> {
     const option = new Option<F>(format);
+    // TODO
+    return this;
+  }
+
+  public addCommand<F extends string>(command: Command<F>): Breadc<GO> {
     // TODO
     return this;
   }
@@ -42,8 +54,12 @@ export class Breadc<GO extends object = {}> {
   // --- Parse ---
 
   // TODO
-  public parse(args: string[]) {}
+  public parse(args: string[]) {
+    const context = new Context(args);
+  }
 
   // TODO
-  public async run(args: string[]) {}
+  public async run(args: string[]) {
+    const context = new Context(args);
+  }
 }
