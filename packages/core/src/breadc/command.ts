@@ -1,6 +1,8 @@
 export class Command<F extends string = string> {
   public readonly format: F;
 
+  public actionFn: Function | undefined = undefined;
+
   public constructor(format: F) {
     this.format = format;
   }
@@ -21,7 +23,7 @@ export class Command<F extends string = string> {
    * @returns this
    */
   public action(fn: Function): this {
-    // TODO
+    this.actionFn = fn;
     return this;
   }
 }
