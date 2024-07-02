@@ -1,25 +1,76 @@
-export class Breadc {
-  private _name: string;
+import type { BreadcOptions } from './types.ts';
 
-  private _version: string | undefined = undefined;
+import { parse, run } from '../parser/index.ts';
+import { type Container, Context } from '../parser/context.ts';
 
-  private _description: string | undefined = undefined;
+import { Option } from './option.ts';
+import { Command } from './command.ts';
 
-  public constructor(name: string) {
-    this._name = name;
+export class Breadc<GO extends object = {}> {
+  public name: string;
+
+  public version: string | undefined = undefined;
+
+  public description: string | undefined = undefined;
+
+  private container: Container = {
+    options: [],
+    commands: []
+  };
+
+  public constructor(name: string, options: BreadcOptions = {}) {
+    this.name = name;
   }
 
-  public version(version: string): this {
-    this._version = version;
+  // --- Builder ---
+
+  public addOption<F extends string>(option: Option<F>): Breadc<GO> {
+    this.container.options.push(option);
     return this;
   }
 
-  public description(description: string): this {
-    this._description = description;
+  public option<F extends string>(format: F): Breadc<GO> {
+    const option = new Option<F>(format);
+    this.container.options.push(option);
     return this;
   }
 
-  public parse(args: string[]) {}
+  public addCommand<F extends string>(command: Command<F>): Breadc<GO> {
+    this.container.commands.push(command);
+    return this;
+  }
 
-  public async run(args: string[]) {}
+  public command<F extends string>(format: F): Command<F> {
+    // '' / '[...]' / '<...>' should be treated as the default command
+    // if (format.length === 0 || format[0] === '[' || format[0] === '<') {
+    //   return this.default(format);
+    // }
+    const command = new Command<F>(format);
+    this.container.commands.push(command);
+    return command;
+  }
+
+  // --- Parse / Run ---
+
+  /**
+   * Parse the arguments only
+   *
+   * @param args input arguments
+   * @returns the parsed context
+   */
+  public parse(args: string[]) {
+    const context = new Context(this.container, args);
+    return parse(context);
+  }
+
+  /**
+   * Parse the arguments and run the the corresponding action function
+   *
+   * @param args input arguments
+   * @returns the returned value from the corresponding action function
+   */
+  public async run<T = unknown>(args: string[]): Promise<T> {
+    const context = this.parse(args);
+    return run(context);
+  }
 }
