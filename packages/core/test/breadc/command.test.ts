@@ -154,5 +154,7 @@ describe('command', () => {
       const cmd = new Command('submodule add [...rest1] [...rest2]');
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`);
+
+    // TODO: handle [xxx]abc or <abac>xxx
   });
 });
