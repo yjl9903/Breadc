@@ -3,6 +3,13 @@ import { describe, it, expect } from 'vitest';
 import { Command } from '../../src/breadc/command.ts';
 
 describe('command', () => {
+  it('should register action function', () => {
+    const cmd = new Command('submodule add <abc> [def] [...rest]');
+    cmd.action(() => {
+      return true;
+    });
+  });
+
   it('should resolve const pieces after the first time', () => {
     const cmd = new Command('submodule add <abc> [def] [...rest]');
     cmd.resolve();
