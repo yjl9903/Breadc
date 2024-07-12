@@ -149,5 +149,10 @@ describe('command', () => {
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Optional argument should be placed before spread arguments at the command "submodule add [...rest] [abc]", position 25]`
     );
+
+    expect(async () => {
+      const cmd = new Command('submodule add [...rest1] [...rest2]');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`);
   });
 });
