@@ -111,17 +111,19 @@ export class Command<F extends string = string> {
       let i = this.resolved[1];
       for (; i < this.format.length; i++) {
         if (this.format[i] === '<') {
-          if (i + 1 >= this.format.length) {
-            throw new BreadcError(
-              `Invalid required argument at the command "${this.format}", column ${i}`
+          if (i + 1 >= this.format.length || this.format[i + 1] === ' ') {
+            throw new ResolveCommandError(
+              ResolveCommandError.INVALID_REQUIRED_ARG,
+              { format: this.format, position: i }
             );
           } else {
             i++;
           }
 
           if (state >= 2) {
-            throw new BreadcError(
-              `Required argument should be placed before optional arguments at the command "${this.format}", column ${i}`
+            throw new ResolveCommandError(
+              ResolveCommandError.REQUIRED_BEFORE_OPTIONAL,
+              { format: this.format, position: i }
             );
           }
 
@@ -133,8 +135,9 @@ export class Command<F extends string = string> {
 
           // Check the close bracket
           if (i === this.format.length || this.format[i] !== '>') {
-            throw new BreadcError(
-              `Invalid required argument at the command "${this.format}", column ${i}`
+            throw new ResolveCommandError(
+              ResolveCommandError.INVALID_REQUIRED_ARG,
+              { format: this.format, position: i }
             );
           } else {
             i++;
@@ -144,9 +147,10 @@ export class Command<F extends string = string> {
           state = 1;
           this.required.push(piece);
         } else if (this.format[i] === '[') {
-          if (i + 1 >= this.format.length) {
-            throw new BreadcError(
-              `Invalid optional argument at the command "${this.format}", column ${i}`
+          if (i + 1 >= this.format.length || this.format[i + 1] === ' ') {
+            throw new ResolveCommandError(
+              ResolveCommandError.INVALID_OPTIONAL_ARG,
+              { format: this.format, position: i }
             );
           } else {
             i++;
@@ -154,8 +158,9 @@ export class Command<F extends string = string> {
 
           if (this.format[i] === '.') {
             if (state >= 3) {
-              throw new BreadcError(
-                `Spread argument can only appear once at the command "${this.format}", column ${i}`
+              throw new ResolveCommandError(
+                ResolveCommandError.SPREAD_ONLY_ONCE,
+                { format: this.format, position: i }
               );
             }
 
@@ -172,8 +177,9 @@ export class Command<F extends string = string> {
 
             // Check the close bracket
             if (i === this.format.length || this.format[i] !== ']') {
-              throw new BreadcError(
-                `Invalid spread argument at the command "${this.format}", column ${i}`
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_SPREAD_ARG,
+                { format: this.format, position: i }
               );
             } else {
               i++;
@@ -184,8 +190,9 @@ export class Command<F extends string = string> {
             this.spread = piece;
           } else {
             if (state >= 3) {
-              throw new BreadcError(
-                `Optional argument should be put before spread arguments at the command "${this.format}", column ${i}`
+              throw new ResolveCommandError(
+                ResolveCommandError.OPTIONAL_BEFORE_SPREAD,
+                { format: this.format, position: i }
               );
             }
 
@@ -197,8 +204,9 @@ export class Command<F extends string = string> {
 
             // Check the close bracket
             if (i === this.format.length || this.format[i] !== ']') {
-              throw new BreadcError(
-                `Invalid optional argument at the command "${this.format}", column ${i}`
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_OPTIONAL_ARG,
+                { format: this.format, position: i }
               );
             } else {
               i++;
@@ -214,8 +222,9 @@ export class Command<F extends string = string> {
             i++;
           }
         } else {
-          throw new BreadcError(
-            `Sub-command should be placed in the beginning at the command "${this.format}", column ${i}`
+          throw new ResolveCommandError(
+            ResolveCommandError.PIECE_BEFORE_REQUIRED,
+            { format: this.format, position: i }
           );
         }
       }
@@ -248,4 +257,32 @@ export class Argument {
   public readonly required: boolean = false;
 
   public readonly remaining: boolean = false;
+}
+
+export class ResolveCommandError extends BreadcError {
+  static INVALID_REQUIRED_ARG = 'Resolving invalid required argument';
+
+  static INVALID_OPTIONAL_ARG = 'Resolving invalid optional argument';
+
+  static INVALID_SPREAD_ARG = 'Resolving invalid spread argument';
+
+  static PIECE_BEFORE_REQUIRED =
+    'Sub-command should be placed in the beginning';
+
+  static REQUIRED_BEFORE_OPTIONAL =
+    'Required argument should be placed before optional arguments';
+
+  static OPTIONAL_BEFORE_SPREAD =
+    'Optional argument should be placed before spread arguments';
+
+  static SPREAD_ONLY_ONCE = 'Spread argument can only appear once';
+
+  public constructor(
+    message: string,
+    cause: { format: string; position: number }
+  ) {
+    super(
+      `${message} at the command "${cause.format}", position ${cause.position}`
+    );
+  }
 }
