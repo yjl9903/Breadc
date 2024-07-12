@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { Breadc } from '../src/index.ts';
+import { Breadc } from '../../src/index.ts';
 
 describe('breadc', () => {
   it('should create breadc', () => {
