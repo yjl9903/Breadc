@@ -2,10 +2,7 @@ import { RuntimeError } from '../error.ts';
 
 import { Context } from './context.ts';
 
-export function parse(context: Context): Context {
-  // TODO: parse args
-  return context;
-}
+export { parse } from './parser.ts';
 
 export function run(context: Context): Promise<any> {
   if (context.command && context.command.actionFn) {
