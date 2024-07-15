@@ -1,5 +1,5 @@
 import type { Option } from '../breadc/option.ts';
-import type { Argument, Command } from '../breadc/command.ts';
+import type { Command } from '../breadc/command.ts';
 
 import { Parser } from './parser.ts';
 import { Lexer, Token } from './lexer.ts';
@@ -33,15 +33,9 @@ export class Context {
 }
 
 export class MatchedArgument {
-  public readonly argument: Argument;
-
-  public readonly token: Token;
-
   public value: any;
 
-  public constructor(argument: Argument, token: Token) {
-    this.argument = argument;
-    this.token = token;
+  public constructor(token: Token) {
     // Parse value
     const raw = token.toRaw();
     this.value = raw;
