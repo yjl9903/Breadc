@@ -2,6 +2,12 @@ import { BreadcError } from '../error.ts';
 
 /**
  * Command abstraction.
+ *
+ * Support argument:
+ * - sub-command
+ * - <required>
+ * - [optional]
+ * - [...remaining]
  */
 export class Command<F extends string = string> {
   public readonly format: F;
@@ -271,19 +277,6 @@ export class Command<F extends string = string> {
     this.actionFn = fn;
     return this;
   }
-}
-
-/**
- * Support 3 kinds of arguments
- *
- * - [optional]
- * - <required>
- * - [...remaining]
- */
-export class Argument {
-  public readonly required: boolean = false;
-
-  public readonly remaining: boolean = false;
 }
 
 export class ResolveCommandError extends BreadcError {
