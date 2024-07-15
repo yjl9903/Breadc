@@ -6,9 +6,13 @@ const OptionRE =
 /**
  * Option abstraction
  *
- * - -s <name>
  * - --long <name>
  * - -s, --long <name>
+ *
+ * Support argument:
+ * - <required>
+ * - [optional]
+ * - [...remaining] (multiple options)
  */
 export class Option<F extends string = string> {
   public readonly format: F;
