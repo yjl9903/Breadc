@@ -79,6 +79,10 @@ export class Command<F extends string = string> {
     this.format = format;
   }
 
+  public get isDefault() {
+    return this.pieces.length === 0;
+  }
+
   /**
    * This is used internal, you should not use this API.
    *
