@@ -1,5 +1,8 @@
-import { BreadcError } from '../error';
+import { BreadcError } from '../error.ts';
 
+/**
+ * Command abstraction.
+ */
 export class Command<F extends string = string> {
   public readonly format: F;
 
@@ -79,7 +82,7 @@ export class Command<F extends string = string> {
     if (this.resolved[0] === 0) {
       this.pieces = [];
       let i = 0;
-      for (; i < this.format.length; i++) {
+      for (; i < this.format.length; ) {
         if (this.format[i] === '<' || this.format[i] === '[') {
           break;
         } else if (this.format[i] === ' ') {
@@ -109,7 +112,7 @@ export class Command<F extends string = string> {
        */
       let state = 1;
       let i = this.resolved[1];
-      for (; i < this.format.length; i++) {
+      for (; i < this.format.length; ) {
         if (this.format[i] === '<') {
           if (i + 1 >= this.format.length || this.format[i + 1] === ' ') {
             throw new ResolveCommandError(
