@@ -143,6 +143,14 @@ export class Command<F extends string = string> {
             i++;
           }
 
+          // Check the space separator
+          if (i < this.format.length && this.format[i] !== ' ') {
+            throw new ResolveCommandError(
+              ResolveCommandError.INVALID_REQUIRED_ARG,
+              { format: this.format, position: i }
+            );
+          }
+
           // State -> 1
           state = 1;
           this.required.push(piece);
@@ -185,6 +193,14 @@ export class Command<F extends string = string> {
               i++;
             }
 
+            // Check the space separator
+            if (i < this.format.length && this.format[i] !== ' ') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_SPREAD_ARG,
+                { format: this.format, position: i }
+              );
+            }
+
             // State -> 3
             state = 3;
             this.spread = piece;
@@ -210,6 +226,14 @@ export class Command<F extends string = string> {
               );
             } else {
               i++;
+            }
+
+            // Check the space separator
+            if (i < this.format.length && this.format[i] !== ' ') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_OPTIONAL_ARG,
+                { format: this.format, position: i }
+              );
             }
 
             // State -> 2
