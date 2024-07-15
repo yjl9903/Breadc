@@ -48,7 +48,9 @@ describe('command', () => {
   });
 
   it('should resolve duplicated spaces', () => {
-    const cmd = new Command('submodule   add   <abc>   [def]   [...rest]');
+    const cmd = new Command(
+      'submodule     add     <abc>     [def]     [...rest]'
+    );
     cmd.resolve();
     cmd.resolve();
     expect(cmd.pieces).toMatchInlineSnapshot(`
@@ -88,6 +90,20 @@ describe('command', () => {
     );
 
     expect(async () => {
+      const cmd = new Command('submodule add <abc>ghi [def]');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid required argument at the command "submodule add <abc>ghi [def]", position 19]`
+    );
+
+    expect(async () => {
+      const cmd = new Command('submodule <def> add [abc]');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Sub-command should be placed in the beginning at the command "submodule <def> add [abc]", position 16]`
+    );
+
+    expect(async () => {
       const cmd = new Command('submodule add [abc] <def>');
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -117,6 +133,13 @@ describe('command', () => {
       `[Error: Resolving invalid optional argument at the command "submodule add [abc", position 18]`
     );
 
+    expect(async () => {
+      const cmd = new Command('submodule add [abc]def');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid optional argument at the command "submodule add [abc]def", position 19]`
+    );
+
     {
       const cmd = new Command('submodule add [abc [def]');
       cmd.resolve().resolve();
@@ -126,6 +149,13 @@ describe('command', () => {
         ]
       `);
     }
+
+    expect(async () => {
+      const cmd = new Command('submodule [def] add [...abc]');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Sub-command should be placed in the beginning at the command "submodule [def] add [...abc]", position 16]`
+    );
   });
 
   it('should find invalid spread arguments', () => {
@@ -144,6 +174,20 @@ describe('command', () => {
     );
 
     expect(async () => {
+      const cmd = new Command('submodule add [...rest <abc>');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid spread argument at the command "submodule add [...rest <abc>", position 28]`
+    );
+
+    expect(async () => {
+      const cmd = new Command('submodule add [...rest]def <abc>');
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid spread argument at the command "submodule add [...rest]def <abc>", position 23]`
+    );
+
+    expect(async () => {
       const cmd = new Command('submodule add [...rest] [abc]');
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -153,7 +197,9 @@ describe('command', () => {
     expect(async () => {
       const cmd = new Command('submodule add [...rest1] [...rest2]');
       cmd.resolve().resolve();
-    }).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`);
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`
+    );
 
     // TODO: handle [xxx]abc or <abac>xxx
   });
