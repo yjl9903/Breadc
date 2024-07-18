@@ -14,7 +14,7 @@ export class Breadc<GO extends object = {}> {
   public description: string | undefined = undefined;
 
   private container: Container = {
-    options: [],
+    globalOptions: [],
     commands: []
   };
 
@@ -25,13 +25,13 @@ export class Breadc<GO extends object = {}> {
   // --- Builder ---
 
   public addOption<F extends string>(option: Option<F>): Breadc<GO> {
-    this.container.options.push(option);
+    this.container.globalOptions.push(option);
     return this;
   }
 
   public option<F extends string>(format: F): Breadc<GO> {
     const option = new Option<F>(format);
-    this.container.options.push(option);
+    this.container.globalOptions.push(option);
     return this;
   }
 
