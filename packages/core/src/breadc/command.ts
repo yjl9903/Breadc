@@ -1,5 +1,7 @@
 import { BreadcError } from '../error.ts';
 
+import type { Option } from './option.ts';
+
 /**
  * Command abstraction.
  *
@@ -16,6 +18,11 @@ export class Command<F extends string = string> {
    * The bound action function
    */
   public actionFn: Function | undefined;
+
+  /**
+   * The bound options
+   */
+  public options: Option[] = [];
 
   /**
    * Mark whether it has been resolved

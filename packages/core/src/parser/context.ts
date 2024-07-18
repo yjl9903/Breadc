@@ -4,7 +4,7 @@ import type { Command } from '../breadc/command.ts';
 import { Lexer, Token } from './lexer.ts';
 
 export interface Container {
-  options: Option[];
+  globalOptions: Option[];
 
   commands: Command[];
 }
@@ -41,9 +41,11 @@ export class Context {
    * Pending commands and options which are used internal
    */
   public readonly matching: {
+    unknown: Token[];
     commands: Map<string, Command[]>;
     options: Map<string, Option>;
   } = {
+    unknown: [],
     commands: new Map(),
     options: new Map()
   };
@@ -62,6 +64,10 @@ export class MatchedArgument {
     const raw = token.toRaw();
     this.value = raw;
   }
+
+  public accept(value: string) {
+    // TODO
+  }
 }
 
 export class MatchedOption {
@@ -71,5 +77,23 @@ export class MatchedOption {
 
   public constructor(option: Option) {
     this.option = option;
+  }
+
+  public accept(context: Context, text: string | undefined) {
+    switch (this.option.type) {
+      case 'boolean':
+        if (text !== undefined) {
+          // TODO
+        }
+        this.value = true;
+        break;
+      case 'optional':
+        // TODO
+        break;
+      case 'required':
+      case 'array':
+        // TODO
+        break;
+    }
   }
 }
