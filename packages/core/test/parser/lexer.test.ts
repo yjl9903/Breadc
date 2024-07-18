@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { Lexer } from '../src/parser/lexer.ts';
+import { Lexer } from '../../src/parser/lexer.ts';
 
 describe('lexer', () => {
   it('should list all arguments', () => {
