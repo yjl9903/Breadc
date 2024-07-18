@@ -12,7 +12,21 @@ describe('command', () => {
 
   it('should resolve const pieces after the first time', () => {
     const cmd = new Command('submodule add <abc> [def] [...rest]');
-    cmd.resolve();
+    cmd.resolveSubCommand();
+    expect(cmd.pieces).toMatchInlineSnapshot(`
+      [
+        "submodule",
+      ]
+    `);
+    expect(cmd.required).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
+  });
+
+  it('should resolve const pieces after the second time', () => {
+    const cmd = new Command('submodule add <abc> [def] [...rest]');
+    cmd.resolveSubCommand();
+    cmd.resolveSubCommand();
     expect(cmd.pieces).toMatchInlineSnapshot(`
       [
         "submodule",
@@ -24,9 +38,17 @@ describe('command', () => {
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
   });
 
-  it('should resolve const pieces after the first time', () => {
+  it('should resolve const pieces with spaces', () => {
     const cmd = new Command('   submodule    add    <abc>   [def] [...rest]');
-    cmd.resolve();
+
+    cmd.resolveSubCommand();
+    expect(cmd.pieces).toMatchInlineSnapshot(`
+      [
+        "submodule",
+      ]
+    `);
+
+    cmd.resolveSubCommand();
     expect(cmd.pieces).toMatchInlineSnapshot(`
       [
         "submodule",
@@ -36,6 +58,19 @@ describe('command', () => {
     expect(cmd.required).toMatchInlineSnapshot(`undefined`);
     expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
+
+    cmd.resolve();
+    expect(cmd.required).toMatchInlineSnapshot(`
+      [
+        "abc",
+      ]
+    `);
+    expect(cmd.optionals).toMatchInlineSnapshot(`
+      [
+        "def",
+      ]
+    `);
+    expect(cmd.spread).toMatchInlineSnapshot(`"rest"`);
   });
 
   it('should resolve after the second time', () => {

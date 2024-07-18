@@ -20,11 +20,11 @@ export class Command<F extends string = string> {
   /**
    * Mark whether it has been resolved
    *
-   * [  0, _ ]   := has not been resolved
-   * [ -1, pos ] := has resolved const pieces
-   * [  1, _ ]   := has been fully resolved
+   * [  0, pos ] := resolving sub-commands
+   * [ -1, pos ] := sub-commands have been resolved
+   * [  1, _   ] := has been fully resolved
    */
-  private resolved: [0 | 1, undefined] | [-1, number] = [0, undefined];
+  private resolved: [0 | -1 | 1, number] = [0, 0];
 
   /**
    * Const pieces
@@ -33,7 +33,7 @@ export class Command<F extends string = string> {
    *
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
-  public pieces!: string[];
+  public pieces: string[] = [];
 
   /**
    * Required arguments
@@ -88,12 +88,12 @@ export class Command<F extends string = string> {
    *
    * @returns this
    */
-  public resolve(): this {
+  public resolveSubCommand(): this {
     if (this.resolved[0] === 0) {
-      this.pieces = [];
-      let i = 0;
+      let i = this.resolved[1];
       for (; i < this.format.length; ) {
         if (this.format[i] === '<' || this.format[i] === '[') {
+          this.resolved = [-1, i];
           break;
         } else if (this.format[i] === ' ') {
           while (i < this.format.length && this.format[i] === ' ') {
@@ -105,10 +105,27 @@ export class Command<F extends string = string> {
             piece += this.format[i++];
           }
           this.pieces.push(piece);
+          this.resolved = [0, i];
+          break;
         }
       }
-      this.resolved = [-1, i];
-    } else if (this.resolved[0] === -1) {
+      if (i >= this.format.length) {
+        this.resolved = [1, this.format.length];
+      }
+    }
+    return this;
+  }
+
+  /**
+   * This is used internal, you should not use this API.
+   *
+   * @returns this
+   */
+  public resolve(): this {
+    while (this.resolved[0] === 0) {
+      this.resolveSubCommand();
+    }
+    if (this.resolved[0] === -1) {
       this.required = [];
       this.optionals = [];
 
@@ -265,7 +282,7 @@ export class Command<F extends string = string> {
           );
         }
       }
-      this.resolved = [1, undefined];
+      this.resolved = [1, this.format.length];
     }
 
     return this;
