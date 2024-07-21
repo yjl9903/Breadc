@@ -1,6 +1,6 @@
 import { BreadcError } from '../error.ts';
 
-import type { Option } from './option.ts';
+import type { ICommand, IOption } from './types.ts';
 
 /**
  * Command abstraction.
@@ -22,277 +22,10 @@ export class Command<F extends string = string> {
   /**
    * The bound options
    */
-  public options: Option[] = [];
-
-  /**
-   * Mark whether it has been resolved
-   *
-   * [  0, pos ] := resolving sub-commands
-   * [ -1, pos ] := sub-commands have been resolved
-   * [  1, _   ] := has been fully resolved
-   */
-  private resolved: [0 | -1 | 1, number] = [0, 0];
-
-  /**
-   * Const pieces
-   *
-   * &nbsp;↓ &nbsp;&nbsp;&nbsp; ↓
-   *
-   * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-   */
-  public pieces: string[] = [];
-
-  /**
-   * Required arguments
-   *
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * ↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓
-   *
-   * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-   */
-  public required!: string[];
-
-  /**
-   * Optional arguments
-   *
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;
-   * ↓
-   *
-   * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-   */
-  public optionals!: string[];
-
-  /**
-   * Spread arguments
-   *
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-   * ↓
-   *
-   * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-   */
-  public spread: string | undefined;
+  public options: IOption[] = [];
 
   public constructor(format: F) {
     this.format = format;
-  }
-
-  public get isDefault() {
-    return this.pieces.length === 0;
-  }
-
-  /**
-   * This is used internal, you should not use this API.
-   *
-   * @returns this
-   */
-  public resolveSubCommand(): this {
-    if (this.resolved[0] === 0) {
-      let i = this.resolved[1];
-      for (; i < this.format.length; ) {
-        if (this.format[i] === '<' || this.format[i] === '[') {
-          this.resolved = [-1, i];
-          break;
-        } else if (this.format[i] === ' ') {
-          while (i < this.format.length && this.format[i] === ' ') {
-            i++;
-          }
-        } else {
-          let piece = '';
-          while (i < this.format.length && this.format[i] !== ' ') {
-            piece += this.format[i++];
-          }
-          this.pieces.push(piece);
-          this.resolved = [0, i];
-          break;
-        }
-      }
-      if (i >= this.format.length) {
-        this.resolved = [1, this.format.length];
-      }
-    }
-    return this;
-  }
-
-  /**
-   * This is used internal, you should not use this API.
-   *
-   * @returns this
-   */
-  public resolve(): this {
-    while (this.resolved[0] === 0) {
-      this.resolveSubCommand();
-    }
-    if (this.resolved[0] === -1) {
-      this.required = [];
-      this.optionals = [];
-
-      /**
-       * States:
-       *
-       * 0 := aaa bbb  (0 -> 0, 0 -> 1, 0 -> 2, 0 -> 3)
-       * 1 := aaa bbb <xxx> <yyy>  (1 -> 1, 1 -> 2, 1 -> 3)
-       * 2 := aaa bbb <xxx> <yyy> [zzz]  (2 -> 2, 2 -> 3)
-       * 3 := aaa bbb <xxx> <yyy> [zzz] [...www]  (3 -> empty)
-       */
-      let state = 1;
-      let i = this.resolved[1];
-      for (; i < this.format.length; ) {
-        if (this.format[i] === '<') {
-          if (i + 1 >= this.format.length || this.format[i + 1] === ' ') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_REQUIRED_ARG,
-              { format: this.format, position: i }
-            );
-          } else {
-            i++;
-          }
-
-          if (state >= 2) {
-            throw new ResolveCommandError(
-              ResolveCommandError.REQUIRED_BEFORE_OPTIONAL,
-              { format: this.format, position: i }
-            );
-          }
-
-          // Parse argument name
-          let piece = '';
-          while (i < this.format.length && this.format[i] !== '>') {
-            piece += this.format[i++];
-          }
-
-          // Check the close bracket
-          if (i === this.format.length || this.format[i] !== '>') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_REQUIRED_ARG,
-              { format: this.format, position: i }
-            );
-          } else {
-            i++;
-          }
-
-          // Check the space separator
-          if (i < this.format.length && this.format[i] !== ' ') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_REQUIRED_ARG,
-              { format: this.format, position: i }
-            );
-          }
-
-          // State -> 1
-          state = 1;
-          this.required.push(piece);
-        } else if (this.format[i] === '[') {
-          if (i + 1 >= this.format.length || this.format[i + 1] === ' ') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_OPTIONAL_ARG,
-              { format: this.format, position: i }
-            );
-          } else {
-            i++;
-          }
-
-          if (this.format[i] === '.') {
-            if (state >= 3) {
-              throw new ResolveCommandError(
-                ResolveCommandError.SPREAD_ONLY_ONCE,
-                { format: this.format, position: i }
-              );
-            }
-
-            // Skip all the dots [...
-            while (i < this.format.length && this.format[i] === '.') {
-              i++;
-            }
-
-            // Parse argument name
-            let piece = '';
-            while (i < this.format.length && this.format[i] !== ']') {
-              piece += this.format[i++];
-            }
-
-            // Check the close bracket
-            if (i === this.format.length || this.format[i] !== ']') {
-              throw new ResolveCommandError(
-                ResolveCommandError.INVALID_SPREAD_ARG,
-                { format: this.format, position: i }
-              );
-            } else {
-              i++;
-            }
-
-            // Check the space separator
-            if (i < this.format.length && this.format[i] !== ' ') {
-              throw new ResolveCommandError(
-                ResolveCommandError.INVALID_SPREAD_ARG,
-                { format: this.format, position: i }
-              );
-            }
-
-            // State -> 3
-            state = 3;
-            this.spread = piece;
-          } else {
-            if (state >= 3) {
-              throw new ResolveCommandError(
-                ResolveCommandError.OPTIONAL_BEFORE_SPREAD,
-                { format: this.format, position: i }
-              );
-            }
-
-            // Parse argument name
-            let piece = '';
-            while (i < this.format.length && this.format[i] !== ']') {
-              piece += this.format[i++];
-            }
-
-            // Check the close bracket
-            if (i === this.format.length || this.format[i] !== ']') {
-              throw new ResolveCommandError(
-                ResolveCommandError.INVALID_OPTIONAL_ARG,
-                { format: this.format, position: i }
-              );
-            } else {
-              i++;
-            }
-
-            // Check the space separator
-            if (i < this.format.length && this.format[i] !== ' ') {
-              throw new ResolveCommandError(
-                ResolveCommandError.INVALID_OPTIONAL_ARG,
-                { format: this.format, position: i }
-              );
-            }
-
-            // State -> 2
-            state = 2;
-            this.optionals.push(piece);
-          }
-        } else if (this.format[i] === ' ') {
-          // Skip spaces
-          while (i < this.format.length && this.format[i] === ' ') {
-            i++;
-          }
-        } else {
-          throw new ResolveCommandError(
-            ResolveCommandError.PIECE_BEFORE_REQUIRED,
-            { format: this.format, position: i }
-          );
-        }
-      }
-      this.resolved = [1, this.format.length];
-    }
-
-    return this;
   }
 
   /**
@@ -305,6 +38,280 @@ export class Command<F extends string = string> {
     this.actionFn = fn;
     return this;
   }
+}
+
+export function makeCommand<F extends string = string>(
+  command: Command<F>
+): ICommand<F> {
+  const format = command.format;
+
+  /**
+   * Mark whether it has been resolved
+   *
+   * [  0, i ] := resolving sub-commands
+   * [ -1, i ] := sub-commands have been resolved
+   * [  1, _ ] := has been fully resolved
+   */
+  let resolveState: 0 | -1 | 1 = 0,
+    i = 0;
+
+  const pieces: string[] = [];
+  let required!: string[];
+  let optionals!: string[];
+  let spread: string | undefined;
+
+  const madeCommand = {
+    command,
+    /**
+     * Const pieces
+     *
+     * &nbsp;↓ &nbsp;&nbsp;&nbsp; ↓
+     *
+     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
+     */
+    pieces,
+    /**
+     * Required arguments
+     *
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * ↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓
+     *
+     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
+     */
+    required,
+    /**
+     * Optional arguments
+     *
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;
+     * ↓
+     *
+     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
+     */
+    optionals,
+    /**
+     * Spread arguments
+     *
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     * ↓
+     *
+     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
+     */
+    spread,
+    isDefault() {
+      return format === '' || format[0] === '[' || format[0] === '<';
+    },
+    /**
+     * This is used internal, you should not use this API.
+     */
+    resolveSubCommand() {
+      if (resolveState === 0) {
+        for (; i < format.length; ) {
+          if (format[i] === '<' || format[i] === '[') {
+            resolveState = -1;
+            break;
+          } else if (format[i] === ' ') {
+            while (i < format.length && format[i] === ' ') {
+              i++;
+            }
+          } else {
+            let piece = '';
+            while (i < format.length && format[i] !== ' ') {
+              piece += format[i++];
+            }
+            pieces.push(piece);
+            resolveState = 0;
+            break;
+          }
+        }
+        if (i >= format.length) {
+          resolveState = 1;
+        }
+      }
+
+      return madeCommand;
+    },
+    /**
+     * This is used internal, you should not use this API.
+     */
+    resolve() {
+      while (resolveState === 0) {
+        madeCommand.resolveSubCommand();
+      }
+      if (resolveState === -1) {
+        required = madeCommand.required = [];
+        optionals = madeCommand.optionals = [];
+
+        /**
+         * States:
+         *
+         * 0 := aaa bbb  (0 -> 0, 0 -> 1, 0 -> 2, 0 -> 3)
+         * 1 := aaa bbb <xxx> <yyy>  (1 -> 1, 1 -> 2, 1 -> 3)
+         * 2 := aaa bbb <xxx> <yyy> [zzz]  (2 -> 2, 2 -> 3)
+         * 3 := aaa bbb <xxx> <yyy> [zzz] [...www]  (3 -> empty)
+         */
+        let state = 1;
+        for (; i < format.length; ) {
+          if (format[i] === '<') {
+            if (i + 1 >= format.length || format[i + 1] === ' ') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_REQUIRED_ARG,
+                { format, position: i }
+              );
+            } else {
+              i++;
+            }
+
+            if (state >= 2) {
+              throw new ResolveCommandError(
+                ResolveCommandError.REQUIRED_BEFORE_OPTIONAL,
+                { format, position: i }
+              );
+            }
+
+            // Parse argument name
+            let piece = '';
+            while (i < format.length && format[i] !== '>') {
+              piece += format[i++];
+            }
+
+            // Check the close bracket
+            if (i === format.length || format[i] !== '>') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_REQUIRED_ARG,
+                { format: format, position: i }
+              );
+            } else {
+              i++;
+            }
+
+            // Check the space separator
+            if (i < format.length && format[i] !== ' ') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_REQUIRED_ARG,
+                { format, position: i }
+              );
+            }
+
+            // State -> 1
+            state = 1;
+            required.push(piece);
+          } else if (format[i] === '[') {
+            if (i + 1 >= format.length || format[i + 1] === ' ') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_OPTIONAL_ARG,
+                { format, position: i }
+              );
+            } else {
+              i++;
+            }
+
+            if (format[i] === '.') {
+              if (state >= 3) {
+                throw new ResolveCommandError(
+                  ResolveCommandError.SPREAD_ONLY_ONCE,
+                  { format, position: i }
+                );
+              }
+
+              // Skip all the dots [...
+              while (i < format.length && format[i] === '.') {
+                i++;
+              }
+
+              // Parse argument name
+              let piece = '';
+              while (i < format.length && format[i] !== ']') {
+                piece += format[i++];
+              }
+
+              // Check the close bracket
+              if (i === format.length || format[i] !== ']') {
+                throw new ResolveCommandError(
+                  ResolveCommandError.INVALID_SPREAD_ARG,
+                  { format, position: i }
+                );
+              } else {
+                i++;
+              }
+
+              // Check the space separator
+              if (i < format.length && format[i] !== ' ') {
+                throw new ResolveCommandError(
+                  ResolveCommandError.INVALID_SPREAD_ARG,
+                  { format, position: i }
+                );
+              }
+
+              // State -> 3
+              state = 3;
+              madeCommand.spread = spread = piece;
+            } else {
+              if (state >= 3) {
+                throw new ResolveCommandError(
+                  ResolveCommandError.OPTIONAL_BEFORE_SPREAD,
+                  { format, position: i }
+                );
+              }
+
+              // Parse argument name
+              let piece = '';
+              while (i < format.length && format[i] !== ']') {
+                piece += format[i++];
+              }
+
+              // Check the close bracket
+              if (i === format.length || format[i] !== ']') {
+                throw new ResolveCommandError(
+                  ResolveCommandError.INVALID_OPTIONAL_ARG,
+                  { format, position: i }
+                );
+              } else {
+                i++;
+              }
+
+              // Check the space separator
+              if (i < format.length && format[i] !== ' ') {
+                throw new ResolveCommandError(
+                  ResolveCommandError.INVALID_OPTIONAL_ARG,
+                  { format, position: i }
+                );
+              }
+
+              // State -> 2
+              state = 2;
+              optionals.push(piece);
+            }
+          } else if (format[i] === ' ') {
+            // Skip spaces
+            while (i < format.length && format[i] === ' ') {
+              i++;
+            }
+          } else {
+            throw new ResolveCommandError(
+              ResolveCommandError.PIECE_BEFORE_REQUIRED,
+              { format, position: i }
+            );
+          }
+        }
+
+        resolveState = 1;
+      }
+
+      return madeCommand;
+    }
+  };
+
+  return madeCommand;
 }
 
 export class ResolveCommandError extends BreadcError {
