@@ -1,12 +1,11 @@
-import type { Option } from '../breadc/option.ts';
-import type { Command } from '../breadc/command.ts';
+import type { ICommand, IOption } from '../breadc/types.ts';
 
 import { Lexer, Token } from './lexer.ts';
 
 export interface Container {
-  globalOptions: Option[];
+  globalOptions: IOption[];
 
-  commands: Command[];
+  commands: ICommand[];
 }
 
 export class Context {
@@ -20,7 +19,7 @@ export class Context {
   /**
    * Matched command
    */
-  public command: Command | undefined = undefined;
+  public command: ICommand | undefined = undefined;
 
   /**
    * Matched arguments
@@ -30,7 +29,7 @@ export class Context {
   /**
    * Matched options
    */
-  public readonly options: Map<Option, MatchedOption> = new Map();
+  public readonly options: Map<IOption, MatchedOption> = new Map();
 
   /**
    * Remaining arguments
@@ -42,8 +41,8 @@ export class Context {
    */
   public readonly matching: {
     unknown: Token[];
-    commands: Map<string, Command[]>;
-    options: Map<string, Option>;
+    commands: Map<string, ICommand[]>;
+    options: Map<string, IOption>;
   } = {
     unknown: [],
     commands: new Map(),
@@ -71,11 +70,11 @@ export class MatchedArgument {
 }
 
 export class MatchedOption {
-  public readonly option: Option;
+  public readonly option: IOption;
 
   public value: any;
 
-  public constructor(option: Option) {
+  public constructor(option: IOption) {
     this.option = option;
   }
 

@@ -1,17 +1,20 @@
 import { describe, it, expect } from 'vitest';
 
-import { Option } from '../../src/breadc/option.ts';
+import { Option, makeOption } from '../../src/breadc/option.ts';
 
 describe('option', () => {
   it('should resolve short and long option', () => {
-    const opt = new Option('-v, --version');
+    const opt = makeOption(new Option('-v, --version'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      Option {
-        "format": "-v, --version",
+      {
         "long": "version",
         "name": undefined,
-        "resolved": true,
+        "option": Option {
+          "format": "-v, --version",
+          "options": {},
+        },
+        "resolve": [Function],
         "short": "v",
         "type": "boolean",
       }
@@ -19,14 +22,17 @@ describe('option', () => {
   });
 
   it('should resolve long option', () => {
-    const opt = new Option('--version');
+    const opt = makeOption(new Option('--version'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      Option {
-        "format": "--version",
+      {
         "long": "version",
         "name": undefined,
-        "resolved": true,
+        "option": Option {
+          "format": "--version",
+          "options": {},
+        },
+        "resolve": [Function],
         "short": undefined,
         "type": "boolean",
       }
@@ -34,7 +40,7 @@ describe('option', () => {
   });
 
   it('should not resolve short option', () => {
-    const opt = new Option('-v');
+    const opt = makeOption(new Option('-v'));
     expect(async () =>
       opt.resolve()
     ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -43,14 +49,17 @@ describe('option', () => {
   });
 
   it('should resolve required option', () => {
-    const opt = new Option('--root <root>');
+    const opt = makeOption(new Option('--root <root>'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      Option {
-        "format": "--root <root>",
+      {
         "long": "root",
         "name": "<root>",
-        "resolved": true,
+        "option": Option {
+          "format": "--root <root>",
+          "options": {},
+        },
+        "resolve": [Function],
         "short": undefined,
         "type": "required",
       }
@@ -58,14 +67,17 @@ describe('option', () => {
   });
 
   it('should resolve optional option', () => {
-    const opt = new Option('--root [root]');
+    const opt = makeOption(new Option('--root [root]'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      Option {
-        "format": "--root [root]",
+      {
         "long": "root",
         "name": "[root]",
-        "resolved": true,
+        "option": Option {
+          "format": "--root [root]",
+          "options": {},
+        },
+        "resolve": [Function],
         "short": undefined,
         "type": "optional",
       }
@@ -73,14 +85,17 @@ describe('option', () => {
   });
 
   it('should resolve array option', () => {
-    const opt = new Option('--plugin [...plugins]');
+    const opt = makeOption(new Option('--plugin [...plugins]'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      Option {
-        "format": "--plugin [...plugins]",
+      {
         "long": "plugin",
         "name": "[...plugins]",
-        "resolved": true,
+        "option": Option {
+          "format": "--plugin [...plugins]",
+          "options": {},
+        },
+        "resolve": [Function],
         "short": undefined,
         "type": "array",
       }

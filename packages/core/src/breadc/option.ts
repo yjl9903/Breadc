@@ -1,7 +1,14 @@
 import { BreadcError } from '../error.ts';
 
-const OptionRE =
-  /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
+import type { IOption, OptionType } from './types.ts';
+
+interface OptionOption<R = any> {
+  initial?: undefined | string | string[];
+
+  cast?: (value: any) => R;
+
+  default?: any;
+}
 
 /**
  * Option abstraction
@@ -17,58 +24,70 @@ const OptionRE =
 export class Option<F extends string = string> {
   public readonly format: F;
 
-  private resolved = false;
+  public readonly options: OptionOption;
 
-  public type!: 'boolean' | 'optional' | 'required' | 'array';
-
-  public long: string = '';
-
-  public short: string | undefined;
-
-  public name: string | undefined;
-
-  public constructor(format: F) {
+  public constructor(format: F, options: OptionOption = {}) {
     this.format = format;
+    this.options = options;
   }
+}
 
-  /**
-   * This is used internal, you should not use this API.
-   *
-   * @returns this
-   */
-  public resolve(): this {
-    if (this.resolved) return this;
+const OptionRE =
+  /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
-    const match = OptionRE.exec(this.format);
-    if (match) {
-      this.long = match[2];
+export function makeOption<F extends string = string>(
+  option: Option<F>
+): IOption<F> {
+  const format = option.format;
 
-      if (match[1]) {
-        this.short = match[1][1];
-      }
+  let resolved = false;
+  let type!: OptionType;
+  let long!: string;
+  let short: string | undefined;
+  let name: string | undefined;
 
-      if (match[3]) {
-        this.name = match[3];
-        if (this.name[0] === '<') {
-          this.type = 'required';
-        } else if (this.name[1] === '.') {
-          this.type = 'array';
+  const madeOption = {
+    option,
+    type,
+    long,
+    short,
+    name,
+    resolve() {
+      if (resolved) return madeOption;
+
+      const match = OptionRE.exec(format);
+      if (match) {
+        madeOption.long = match[2];
+
+        if (match[1]) {
+          madeOption.short = match[1][1];
+        }
+
+        if (match[3]) {
+          madeOption.name = name = match[3];
+          if (name[0] === '<') {
+            madeOption.type = type = 'required';
+          } else if (name[1] === '.') {
+            madeOption.type = type = 'array';
+          } else {
+            madeOption.type = type = 'optional';
+          }
         } else {
-          this.type = 'optional';
+          madeOption.type = type = 'boolean';
         }
       } else {
-        this.type = 'boolean';
+        throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
+          format
+        });
       }
-    } else {
-      throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
-        format: this.format
-      });
+
+      resolved = true;
+
+      return madeOption;
     }
+  };
 
-    this.resolved = true;
-
-    return this;
-  }
+  return madeOption;
 }
 
 export class ResolveOptionError extends BreadcError {

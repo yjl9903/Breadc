@@ -1,10 +1,14 @@
-import type { BreadcOptions } from './types.ts';
-
 import { parse, run } from '../parser/index.ts';
 import { type Container, Context } from '../parser/context.ts';
 
-import { Option } from './option.ts';
-import { Command } from './command.ts';
+import { Command, makeCommand } from './command.ts';
+import { makeOption, Option } from './option.ts';
+
+export interface BreadcOptions {
+  version?: string;
+
+  descriptions?: string;
+}
 
 export class Breadc<GO extends object = {}> {
   public name: string;
@@ -25,18 +29,18 @@ export class Breadc<GO extends object = {}> {
   // --- Builder ---
 
   public addOption<F extends string>(option: Option<F>): Breadc<GO> {
-    this.container.globalOptions.push(option);
+    this.container.globalOptions.push(makeOption(option));
     return this;
   }
 
   public option<F extends string>(format: F): Breadc<GO> {
     const option = new Option<F>(format);
-    this.container.globalOptions.push(option);
+    this.container.globalOptions.push(makeOption(option));
     return this;
   }
 
   public addCommand<F extends string>(command: Command<F>): Breadc<GO> {
-    this.container.commands.push(command);
+    this.container.commands.push(makeCommand(command));
     return this;
   }
 
@@ -46,7 +50,7 @@ export class Breadc<GO extends object = {}> {
     //   return this.default(format);
     // }
     const command = new Command<F>(format);
-    this.container.commands.push(command);
+    this.container.commands.push(makeCommand(command));
     return command;
   }
 
