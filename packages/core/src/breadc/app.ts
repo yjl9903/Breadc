@@ -4,7 +4,7 @@ import { type Container, Context } from '../parser/context.ts';
 import { Command, makeCommand } from './command.ts';
 import { makeOption, Option } from './option.ts';
 
-export interface BreadcOptions {
+export interface BreadcConfig {
   version?: string;
 
   descriptions?: string;
@@ -22,7 +22,7 @@ export class Breadc<GO extends object = {}> {
     commands: []
   };
 
-  public constructor(name: string, options: BreadcOptions = {}) {
+  public constructor(name: string, config: BreadcConfig = {}) {
     this.name = name;
   }
 
