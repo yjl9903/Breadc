@@ -1,5 +1,4 @@
-import type { Option } from '../breadc/option.ts';
-import type { Command } from '../breadc/command.ts';
+import type { IOption, ICommand } from '../breadc/types.ts';
 
 import { BreadcError, RuntimeError } from '../error.ts';
 
@@ -7,11 +6,11 @@ import { Context, MatchedOption } from './context.ts';
 
 export function parse(context: Context): Context {
   // 1. Resolve the first constant pieces of all the command
-  let defaultCommand: Command | undefined; // Find default command
+  let defaultCommand: ICommand | undefined; // Find default command
   const commands = [];
   for (const command of context.container.commands) {
     command.resolveSubCommand();
-    if (command.isDefault) {
+    if (command.isDefault()) {
       if (defaultCommand !== undefined) {
         throw new BreadcError(`Find duplicated default command`);
       }
@@ -28,7 +27,7 @@ export function parse(context: Context): Context {
    * @param index the current sub-command matching index
    * @param commands the pending commands
    */
-  function commitPendingCommands(index: number, commands: Command[]) {
+  function commitPendingCommands(index: number, commands: ICommand[]) {
     context.matching.commands.clear();
     for (const command of commands) {
       const piece = command.pieces[index];
@@ -47,7 +46,7 @@ export function parse(context: Context): Context {
    *
    * @param options the pending options
    */
-  function addPendingOptions(options: Option[]) {
+  function addPendingOptions(options: IOption[]) {
     for (const option of options) {
       const long = `--${option.long}`;
       context.matching.options.set(long, option);
@@ -73,7 +72,7 @@ export function parse(context: Context): Context {
       const nextCommands = context.matching.commands.get(rawToken)!;
       commitPendingCommands(subCommandIndex++, nextCommands);
       for (const command of nextCommands) {
-        addPendingOptions(command.options);
+        addPendingOptions(command.command.options);
       }
     } else if (token.isLong) {
       // 3.3. long options

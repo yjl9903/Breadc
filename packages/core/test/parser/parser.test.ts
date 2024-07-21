@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 
 import { parse } from '../../src/parser/parser.ts';
 import { Context } from '../../src/parser/context.ts';
-import { Command } from '../../src/breadc/command.ts';
+import { Command, makeCommand } from '../../src/breadc/command.ts';
 
 describe('parser', () => {
   it('should parse default cli and empty args', () => {
     const context = new Context(
-      { globalOptions: [], commands: [new Command('')] },
+      { globalOptions: [], commands: [makeCommand(new Command(''))] },
       []
     );
     parse(context);
@@ -15,32 +15,34 @@ describe('parser', () => {
     expect(context).toMatchInlineSnapshot(`
       Context {
         "arguments": [],
-        "command": Command {
-          "actionFn": undefined,
-          "format": "",
+        "command": {
+          "command": Command {
+            "actionFn": undefined,
+            "format": "",
+            "options": [],
+          },
+          "isDefault": [Function],
           "optionals": undefined,
-          "options": [],
           "pieces": [],
           "required": undefined,
-          "resolved": [
-            1,
-            0,
-          ],
+          "resolve": [Function],
+          "resolveSubCommand": [Function],
           "spread": undefined,
         },
         "container": {
           "commands": [
-            Command {
-              "actionFn": undefined,
-              "format": "",
+            {
+              "command": Command {
+                "actionFn": undefined,
+                "format": "",
+                "options": [],
+              },
+              "isDefault": [Function],
               "optionals": undefined,
-              "options": [],
               "pieces": [],
               "required": undefined,
-              "resolved": [
-                1,
-                0,
-              ],
+              "resolve": [Function],
+              "resolveSubCommand": [Function],
               "spread": undefined,
             },
           ],
