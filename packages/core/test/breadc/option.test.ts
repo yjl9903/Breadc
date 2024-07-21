@@ -11,8 +11,8 @@ describe('option', () => {
         "long": "version",
         "name": undefined,
         "option": Option {
+          "config": {},
           "format": "-v, --version",
-          "options": {},
         },
         "resolve": [Function],
         "short": "v",
@@ -29,8 +29,8 @@ describe('option', () => {
         "long": "version",
         "name": undefined,
         "option": Option {
+          "config": {},
           "format": "--version",
-          "options": {},
         },
         "resolve": [Function],
         "short": undefined,
@@ -56,8 +56,8 @@ describe('option', () => {
         "long": "root",
         "name": "<root>",
         "option": Option {
+          "config": {},
           "format": "--root <root>",
-          "options": {},
         },
         "resolve": [Function],
         "short": undefined,
@@ -74,8 +74,8 @@ describe('option', () => {
         "long": "root",
         "name": "[root]",
         "option": Option {
+          "config": {},
           "format": "--root [root]",
-          "options": {},
         },
         "resolve": [Function],
         "short": undefined,
@@ -92,8 +92,8 @@ describe('option', () => {
         "long": "plugin",
         "name": "[...plugins]",
         "option": Option {
+          "config": {},
           "format": "--plugin [...plugins]",
-          "options": {},
         },
         "resolve": [Function],
         "short": undefined,
