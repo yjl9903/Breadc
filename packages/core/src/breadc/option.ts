@@ -2,7 +2,7 @@ import { BreadcError } from '../error.ts';
 
 import type { IOption, OptionType } from './types.ts';
 
-interface OptionOption<R = any> {
+export interface OptionConfig<R = any> {
   initial?: undefined | string | string[];
 
   cast?: (value: any) => R;
@@ -24,11 +24,11 @@ interface OptionOption<R = any> {
 export class Option<F extends string = string> {
   public readonly format: F;
 
-  public readonly options: OptionOption;
+  public readonly config: OptionConfig;
 
-  public constructor(format: F, options: OptionOption = {}) {
+  public constructor(format: F, config: OptionConfig = {}) {
     this.format = format;
-    this.options = options;
+    this.config = config;
   }
 }
 
