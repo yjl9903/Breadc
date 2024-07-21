@@ -18,6 +18,7 @@ describe('parser', () => {
         "command": {
           "command": Command {
             "actionFn": undefined,
+            "config": {},
             "format": "",
             "options": [],
           },
@@ -34,6 +35,7 @@ describe('parser', () => {
             {
               "command": Command {
                 "actionFn": undefined,
+                "config": {},
                 "format": "",
                 "options": [],
               },
