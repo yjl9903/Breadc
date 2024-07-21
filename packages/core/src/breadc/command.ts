@@ -2,6 +2,8 @@ import { BreadcError } from '../error.ts';
 
 import type { ICommand, IOption } from './types.ts';
 
+export interface CommandConfig {}
+
 /**
  * Command abstraction.
  *
@@ -14,6 +16,8 @@ import type { ICommand, IOption } from './types.ts';
 export class Command<F extends string = string> {
   public readonly format: F;
 
+  public readonly config: CommandConfig;
+
   /**
    * The bound action function
    */
@@ -24,8 +28,9 @@ export class Command<F extends string = string> {
    */
   public options: IOption[] = [];
 
-  public constructor(format: F) {
+  public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
+    this.config = config;
   }
 
   /**
