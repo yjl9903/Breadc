@@ -2,7 +2,12 @@ import { BreadcError } from '../error.ts';
 
 import type { ICommand, IOption } from './types.ts';
 
-export interface CommandConfig {}
+export interface CommandConfig {
+  /**
+   * Command description
+   */
+  description?: string;
+}
 
 /**
  * Command abstraction.
