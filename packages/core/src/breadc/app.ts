@@ -1,8 +1,8 @@
 import { parse, run } from '../parser/index.ts';
 import { type Container, Context } from '../parser/context.ts';
 
-import { Command, makeCommand } from './command.ts';
-import { makeOption, Option } from './option.ts';
+import { type OptionConfig, makeOption, Option } from './option.ts';
+import { type CommandConfig, Command, makeCommand } from './command.ts';
 
 export interface BreadcConfig {
   version?: string;
@@ -33,8 +33,15 @@ export class Breadc<GO extends object = {}> {
     return this;
   }
 
-  public option<F extends string>(format: F): Breadc<GO> {
-    const option = new Option<F>(format);
+  public option<F extends string>(
+    format: F, 
+    descriptionOrConfig?: string | OptionConfig, 
+    config?: Omit<OptionConfig, 'description'>
+  ): Breadc<GO> {
+    const resolvedConfig = typeof descriptionOrConfig === 'string' 
+      ? { ...config, description: descriptionOrConfig }
+      : { ...descriptionOrConfig, ...config };
+    const option = new Option<F>(format, resolvedConfig);
     this.container.globalOptions.push(makeOption(option));
     return this;
   }
@@ -44,12 +51,15 @@ export class Breadc<GO extends object = {}> {
     return this;
   }
 
-  public command<F extends string>(format: F): Command<F> {
-    // '' / '[...]' / '<...>' should be treated as the default command
-    // if (format.length === 0 || format[0] === '[' || format[0] === '<') {
-    //   return this.default(format);
-    // }
-    const command = new Command<F>(format);
+  public command<F extends string>(
+    format: F,
+    descriptionOrConfig?: string | CommandConfig, 
+    config?: Omit<CommandConfig, 'description'>
+  ): Command<F> {
+    const resolvedConfig = typeof descriptionOrConfig === 'string' 
+      ? { ...config, description: descriptionOrConfig }
+      : { ...descriptionOrConfig, ...config };
+    const command = new Command<F>(format, resolvedConfig);
     this.container.commands.push(makeCommand(command));
     return command;
   }

@@ -44,13 +44,13 @@ export function parse(context: Context): Context {
   addPendingOptions(context.container.globalOptions);
 
   // 3. Parse arguments
-  while (!context.lexer.isEnd) {
-    const token = context.lexer.next()!;
+  while (!context.tokens.isEnd) {
+    const token = context.tokens.next()!;
     const rawToken = token.toRaw();
 
     if (token.isEscape) {
       // 3.1. `--` handle escape
-      context.remaining.push(...context.lexer.remaining());
+      context.remaining.push(...context.tokens.remaining());
     } else if (context.matching.commands.has(rawToken)) {
       // 3.2. sub-command matched
       const nextCommands = context.matching.commands.get(rawToken)!;
