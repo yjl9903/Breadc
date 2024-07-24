@@ -50,17 +50,18 @@ describe('parser', () => {
           ],
           "globalOptions": [],
         },
-        "lexer": Lexer {
-          "args": [],
-          "cursor": 0,
-        },
         "matching": {
           "commands": Map {},
           "options": Map {},
           "unknown": [],
         },
+        "metadata": {},
         "options": Map {},
         "remaining": [],
+        "tokens": Lexer {
+          "args": [],
+          "cursor": 0,
+        },
       }
     `);
   });
