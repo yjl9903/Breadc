@@ -3,6 +3,11 @@ import { BreadcError } from '../error.ts';
 import type { IOption, OptionType } from './types.ts';
 
 export interface OptionConfig<R = any> {
+  /**
+   * Option description
+   */
+  description?: string;
+
   initial?: undefined | string | string[];
 
   cast?: (value: any) => R;
