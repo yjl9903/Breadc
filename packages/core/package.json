@@ -37,7 +37,7 @@
   "scripts": {
     "build": "unbuild",
     "coverage": "vitest run --coverage",
-    "format": "prettier --write src/**/*.ts test/*.ts",
+    "format": "prettier --write src/**/*.ts test/**/*.ts",
     "size": "size-limit",
     "test": "vitest",
     "test:bench": "vitest bench",
