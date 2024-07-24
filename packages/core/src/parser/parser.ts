@@ -6,8 +6,8 @@ import { Context, MatchedOption } from './context.ts';
 
 export function parse(context: Context): Context {
   // 1. Resolve the first constant pieces of all the command
+  let subCommandIndex = 0; // Maintain sub-command length
   let defaultCommand: ICommand | undefined; // Find default command
-  const commands = [];
   for (const command of context.container.commands) {
     command.resolveSubCommand();
     if (command.isDefault()) {
@@ -16,21 +16,7 @@ export function parse(context: Context): Context {
       }
       defaultCommand = command;
     } else {
-      commands.push(command);
-    }
-  }
-
-  /**
-   * Commit the next pending commands.
-   * Ensure commands should have been resolved constant.
-   *
-   * @param index the current sub-command matching index
-   * @param commands the pending commands
-   */
-  function commitPendingCommands(index: number, commands: ICommand[]) {
-    context.matching.commands.clear();
-    for (const command of commands) {
-      const piece = command.pieces[index];
+      const piece = command.pieces[subCommandIndex];
       if (piece) {
         if (context.matching.commands.has(piece)) {
           context.matching.commands.get(piece)!.push(command);
@@ -54,9 +40,7 @@ export function parse(context: Context): Context {
     }
   }
 
-  // 2. Commit pending sub-commands and global options
-  let subCommandIndex = 0;
-  commitPendingCommands(subCommandIndex++, commands);
+  // 2. Commit pending global options
   addPendingOptions(context.container.globalOptions);
 
   // 3. Parse arguments
@@ -70,7 +54,23 @@ export function parse(context: Context): Context {
     } else if (context.matching.commands.has(rawToken)) {
       // 3.2. sub-command matched
       const nextCommands = context.matching.commands.get(rawToken)!;
-      commitPendingCommands(subCommandIndex++, nextCommands);
+
+      // Commit pending sub-commands
+      const currentIndex = subCommandIndex++;
+      context.matching.commands.clear();
+      for (const command of nextCommands) {
+        command.resolveSubCommand();
+        const piece = command.pieces[currentIndex];
+        if (piece) {
+          if (context.matching.commands.has(piece)) {
+            context.matching.commands.get(piece)!.push(command);
+          } else {
+            context.matching.commands.set(piece, [command]);
+          }
+        }
+      }
+
+      // Commit pending options
       for (const command of nextCommands) {
         addPendingOptions(command.command.options);
       }
