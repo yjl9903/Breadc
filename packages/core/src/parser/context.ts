@@ -8,13 +8,23 @@ export interface Container {
   commands: ICommand[];
 }
 
+export interface ContextMetadata {}
+
 export class Context {
+  /**
+   * Metadata for user custom extension
+   */
+  public readonly metadata: ContextMetadata = {};
+
   /**
    * The metadata, options, commands registed from the Breadc app instance
    */
   public readonly container: Container;
 
-  public readonly lexer: Lexer;
+  /**
+   * Token stream
+   */
+  public readonly tokens: Lexer;
 
   /**
    * Matched command
@@ -51,7 +61,7 @@ export class Context {
 
   public constructor(container: Container, args: string[]) {
     this.container = container;
-    this.lexer = new Lexer(args);
+    this.tokens = new Lexer(args);
   }
 }
 
