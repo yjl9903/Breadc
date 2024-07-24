@@ -34,13 +34,14 @@ export class Breadc<GO extends object = {}> {
   }
 
   public option<F extends string>(
-    format: F, 
-    descriptionOrConfig?: string | OptionConfig, 
+    format: F,
+    descriptionOrConfig?: string | OptionConfig,
     config?: Omit<OptionConfig, 'description'>
   ): Breadc<GO> {
-    const resolvedConfig = typeof descriptionOrConfig === 'string' 
-      ? { ...config, description: descriptionOrConfig }
-      : { ...descriptionOrConfig, ...config };
+    const resolvedConfig =
+      typeof descriptionOrConfig === 'string'
+        ? { ...config, description: descriptionOrConfig }
+        : { ...descriptionOrConfig, ...config };
     const option = new Option<F>(format, resolvedConfig);
     this.container.globalOptions.push(makeOption(option));
     return this;
@@ -53,12 +54,13 @@ export class Breadc<GO extends object = {}> {
 
   public command<F extends string>(
     format: F,
-    descriptionOrConfig?: string | CommandConfig, 
+    descriptionOrConfig?: string | CommandConfig,
     config?: Omit<CommandConfig, 'description'>
   ): Command<F> {
-    const resolvedConfig = typeof descriptionOrConfig === 'string' 
-      ? { ...config, description: descriptionOrConfig }
-      : { ...descriptionOrConfig, ...config };
+    const resolvedConfig =
+      typeof descriptionOrConfig === 'string'
+        ? { ...config, description: descriptionOrConfig }
+        : { ...descriptionOrConfig, ...config };
     const command = new Command<F>(format, resolvedConfig);
     this.container.commands.push(makeCommand(command));
     return command;
