@@ -2,6 +2,8 @@ import { BreadcError } from '../error.ts';
 
 import type { ICommand, IOption } from './types.ts';
 
+import { type OptionConfig, makeOption, Option  } from './option.ts';
+
 export interface CommandConfig {
   /**
    * Command description
@@ -23,6 +25,8 @@ export class Command<F extends string = string> {
 
   public readonly config: CommandConfig;
 
+  public readonly aliases: string[] = [];
+
   /**
    * The bound action function
    */
@@ -36,6 +40,25 @@ export class Command<F extends string = string> {
   public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
     this.config = config;
+  }
+
+  public alias(format: string): this {
+    this.aliases.push(format);
+    return this;
+  }
+
+  public option<OF extends string>(
+    format: OF,
+    descriptionOrConfig?: string | OptionConfig,
+    config?: Omit<OptionConfig, 'description'>
+  ): this {
+    const resolvedConfig =
+      typeof descriptionOrConfig === 'string'
+        ? { ...config, description: descriptionOrConfig }
+        : { ...descriptionOrConfig, ...config };
+    const option = new Option<OF>(format, resolvedConfig);
+    this.options.push(makeOption(option));
+    return this;
   }
 
   /**
@@ -65,7 +88,13 @@ export function makeCommand<F extends string = string>(
   let resolveState: 0 | -1 | 1 = 0,
     i = 0;
 
+  /**
+   * Matching position in each alias
+   */
+  const aliasPos = command.aliases.map(() => 0);
+
   const pieces: string[] = [];
+  const aliases: string[][] = command.aliases.map(() => []);
   let required!: string[];
   let optionals!: string[];
   let spread: string | undefined;
@@ -80,6 +109,10 @@ export function makeCommand<F extends string = string>(
      * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
      */
     pieces,
+    /**
+     * Like const pieces, but for each alias
+     */
+    aliases,
     /**
      * Required arguments
      *
@@ -120,9 +153,6 @@ export function makeCommand<F extends string = string>(
     isDefault() {
       return format === '' || format[0] === '[' || format[0] === '<';
     },
-    /**
-     * This is used internal, you should not use this API.
-     */
     resolveSubCommand() {
       if (resolveState === 0) {
         for (; i < format.length; ) {
@@ -150,9 +180,31 @@ export function makeCommand<F extends string = string>(
 
       return madeCommand;
     },
-    /**
-     * This is used internal, you should not use this API.
-     */
+    resolveAliasSubCommand(index: number) {
+      const format = command.aliases[index];
+      let i = aliasPos[index];
+
+      for (; i < format.length; ) {
+        if (format[i] === '<' || format[i] === '[') {
+          break;
+        } else if (format[i] === ' ') {
+          while (i < format.length && format[i] === ' ') {
+            i++;
+          }
+        } else {
+          let piece = '';
+          while (i < format.length && format[i] !== ' ') {
+            piece += format[i++];
+          }
+          aliases[index].push(piece);
+          break;
+        }
+      }
+
+      aliasPos[index] = i;
+      
+      return madeCommand;
+    },
     resolve() {
       while (resolveState === 0) {
         madeCommand.resolveSubCommand();
