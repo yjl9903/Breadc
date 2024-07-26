@@ -16,8 +16,10 @@ describe('parser', () => {
       Context {
         "arguments": [],
         "command": {
+          "aliases": [],
           "command": Command {
             "actionFn": undefined,
+            "aliases": [],
             "config": {},
             "format": "",
             "options": [],
@@ -27,14 +29,17 @@ describe('parser', () => {
           "pieces": [],
           "required": undefined,
           "resolve": [Function],
+          "resolveAliasSubCommand": [Function],
           "resolveSubCommand": [Function],
           "spread": undefined,
         },
         "container": {
           "commands": [
             {
+              "aliases": [],
               "command": Command {
                 "actionFn": undefined,
+                "aliases": [],
                 "config": {},
                 "format": "",
                 "options": [],
@@ -44,6 +49,7 @@ describe('parser', () => {
               "pieces": [],
               "required": undefined,
               "resolve": [Function],
+              "resolveAliasSubCommand": [Function],
               "resolveSubCommand": [Function],
               "spread": undefined,
             },
