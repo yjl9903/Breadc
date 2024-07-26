@@ -15,10 +15,12 @@ export type IOption<F extends string = string> = {
 export type ICommand<F extends string = string> = {
   command: Command<F>;
   pieces: string[];
+  aliases: string[][];
   required: string[];
   optionals: string[];
   spread: string | undefined;
   isDefault(): boolean;
   resolveSubCommand(): ICommand<F>;
+  resolveAliasSubCommand(index: number): ICommand<F>;
   resolve(): ICommand<F>;
 };
