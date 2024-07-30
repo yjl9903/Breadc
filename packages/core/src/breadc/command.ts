@@ -101,54 +101,10 @@ export function makeCommand<F extends string = string>(
 
   const madeCommand = {
     command,
-    /**
-     * Const pieces
-     *
-     * &nbsp;↓ &nbsp;&nbsp;&nbsp; ↓
-     *
-     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-     */
     pieces,
-    /**
-     * Like const pieces, but for each alias
-     */
     aliases,
-    /**
-     * Required arguments
-     *
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * ↓ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↓
-     *
-     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-     */
     required,
-    /**
-     * Optional arguments
-     *
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;
-     * ↓
-     *
-     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-     */
     optionals,
-    /**
-     * Spread arguments
-     *
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     * ↓
-     *
-     * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
-     */
     spread,
     isDefault() {
       return format === '' || format[0] === '[' || format[0] === '<';
