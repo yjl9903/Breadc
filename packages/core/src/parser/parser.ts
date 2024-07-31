@@ -19,9 +19,23 @@ export function parse(context: Context): Context {
       const piece = command.pieces[subCommandIndex];
       if (piece) {
         if (context.matching.commands.has(piece)) {
-          context.matching.commands.get(piece)!.push(command);
+          context.matching.commands.get(piece)!.push([command, undefined]);
         } else {
-          context.matching.commands.set(piece, [command]);
+          context.matching.commands.set(piece, [[command, undefined]]);
+        }
+      }
+
+      // Commit sub-command with alias
+      for (let aliasIndex = 0; aliasIndex < command.aliases.length; aliasIndex++) {
+        command.resolveAliasSubCommand(aliasIndex);
+        const alias = command.aliases[aliasIndex];
+        const piece = alias[subCommandIndex];
+        if (piece) {
+          if (context.matching.commands.has(piece)) {
+            context.matching.commands.get(piece)!.push([command, aliasIndex]);
+          } else {
+            context.matching.commands.set(piece, [[command, aliasIndex]]);
+          } 
         }
       }
     }
@@ -58,20 +72,34 @@ export function parse(context: Context): Context {
       // Commit pending sub-commands
       const currentIndex = subCommandIndex++;
       context.matching.commands.clear();
-      for (const command of nextCommands) {
-        command.resolveSubCommand();
-        const piece = command.pieces[currentIndex];
-        if (piece) {
-          if (context.matching.commands.has(piece)) {
-            context.matching.commands.get(piece)!.push(command);
-          } else {
-            context.matching.commands.set(piece, [command]);
+      for (const [command, aliasIndex] of nextCommands) {
+        if (aliasIndex === undefined) {
+          // Original command
+          command.resolveSubCommand();
+          const piece = command.pieces[currentIndex];
+          if (piece) {
+            if (context.matching.commands.has(piece)) {
+              context.matching.commands.get(piece)!.push([command, undefined]);
+            } else {
+              context.matching.commands.set(piece, [[command, undefined]]);
+            }
+          }
+        } else {
+          // Alias command
+          command.resolveAliasSubCommand(aliasIndex);
+          const piece = command.aliases[aliasIndex][currentIndex];
+          if (piece) {
+            if (context.matching.commands.has(piece)) {
+              context.matching.commands.get(piece)!.push([command, aliasIndex]);
+            } else {
+              context.matching.commands.set(piece, [[command, aliasIndex]]);
+            }
           }
         }
       }
 
       // Commit pending options
-      for (const command of nextCommands) {
+      for (const [command] of nextCommands) {
         addPendingOptions(command.command.options);
       }
     } else if (token.isLong) {
