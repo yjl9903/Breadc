@@ -50,8 +50,17 @@ export class Context {
    * Pending commands and options which are used internal
    */
   public readonly matching: {
+    /**
+     * Spread arguments
+     */
     unknown: Token[];
-    commands: Map<string, ICommand[]>;
+    /**
+     * Matching commands or command aliases
+     */
+    commands: Map<string, [ICommand, number | undefined][]>;
+    /**
+     * Pending options
+     */
     options: Map<string, IOption>;
   } = {
     unknown: [],
