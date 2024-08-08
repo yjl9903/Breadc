@@ -37,11 +37,12 @@
   "scripts": {
     "build": "unbuild",
     "coverage": "vitest run --coverage",
-    "format": "prettier --write src/**/*.ts test/*.ts",
+    "format": "prettier --write src/**/*.ts test/**/*.ts",
     "size": "size-limit",
     "test": "vitest",
     "test:bench": "vitest bench",
-    "test:ci": "vitest --run"
+    "test:ci": "vitest --run",
+    "test:coverage": "vitest run --coverage --typecheck"
   },
   "dependencies": {
     "@breadc/color": "workspace:*"
