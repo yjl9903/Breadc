@@ -8,7 +8,7 @@ export interface Container {
   commands: ICommand[];
 }
 
-export interface ContextMetadata { }
+export interface ContextMetadata {}
 
 export class Context {
   /**
@@ -63,10 +63,10 @@ export class Context {
      */
     options: Map<string, IOption>;
   } = {
-      unknown: [],
-      commands: new Map(),
-      options: new Map()
-    };
+    unknown: [],
+    commands: new Map(),
+    options: new Map()
+  };
 
   public constructor(container: Container, args: string[]) {
     this.container = container;
