@@ -1,5 +1,5 @@
 import type { Option } from './option.ts';
-import type { Command } from './command.ts';
+import type { Command, Argument } from './command.ts';
 
 export type OptionType = 'boolean' | 'optional' | 'required' | 'array';
 
@@ -35,7 +35,7 @@ export type ICommand<F extends string = string> = {
    *
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
-  required: string[];
+  requireds: IArgument[];
   /**
    * Optional arguments
    *
@@ -48,7 +48,7 @@ export type ICommand<F extends string = string> = {
    *
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
-  optionals: string[];
+  optionals: IArgument[];
   /**
    * Spread arguments
    *
@@ -62,9 +62,17 @@ export type ICommand<F extends string = string> = {
    *
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
-  spread: string | undefined;
+  spread: IArgument | undefined;
   isDefault(): boolean;
   resolveSubCommand(): ICommand<F>;
   resolveAliasSubCommand(index: number): ICommand<F>;
   resolve(): ICommand<F>;
+};
+
+export type ArgumentType = 'required' | 'optional' | 'spread';
+
+export type IArgument<F extends string = string> = {
+  type: ArgumentType;
+  name: string;
+  format: string;
 };
