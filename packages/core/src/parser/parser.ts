@@ -26,7 +26,11 @@ export function parse(context: Context): Context {
       }
 
       // Commit sub-command with alias
-      for (let aliasIndex = 0; aliasIndex < command.aliases.length; aliasIndex++) {
+      for (
+        let aliasIndex = 0;
+        aliasIndex < command.aliases.length;
+        aliasIndex++
+      ) {
         command.resolveAliasSubCommand(aliasIndex);
         const alias = command.aliases[aliasIndex];
         const piece = alias[subCommandIndex];
@@ -35,7 +39,7 @@ export function parse(context: Context): Context {
             context.matching.commands.get(piece)!.push([command, aliasIndex]);
           } else {
             context.matching.commands.set(piece, [[command, aliasIndex]]);
-          } 
+          }
         }
       }
     }
@@ -102,32 +106,20 @@ export function parse(context: Context): Context {
       for (const [command] of nextCommands) {
         addPendingOptions(command.command.options);
       }
-    } else if (token.isLong) {
-      // 3.3. long options
-      const [key, value] = token.toLong()!;
+    } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
+      // 3.3. handle long options or short options (not negative number)
+      const [key, value] = token.isLong ? token.toLong()! : token.toShort()!;
       const option = context.matching.options.get(key);
       if (option) {
-        // Match option
+        // Match option and set value
         const matched =
           context.options.get(option) ?? new MatchedOption(option);
         matched.accept(context, value);
       } else {
-        // TODO: unknown long options
-      }
-    } else if (token.isShort) {
-      // 3.4. TODO: handle short options
-      const [key, value] = token.toShort()!;
-      const option = context.matching.options.get(key);
-      if (option) {
-        // Match option
-        const matched =
-          context.options.get(option) ?? new MatchedOption(option);
-        matched.accept(context, value);
-      } else {
-        // TODO: unknown long options
+        // TODO: unknown long options or short options
       }
     } else {
-      // 3.5. no matching
+      // 3.4. no matching
       context.matching.unknown.push(token);
     }
   }

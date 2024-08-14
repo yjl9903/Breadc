@@ -2,7 +2,7 @@ import { BreadcError } from '../error.ts';
 
 import type { ICommand, IOption } from './types.ts';
 
-import { type OptionConfig, makeOption, Option  } from './option.ts';
+import { type OptionConfig, makeOption, Option } from './option.ts';
 
 export interface CommandConfig {
   /**
@@ -158,7 +158,7 @@ export function makeCommand<F extends string = string>(
       }
 
       aliasPos[index] = i;
-      
+
       return madeCommand;
     },
     resolve() {
