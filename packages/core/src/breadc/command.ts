@@ -1,6 +1,6 @@
 import { BreadcError } from '../error.ts';
 
-import type { ICommand, IOption } from './types.ts';
+import type { ArgumentType, IArgument, ICommand, IOption } from './types.ts';
 
 import { type OptionConfig, makeOption, Option } from './option.ts';
 
@@ -9,6 +9,12 @@ export interface CommandConfig {
    * Command description
    */
   description?: string;
+}
+
+export interface ArgumentConfig {
+  initial?: undefined | string | string;
+
+  cast?: (value: any) => any;
 }
 
 /**
@@ -33,6 +39,11 @@ export class Command<F extends string = string> {
   public actionFn: Function | undefined;
 
   /**
+   * The bound arguments
+   */
+  public arguments: IArgument[] = [];
+
+  /**
    * The bound options
    */
   public options: IOption[] = [];
@@ -44,6 +55,22 @@ export class Command<F extends string = string> {
 
   public alias(format: string): this {
     this.aliases.push(format);
+    return this;
+  }
+
+  public addArgument<AF extends string>(format: AF) {
+    const argument = new Argument(format);
+    this.arguments.push(makeCustomArgument(argument));
+    return this;
+  }
+
+  public argument<AF extends string>(argument: Argument<AF>) {
+    this.arguments.push(makeCustomArgument(argument));
+    return this;
+  }
+
+  public addOption<OF extends string>(option: Option<OF>) {
+    this.options.push(makeOption(option));
     return this;
   }
 
@@ -73,6 +100,17 @@ export class Command<F extends string = string> {
   }
 }
 
+export class Argument<F extends string = string> {
+  public readonly format: string;
+
+  public readonly config: ArgumentConfig;
+
+  constructor(format: F, config: ArgumentConfig = {}) {
+    this.format = format;
+    this.config = config;
+  }
+}
+
 export function makeCommand<F extends string = string>(
   command: Command<F>
 ): ICommand<F> {
@@ -95,15 +133,15 @@ export function makeCommand<F extends string = string>(
 
   const pieces: string[] = [];
   const aliases: string[][] = command.aliases.map(() => []);
-  let required!: string[];
-  let optionals!: string[];
-  let spread: string | undefined;
+  let requireds!: IArgument[];
+  let optionals!: IArgument[];
+  let spread: IArgument | undefined;
 
   const madeCommand = {
     command,
     pieces,
     aliases,
-    required,
+    requireds,
     optionals,
     spread,
     isDefault() {
@@ -166,7 +204,7 @@ export function makeCommand<F extends string = string>(
         madeCommand.resolveSubCommand();
       }
       if (resolveState === -1) {
-        required = madeCommand.required = [];
+        requireds = madeCommand.requireds = [];
         optionals = madeCommand.optionals = [];
 
         /**
@@ -222,7 +260,7 @@ export function makeCommand<F extends string = string>(
 
             // State -> 1
             state = 1;
-            required.push(piece);
+            requireds.push(makeRawArgument('required', piece));
           } else if (format[i] === '[') {
             if (i + 1 >= format.length || format[i + 1] === ' ') {
               throw new ResolveCommandError(
@@ -272,7 +310,7 @@ export function makeCommand<F extends string = string>(
 
               // State -> 3
               state = 3;
-              madeCommand.spread = spread = piece;
+              madeCommand.spread = spread = makeRawArgument('spread', piece);
             } else {
               if (state >= 3) {
                 throw new ResolveCommandError(
@@ -307,7 +345,7 @@ export function makeCommand<F extends string = string>(
 
               // State -> 2
               state = 2;
-              optionals.push(piece);
+              optionals.push(makeRawArgument('optional', piece));
             }
           } else if (format[i] === ' ') {
             // Skip spaces
@@ -322,6 +360,43 @@ export function makeCommand<F extends string = string>(
           }
         }
 
+        // Append maually added arguments
+        for (const argument of command.arguments) {
+          switch (argument.type) {
+            case 'required': {
+              if (state === 1) {
+                requireds.push(argument);
+              } else {
+                throw new ResolveCommandError(
+                  ResolveCommandError.REQUIRED_BEFORE_OPTIONAL,
+                  { format, position: i }
+                );
+              }
+            }
+            case 'optional': {
+              if (state <= 2) {
+                state = 2;
+                optionals.push(argument);
+              } else {
+                throw new ResolveCommandError(
+                  ResolveCommandError.OPTIONAL_BEFORE_SPREAD,
+                  { format, position: i }
+                );
+              }
+            }
+            case 'spread': {
+              if (spread) {
+                throw new ResolveCommandError(
+                  ResolveCommandError.SPREAD_ONLY_ONCE,
+                  { format, position: i }
+                );
+              }
+              state = 3;
+              spread = argument;
+            }
+          }
+        }
+
         resolveState = 1;
       }
 
@@ -330,6 +405,54 @@ export function makeCommand<F extends string = string>(
   };
 
   return madeCommand;
+}
+
+function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
+  return {
+    type,
+    name,
+    get format() {
+      switch (type) {
+        case 'required':
+          return `<${name}>`;
+        case 'optional':
+          return `[${name}]`;
+        case 'spread':
+          return `[...${name}]`;
+      }
+    }
+  };
+}
+
+function makeCustomArgument<F extends string = string>(
+  argument: Argument<F>
+): IArgument<F> {
+  let type: ArgumentType | undefined = undefined;
+  let name: string | undefined = undefined;
+
+  const resolve = () => {
+    // TODO: resolve arg type
+  };
+
+  return {
+    get type() {
+      if (type !== undefined) {
+        return type;
+      }
+      resolve();
+      return type!;
+    },
+    get name() {
+      if (name !== undefined) {
+        return name;
+      }
+      resolve();
+      return name!;
+    },
+    get format() {
+      return argument.format;
+    }
+  };
 }
 
 export class ResolveCommandError extends BreadcError {
