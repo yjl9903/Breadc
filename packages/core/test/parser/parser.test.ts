@@ -20,6 +20,7 @@ describe('parser', () => {
           "command": Command {
             "actionFn": undefined,
             "aliases": [],
+            "arguments": [],
             "config": {},
             "format": "",
             "options": [],
@@ -27,7 +28,7 @@ describe('parser', () => {
           "isDefault": [Function],
           "optionals": undefined,
           "pieces": [],
-          "required": undefined,
+          "requireds": undefined,
           "resolve": [Function],
           "resolveAliasSubCommand": [Function],
           "resolveSubCommand": [Function],
@@ -40,6 +41,7 @@ describe('parser', () => {
               "command": Command {
                 "actionFn": undefined,
                 "aliases": [],
+                "arguments": [],
                 "config": {},
                 "format": "",
                 "options": [],
@@ -47,7 +49,7 @@ describe('parser', () => {
               "isDefault": [Function],
               "optionals": undefined,
               "pieces": [],
-              "required": undefined,
+              "requireds": undefined,
               "resolve": [Function],
               "resolveAliasSubCommand": [Function],
               "resolveSubCommand": [Function],

@@ -18,7 +18,7 @@ describe('command', () => {
         "submodule",
       ]
     `);
-    expect(cmd.required).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.requireds).toMatchInlineSnapshot(`undefined`);
     expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
   });
@@ -33,7 +33,7 @@ describe('command', () => {
         "add",
       ]
     `);
-    expect(cmd.required).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.requireds).toMatchInlineSnapshot(`undefined`);
     expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
   });
@@ -57,22 +57,36 @@ describe('command', () => {
         "add",
       ]
     `);
-    expect(cmd.required).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.requireds).toMatchInlineSnapshot(`undefined`);
     expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
 
     cmd.resolve();
-    expect(cmd.required).toMatchInlineSnapshot(`
+    expect(cmd.requireds).toMatchInlineSnapshot(`
       [
-        "abc",
+        {
+          "format": "<abc>",
+          "name": "abc",
+          "type": "required",
+        },
       ]
     `);
     expect(cmd.optionals).toMatchInlineSnapshot(`
       [
-        "def",
+        {
+          "format": "[def]",
+          "name": "def",
+          "type": "optional",
+        },
       ]
     `);
-    expect(cmd.spread).toMatchInlineSnapshot(`"rest"`);
+    expect(cmd.spread).toMatchInlineSnapshot(`
+      {
+        "format": "[...rest]",
+        "name": "rest",
+        "type": "spread",
+      }
+    `);
   });
 
   it('should resolve after the second time', () => {
@@ -85,17 +99,31 @@ describe('command', () => {
         "add",
       ]
     `);
-    expect(cmd.required).toMatchInlineSnapshot(`
+    expect(cmd.requireds).toMatchInlineSnapshot(`
       [
-        "abc",
+        {
+          "format": "<abc>",
+          "name": "abc",
+          "type": "required",
+        },
       ]
     `);
     expect(cmd.optionals).toMatchInlineSnapshot(`
       [
-        "def",
+        {
+          "format": "[def]",
+          "name": "def",
+          "type": "optional",
+        },
       ]
     `);
-    expect(cmd.spread).toMatchInlineSnapshot(`"rest"`);
+    expect(cmd.spread).toMatchInlineSnapshot(`
+      {
+        "format": "[...rest]",
+        "name": "rest",
+        "type": "spread",
+      }
+    `);
   });
 
   it('should resolve duplicated spaces', () => {
@@ -110,17 +138,31 @@ describe('command', () => {
         "add",
       ]
     `);
-    expect(cmd.required).toMatchInlineSnapshot(`
+    expect(cmd.requireds).toMatchInlineSnapshot(`
       [
-        "abc",
+        {
+          "format": "<abc>",
+          "name": "abc",
+          "type": "required",
+        },
       ]
     `);
     expect(cmd.optionals).toMatchInlineSnapshot(`
       [
-        "def",
+        {
+          "format": "[def]",
+          "name": "def",
+          "type": "optional",
+        },
       ]
     `);
-    expect(cmd.spread).toMatchInlineSnapshot(`"rest"`);
+    expect(cmd.spread).toMatchInlineSnapshot(`
+      {
+        "format": "[...rest]",
+        "name": "rest",
+        "type": "spread",
+      }
+    `);
   });
 
   it('should find invalid required arguments', () => {
@@ -201,7 +243,11 @@ describe('command', () => {
       cmd.resolve().resolve();
       expect(cmd.optionals).toMatchInlineSnapshot(`
         [
-          "abc [def",
+          {
+            "format": "[abc [def]",
+            "name": "abc [def",
+            "type": "optional",
+          },
         ]
       `);
     }
