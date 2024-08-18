@@ -23,6 +23,7 @@ describe('parser', () => {
             "arguments": [],
             "config": {},
             "format": "",
+            "onUnknownOptions": undefined,
             "options": [],
           },
           "isDefault": [Function],
@@ -44,6 +45,7 @@ describe('parser', () => {
                 "arguments": [],
                 "config": {},
                 "format": "",
+                "onUnknownOptions": undefined,
                 "options": [],
               },
               "isDefault": [Function],
@@ -70,6 +72,7 @@ describe('parser', () => {
           "args": [],
           "cursor": 0,
         },
+        "unknownOptions": [],
       }
     `);
   });
