@@ -44,6 +44,11 @@ export class Context {
   public readonly options: Map<IOption, MatchedOption> = new Map();
 
   /**
+   * Unknown options
+   */
+  public readonly unknownOptions: Array<[string, string | undefined]> = [];
+
+  /**
    * Remaining arguments
    */
   public readonly remaining: Token[] = [];
