@@ -48,6 +48,17 @@ export class Command<F extends string = string> {
    */
   public options: IOption[] = [];
 
+  /**
+   * Callback on handling unknown options
+   */
+  public onUnknownOptions:
+    | undefined
+    | true
+    | ((
+        options: any,
+        unknownOptions: Array<[string, string | undefined]>
+      ) => void);
+
   public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
     this.config = config;
@@ -85,6 +96,11 @@ export class Command<F extends string = string> {
         : { ...descriptionOrConfig, ...config };
     const option = new Option<OF>(format, resolvedConfig);
     this.options.push(makeOption(option));
+    return this;
+  }
+
+  public allowUnknownOptions() {
+    this.onUnknownOptions = true;
     return this;
   }
 
