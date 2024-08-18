@@ -2,7 +2,8 @@ import type { IOption, ICommand } from '../breadc/types.ts';
 
 import { BreadcError, RuntimeError } from '../error.ts';
 
-import { Context, MatchedOption } from './context.ts';
+import type { Context } from './context.ts';
+import { MatchedArgument, MatchedOption } from './matched.ts';
 
 export function parse(context: Context): Context {
   // 1. Resolve the first constant pieces of all the command
