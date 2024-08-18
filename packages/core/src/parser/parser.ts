@@ -117,7 +117,8 @@ export function parse(context: Context): Context {
           context.options.get(option) ?? new MatchedOption(option);
         matched.accept(context, value);
       } else {
-        // TODO: unknown long options or short options
+        // Handle unknown long options or short options
+        context.unknownOptions.push([key, value]);
       }
     } else {
       // 3.4. no matching
