@@ -274,6 +274,14 @@ export function makeCommand<F extends string = string>(
               );
             }
 
+            // Check empty argument name
+            if (piece === '') {
+              throw new ResolveCommandError(
+                ResolveCommandError.INVALID_EMPTY_ARG,
+                { format, position: i }
+              );
+            }
+
             // State -> 1
             state = 1;
             requireds.push(makeRawArgument('required', piece));
@@ -316,10 +324,18 @@ export function makeCommand<F extends string = string>(
                 i++;
               }
 
-              // Check the space separator
+              // Check the next space separator
               if (i < format.length && format[i] !== ' ') {
                 throw new ResolveCommandError(
                   ResolveCommandError.INVALID_SPREAD_ARG,
+                  { format, position: i }
+                );
+              }
+
+              // Check empty argument name
+              if (piece === '') {
+                throw new ResolveCommandError(
+                  ResolveCommandError.INVALID_EMPTY_ARG,
                   { format, position: i }
                 );
               }
@@ -351,10 +367,18 @@ export function makeCommand<F extends string = string>(
                 i++;
               }
 
-              // Check the space separator
+              // Check the next space separator
               if (i < format.length && format[i] !== ' ') {
                 throw new ResolveCommandError(
                   ResolveCommandError.INVALID_OPTIONAL_ARG,
+                  { format, position: i }
+                );
+              }
+
+              // Check empty argument name
+              if (piece === '') {
+                throw new ResolveCommandError(
+                  ResolveCommandError.INVALID_EMPTY_ARG,
                   { format, position: i }
                 );
               }
@@ -447,7 +471,29 @@ function makeCustomArgument<F extends string = string>(
   let name: string | undefined = undefined;
 
   const resolve = () => {
-    // TODO: resolve arg type
+    const format = argument.format;
+    if ('<' === format[0] && '>' === format[format.length - 1]) {
+      type = 'required';
+      name = format.slice(1, format.length - 1);
+    } else if ('[' === format[0] && ']' === format[format.length - 1]) {
+      if (format[1] === '.' && format[2] === '.') {
+        type = 'spread';
+        for (let i = 1; i < format.length; i++) {
+          if (format[i] !== '.') {
+            name = format.slice(i, format.length - 1);
+            break;
+          }
+        }
+      } else {
+        type = 'optional';
+        name = format.slice(1, format.length - 1);
+      }
+    } else {
+      throw new ResolveCommandError(ResolveCommandError.INVALID_ARG, {
+        format,
+        position: -1
+      });
+    }
   };
 
   return {
@@ -463,6 +509,12 @@ function makeCustomArgument<F extends string = string>(
         return name;
       }
       resolve();
+      if (name === '') {
+        throw new ResolveCommandError(ResolveCommandError.INVALID_ARG, {
+          format: argument.format,
+          position: -1
+        });
+      }
       return name!;
     },
     get format() {
@@ -472,6 +524,10 @@ function makeCustomArgument<F extends string = string>(
 }
 
 export class ResolveCommandError extends BreadcError {
+  static INVALID_ARG = 'Resolving invalid argument';
+
+  static INVALID_EMPTY_ARG = 'Resolving invalid empty argument';
+
   static INVALID_REQUIRED_ARG = 'Resolving invalid required argument';
 
   static INVALID_OPTIONAL_ARG = 'Resolving invalid optional argument';

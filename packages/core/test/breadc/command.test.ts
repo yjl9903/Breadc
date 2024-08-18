@@ -207,6 +207,27 @@ describe('command', () => {
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Required argument should be placed before optional arguments at the command "submodule add [abc] <def>", position 21]`
     );
+
+    expect(async () => {
+      const cmd = makeCommand(new Command('submodule add <>'));
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid empty argument at the command "submodule add <>", position 16]`
+    );
+
+    expect(async () => {
+      const cmd = makeCommand(new Command('submodule add []'));
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid empty argument at the command "submodule add []", position 16]`
+    );
+
+    expect(async () => {
+      const cmd = makeCommand(new Command('submodule add [...]'));
+      cmd.resolve().resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid empty argument at the command "submodule add [...]", position 19]`
+    );
   });
 
   it('should find invalid optional arguments', () => {
