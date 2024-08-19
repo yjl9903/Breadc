@@ -1,19 +1,23 @@
 import type { IOption } from '../breadc/types';
+import type { IArgument } from '../breadc/types';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
 
 export class MatchedArgument {
+  public readonly argument: IArgument;
+
+  public readonly token: Token | undefined;
+
   public value: any;
 
-  public constructor(token: Token) {
-    // Parse value
-    const raw = token.toRaw();
-    this.value = raw;
+  public constructor(argument: IArgument) {
+    this.argument = argument;
   }
 
-  public accept(value: string) {
+  public accept(_context: Context, text: string | string[] | undefined) {
     // TODO
+    return this;
   }
 }
 
@@ -122,5 +126,6 @@ export class MatchedOption {
         break;
       }
     }
+    return this;
   }
 }
