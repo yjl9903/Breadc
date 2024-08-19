@@ -63,7 +63,10 @@ export type ICommand<F extends string = string> = {
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
   spread: IArgument | undefined;
-  isDefault(): boolean;
+  /**
+   * Whether it is a default command
+   */
+  isDefault: boolean;
   resolveSubCommand(): ICommand<F>;
   resolveAliasSubCommand(index: number): ICommand<F>;
   resolve(): ICommand<F>;

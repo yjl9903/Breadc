@@ -55,9 +55,9 @@ export class Command<F extends string = string> {
     | undefined
     | true
     | ((
-        options: any,
-        unknownOptions: Array<[string, string | undefined]>
-      ) => void);
+      options: any,
+      unknownOptions: Array<[string, string | undefined]>
+    ) => void);
 
   public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
@@ -160,12 +160,12 @@ export function makeCommand<F extends string = string>(
     requireds,
     optionals,
     spread,
-    isDefault() {
+    get isDefault() {
       return format === '' || format[0] === '[' || format[0] === '<';
     },
     resolveSubCommand() {
       if (resolveState === 0) {
-        for (; i < format.length; ) {
+        for (; i < format.length;) {
           if (format[i] === '<' || format[i] === '[') {
             resolveState = -1;
             break;
@@ -194,7 +194,7 @@ export function makeCommand<F extends string = string>(
       const format = command.aliases[index];
       let i = aliasPos[index];
 
-      for (; i < format.length; ) {
+      for (; i < format.length;) {
         if (format[i] === '<' || format[i] === '[') {
           break;
         } else if (format[i] === ' ') {
@@ -232,7 +232,7 @@ export function makeCommand<F extends string = string>(
          * 3 := aaa bbb <xxx> <yyy> [zzz] [...www]  (3 -> empty)
          */
         let state = 1;
-        for (; i < format.length; ) {
+        for (; i < format.length;) {
           if (format[i] === '<') {
             if (i + 1 >= format.length || format[i + 1] === ' ') {
               throw new ResolveCommandError(
