@@ -25,7 +25,7 @@ describe('parser', () => {
           "onUnknownOptions": undefined,
           "options": [],
         },
-        "isDefault": [Function],
+        "isDefault": true,
         "optionals": undefined,
         "pieces": [],
         "requireds": undefined,
@@ -55,7 +55,7 @@ describe('parser', () => {
           "onUnknownOptions": undefined,
           "options": [],
         },
-        "isDefault": [Function],
+        "isDefault": false,
         "optionals": undefined,
         "pieces": [
           "dev",
@@ -87,7 +87,7 @@ describe('parser', () => {
           "onUnknownOptions": undefined,
           "options": [
             {
-              "long": undefined,
+              "long": "flag",
               "name": undefined,
               "option": Option {
                 "config": {},
@@ -95,11 +95,11 @@ describe('parser', () => {
               },
               "resolve": [Function],
               "short": undefined,
-              "type": undefined,
+              "type": "boolean",
             },
           ],
         },
-        "isDefault": [Function],
+        "isDefault": true,
         "optionals": undefined,
         "pieces": [],
         "requireds": undefined,
@@ -110,6 +110,35 @@ describe('parser', () => {
       }
     `);
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
-    expect(context.options).toMatchInlineSnapshot(`Map {}`);
+    expect(context.options).toMatchInlineSnapshot(`
+      Map {
+        {
+          "long": "flag",
+          "name": undefined,
+          "option": Option {
+            "config": {},
+            "format": "--flag",
+          },
+          "resolve": [Function],
+          "short": undefined,
+          "type": "boolean",
+        } => MatchedOption {
+          "dirty": false,
+          "option": {
+            "long": "flag",
+            "name": undefined,
+            "option": Option {
+              "config": {},
+              "format": "--flag",
+            },
+            "resolve": [Function],
+            "short": undefined,
+            "type": "boolean",
+          },
+          "raw": true,
+        },
+      }
+    `);
+    expect(context.unknownOptions).toMatchInlineSnapshot(`[]`);
   });
 });
