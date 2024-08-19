@@ -75,7 +75,7 @@ export function parse(context: Context): Context {
       const nextCommands = context.matching.commands.get(rawToken)!;
 
       // Commit pending sub-commands
-      const currentIndex = subCommandIndex++;
+      const currentIndex = ++subCommandIndex;
       context.matching.commands.clear();
       for (const [command, aliasIndex] of nextCommands) {
         if (aliasIndex === undefined) {
@@ -106,6 +106,21 @@ export function parse(context: Context): Context {
       // Commit pending options
       for (const [command] of nextCommands) {
         addPendingOptions(command.command.options);
+      }
+
+      // Find the matched command
+      if (nextCommands.length === 1) {
+        const nextCommand = nextCommands[0][0];
+        const aliasIndex = nextCommands[0][1];
+        if (aliasIndex === undefined) {
+          if (currentIndex >= nextCommand.pieces.length) {
+            context.command = nextCommand;
+          }
+        } else {
+          if (currentIndex >= nextCommand.aliases[aliasIndex].length) {
+            context.command = nextCommand;
+          }
+        }
       }
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
       // 3.3. handle long options or short options (not negative number)
