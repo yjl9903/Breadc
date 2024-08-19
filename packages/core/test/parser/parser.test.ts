@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { parse } from '../../src/parser/parser.ts';
 import { Context } from '../../src/parser/context.ts';
 import { Command, makeCommand } from '../../src/breadc/command.ts';
+import { Breadc } from '../../src/index.ts';
 
 describe('parser', () => {
   it('should parse default cli and empty args', () => {
@@ -12,68 +13,61 @@ describe('parser', () => {
     );
     parse(context);
 
-    expect(context).toMatchInlineSnapshot(`
-      Context {
-        "arguments": [],
-        "command": {
+    expect(context.command).toMatchInlineSnapshot(`
+      {
+        "aliases": [],
+        "command": Command {
+          "actionFn": undefined,
           "aliases": [],
-          "command": Command {
-            "actionFn": undefined,
-            "aliases": [],
-            "arguments": [],
-            "config": {},
-            "format": "",
-            "onUnknownOptions": undefined,
-            "options": [],
-          },
-          "isDefault": [Function],
-          "optionals": undefined,
-          "pieces": [],
-          "requireds": undefined,
-          "resolve": [Function],
-          "resolveAliasSubCommand": [Function],
-          "resolveSubCommand": [Function],
-          "spread": undefined,
+          "arguments": [],
+          "config": {},
+          "format": "",
+          "onUnknownOptions": undefined,
+          "options": [],
         },
-        "container": {
-          "commands": [
-            {
-              "aliases": [],
-              "command": Command {
-                "actionFn": undefined,
-                "aliases": [],
-                "arguments": [],
-                "config": {},
-                "format": "",
-                "onUnknownOptions": undefined,
-                "options": [],
-              },
-              "isDefault": [Function],
-              "optionals": undefined,
-              "pieces": [],
-              "requireds": undefined,
-              "resolve": [Function],
-              "resolveAliasSubCommand": [Function],
-              "resolveSubCommand": [Function],
-              "spread": undefined,
-            },
-          ],
-          "globalOptions": [],
-        },
-        "matching": {
-          "commands": Map {},
-          "options": Map {},
-          "unknown": [],
-        },
-        "metadata": {},
-        "options": Map {},
-        "remaining": [],
-        "tokens": Lexer {
-          "args": [],
-          "cursor": 0,
-        },
-        "unknownOptions": [],
+        "isDefault": [Function],
+        "optionals": undefined,
+        "pieces": [],
+        "requireds": undefined,
+        "resolve": [Function],
+        "resolveAliasSubCommand": [Function],
+        "resolveSubCommand": [Function],
+        "spread": undefined,
       }
     `);
+    expect(context.arguments).toMatchInlineSnapshot(`[]`);
+    expect(context.options).toMatchInlineSnapshot(`Map {}`);
+  });
+
+  it('shoud parse simple sub-command', () => {
+    const cli = new Breadc('cli');
+    cli.command('dev').action(() => true);
+    const context = cli.parse(['dev']);
+    expect(context.command).toMatchInlineSnapshot(`
+      {
+        "aliases": [],
+        "command": Command {
+          "actionFn": [Function],
+          "aliases": [],
+          "arguments": [],
+          "config": {},
+          "format": "dev",
+          "onUnknownOptions": undefined,
+          "options": [],
+        },
+        "isDefault": [Function],
+        "optionals": undefined,
+        "pieces": [
+          "dev",
+        ],
+        "requireds": undefined,
+        "resolve": [Function],
+        "resolveAliasSubCommand": [Function],
+        "resolveSubCommand": [Function],
+        "spread": undefined,
+      }
+    `);
+    expect(context.arguments).toMatchInlineSnapshot(`[]`);
+    expect(context.options).toMatchInlineSnapshot(`Map {}`);
   });
 });
