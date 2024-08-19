@@ -70,4 +70,46 @@ describe('parser', () => {
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
     expect(context.options).toMatchInlineSnapshot(`Map {}`);
   });
+
+  it('shoud parse simple default command options', () => {
+    const cli = new Breadc('cli');
+    cli.command('').option('--flag').action(() => true);
+    const context = cli.parse(['--flag']);
+    expect(context.command).toMatchInlineSnapshot(`
+      {
+        "aliases": [],
+        "command": Command {
+          "actionFn": [Function],
+          "aliases": [],
+          "arguments": [],
+          "config": {},
+          "format": "",
+          "onUnknownOptions": undefined,
+          "options": [
+            {
+              "long": undefined,
+              "name": undefined,
+              "option": Option {
+                "config": {},
+                "format": "--flag",
+              },
+              "resolve": [Function],
+              "short": undefined,
+              "type": undefined,
+            },
+          ],
+        },
+        "isDefault": [Function],
+        "optionals": undefined,
+        "pieces": [],
+        "requireds": undefined,
+        "resolve": [Function],
+        "resolveAliasSubCommand": [Function],
+        "resolveSubCommand": [Function],
+        "spread": undefined,
+      }
+    `);
+    expect(context.arguments).toMatchInlineSnapshot(`[]`);
+    expect(context.options).toMatchInlineSnapshot(`Map {}`);
+  });
 });
