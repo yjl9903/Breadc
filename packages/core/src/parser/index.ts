@@ -7,6 +7,7 @@ export { parse } from './parser.ts';
 export function run(context: Context): Promise<any> {
   if (context.command && context.command.command.actionFn) {
     const args = context.arguments.map((ma) => ma.value);
+
     const options = Object.fromEntries(
       [...context.options.entries()].map(
         // TODO: handle dot path
