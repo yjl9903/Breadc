@@ -54,6 +54,12 @@ export function parse(context: Context): Context {
   function addPendingOptions(options: IOption[]) {
     for (const option of options) {
       option.resolve();
+
+      // Initialize the matched option
+      const matched = new MatchedOption(option);
+      context.options.set(option, matched);
+
+      // Find the options by string
       context.matching.options.set(option.long, option);
       if (option.short !== undefined) {
         context.matching.options.set(option.short, option);
@@ -135,10 +141,8 @@ export function parse(context: Context): Context {
 
       if (option) {
         // Match option and set value
-        const matched =
-          context.options.get(option) ?? new MatchedOption(option);
+        const matched = context.options.get(option)!;
         matched.accept(context, value);
-        context.options.set(option, matched);
       } else {
         // Handle unknown long options or short options
         context.unknownOptions.push([key, value]);
