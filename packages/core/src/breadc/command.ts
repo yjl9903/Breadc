@@ -1,5 +1,6 @@
 import { BreadcError } from '../error.ts';
 
+import type { ActionFn, InferOptionName, InferOptionType } from './infer.ts';
 import type { ArgumentType, IArgument, ICommand, IOption } from './types.ts';
 
 import { type OptionConfig, makeOption, Option } from './option.ts';
@@ -28,7 +29,10 @@ export interface ArgumentConfig<AF extends string = string, R = {}> {
  * - [optional]
  * - [...remaining]
  */
-export class Command<F extends string = string> {
+export class Command<
+  F extends string = string,
+  O extends Record<string, any> = {}
+> {
   public readonly format: F;
 
   public readonly config: CommandConfig;
@@ -57,9 +61,9 @@ export class Command<F extends string = string> {
     | undefined
     | true
     | ((
-      options: any,
-      unknownOptions: Array<[string, string | undefined]>
-    ) => void);
+        options: any,
+        unknownOptions: Array<[string, string | undefined]>
+      ) => void);
 
   public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
@@ -82,26 +86,26 @@ export class Command<F extends string = string> {
     return this;
   }
 
-  public addOption<OF extends string>(option: Option<OF>) {
+  public addOption<OF extends string>(option: Option<OF>): Command<OF, O> {
     this.options.push(makeOption(option));
-    return this;
+    return this as any;
   }
 
-  public option<OF extends string>(
+  public option<OF extends string, C extends OptionConfig<OF>>(
     format: OF,
-    descriptionOrConfig?: string | OptionConfig,
-    config?: Omit<OptionConfig, 'description'>
-  ): this {
+    descriptionOrConfig?: string | C,
+    config?: Omit<C, 'description'>
+  ): Command<OF, O & { [k in InferOptionName<F>]: InferOptionType<OF, C> }> {
     const resolvedConfig =
       typeof descriptionOrConfig === 'string'
         ? { ...config, description: descriptionOrConfig }
         : { ...descriptionOrConfig, ...config };
     const option = new Option<OF>(format, resolvedConfig);
     this.options.push(makeOption(option));
-    return this;
+    return this as any;
   }
 
-  public allowUnknownOptions() {
+  public allowUnknownOptions(): this {
     this.onUnknownOptions = true;
     return this;
   }
@@ -112,7 +116,7 @@ export class Command<F extends string = string> {
    * @param fn action function
    * @returns this
    */
-  public action(fn: Function): this {
+  public action(fn: ActionFn<[], O>): this {
     this.actionFn = fn;
     return this;
   }
@@ -167,7 +171,7 @@ export function makeCommand<F extends string = string>(
     },
     resolveSubCommand() {
       if (resolveState === 0) {
-        for (; i < format.length;) {
+        for (; i < format.length; ) {
           if (format[i] === '<' || format[i] === '[') {
             resolveState = -1;
             break;
@@ -196,7 +200,7 @@ export function makeCommand<F extends string = string>(
       const format = command.aliases[index];
       let i = aliasPos[index];
 
-      for (; i < format.length;) {
+      for (; i < format.length; ) {
         if (format[i] === '<' || format[i] === '[') {
           break;
         } else if (format[i] === ' ') {
@@ -234,7 +238,7 @@ export function makeCommand<F extends string = string>(
          * 3 := aaa bbb <xxx> <yyy> [zzz] [...www]  (3 -> empty)
          */
         let state = 1;
-        for (; i < format.length;) {
+        for (; i < format.length; ) {
           if (format[i] === '<') {
             if (i + 1 >= format.length || format[i + 1] === ' ') {
               throw new ResolveCommandError(

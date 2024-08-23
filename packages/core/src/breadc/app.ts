@@ -1,6 +1,8 @@
 import { parse, run } from '../parser/index.ts';
 import { type Container, Context } from '../parser/context.ts';
 
+import type { InferOption } from './infer.ts';
+
 import { type OptionConfig, makeOption, Option } from './option.ts';
 import { type CommandConfig, Command, makeCommand } from './command.ts';
 
@@ -10,7 +12,7 @@ export interface BreadcConfig {
   descriptions?: string;
 }
 
-export class Breadc<GO extends object = {}> {
+export class Breadc<GO extends Record<string, any> = {}> {
   public name: string;
 
   public version: string | undefined = undefined;
@@ -30,40 +32,42 @@ export class Breadc<GO extends object = {}> {
 
   // --- Builder ---
 
-  public addOption<F extends string>(option: Option<F>): Breadc<GO> {
-    this.container.globalOptions.push(makeOption(option));
+  public addOption<F extends string, O extends Option<F>>(
+    option: O
+  ): Breadc<GO & InferOption<O['format'], O['config']>> {
+    this.container.globalOptions.push(makeOption(option as any));
     return this;
   }
 
-  public option<F extends string>(
+  public option<F extends string, C extends OptionConfig<F>>(
     format: F,
-    descriptionOrConfig?: string | OptionConfig,
-    config?: Omit<OptionConfig, 'description'>
-  ): Breadc<GO> {
+    description?: string | C,
+    config?: Omit<C, 'description'>
+  ): Breadc<GO & InferOption<F, C>> {
     const resolvedConfig =
-      typeof descriptionOrConfig === 'string'
-        ? { ...config, description: descriptionOrConfig }
-        : { ...descriptionOrConfig, ...config };
+      typeof description === 'string'
+        ? { ...config, description }
+        : { ...description, ...config };
     const option = new Option<F>(format, resolvedConfig);
     this.container.globalOptions.push(makeOption(option));
     return this;
   }
 
-  public addCommand<F extends string>(command: Command<F>): Breadc<GO> {
+  public addCommand<F extends string>(command: Command<F, GO>): Breadc<GO> {
     this.container.commands.push(makeCommand(command));
     return this;
   }
 
   public command<F extends string>(
     format: F,
-    descriptionOrConfig?: string | CommandConfig,
+    description?: string | CommandConfig,
     config?: Omit<CommandConfig, 'description'>
-  ): Command<F> {
+  ): Command<F, GO> {
     const resolvedConfig =
-      typeof descriptionOrConfig === 'string'
-        ? { ...config, description: descriptionOrConfig }
-        : { ...descriptionOrConfig, ...config };
-    const command = new Command<F>(format, resolvedConfig);
+      typeof description === 'string'
+        ? { ...config, description }
+        : { ...description, ...config };
+    const command = new Command<F, GO>(format, resolvedConfig);
     this.container.commands.push(makeCommand(command));
     return command;
   }
