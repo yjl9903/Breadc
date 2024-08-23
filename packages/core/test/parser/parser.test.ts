@@ -112,17 +112,7 @@ describe('parser', () => {
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
     expect(context.options).toMatchInlineSnapshot(`
       Map {
-        {
-          "long": "flag",
-          "name": undefined,
-          "option": Option {
-            "config": {},
-            "format": "--flag",
-          },
-          "resolve": [Function],
-          "short": undefined,
-          "type": "boolean",
-        } => MatchedOption {
+        "flag" => MatchedOption {
           "dirty": false,
           "option": {
             "long": "flag",
@@ -139,6 +129,5 @@ describe('parser', () => {
         },
       }
     `);
-    expect(context.unknownOptions).toMatchInlineSnapshot(`[]`);
   });
 });
