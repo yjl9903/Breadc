@@ -1,39 +1,51 @@
 import { BreadcError } from '../error.ts';
 
+import type { InferOptionRawType } from './infer.ts';
 import type { IOption, OptionType } from './types.ts';
 
-export interface OptionConfig<R = {}> {
+export interface OptionConfig<F extends string = string, R = {}> {
   /**
    * Option description
    */
   description?: string;
 
-  initial?: boolean | string | string[];
+  /**
+   * Overwrite the initial value of the corresponding matched option
+   * - &lt;required&gt;: undefined
+   * - [optional]: false
+   * - [...remaining]: []
+   */
+  initial?: InferOptionRawType<F>;
 
-  cast?: (value: any) => R;
+  cast?: (value: InferOptionRawType<F>) => R;
 
   default?: R;
 }
 
 /**
- * Option abstraction
+ * Option definition syntax:
  *
- * - --long <name>
- * - -s, --long <name>
+ * - --long
+ * - --s, --long
+ * - --long &lt;name&gt;
+ * - -s, --long &lt;name&gt;
  *
- * Support argument:
- * - <required>
+ * Support argument syntax:
+ * - &lt;required&gt;
  * - [optional]
  * - [...remaining] (multiple options)
  */
-export class Option<F extends string = string> {
+export class Option<
+  F extends string,
+  C extends OptionConfig<F> = OptionConfig<F>
+> {
   public readonly format: F;
 
-  public readonly config: OptionConfig;
+  public readonly config: C;
 
-  public constructor(format: F, config: OptionConfig = {}) {
+  public constructor(format: F, config?: C) {
     this.format = format;
-    this.config = config;
+    this.config = config ?? ({} as any);
   }
 }
 
