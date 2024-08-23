@@ -161,4 +161,12 @@ describe('breadc app type infer', () => {
         expectTypeOf(option).toEqualTypeOf<{ flag: boolean; '--': string[] }>();
       });
   });
+
+  it('should reject invalid command format', () => {
+    new Breadc('cli')
+      .option('--flag')
+      .command('<cmd1> cmd2')
+      // @ts-expect-error ts2345
+      .action(() => {});
+  });
 });

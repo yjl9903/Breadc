@@ -85,7 +85,13 @@ export class Command<
 
   public addArgument<AF extends string, AA extends Argument<AF>>(
     argument: AA
-  ): Command<F, O, [...A, InferArgumentType<AA['format'], AA['config']>]> {
+  ): Command<
+    F,
+    O,
+    A extends never
+      ? never
+      : [...A, InferArgumentType<AA['format'], AA['config']>]
+  > {
     this.arguments.push(makeCustomArgument(argument));
     return this as any;
   }
@@ -93,7 +99,7 @@ export class Command<
   public argument<AF extends string, C extends ArgumentConfig<AF>>(
     format: AF,
     config?: C
-  ): Command<F, O, [...A, InferArgumentType<AF, C>]> {
+  ): Command<F, O, A extends never ? never : [...A, InferArgumentType<AF, C>]> {
     const argument = new Argument(format, config);
     this.arguments.push(makeCustomArgument(argument));
     return this as any;
@@ -130,7 +136,7 @@ export class Command<
    * @returns this
    */
   public action<Fn extends ActionFn<A, O>>(
-    fn: Fn
+    fn: A extends never ? never : Fn
   ): Command<F, O, A, ReturnType<Fn>> {
     this.actionFn = fn;
     return this as any;
