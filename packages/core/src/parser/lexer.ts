@@ -3,10 +3,16 @@ import { splitOnce, stripPrefix } from '../utils/index.ts';
 export class Lexer {
   private readonly args: string[];
 
+  private readonly tokens: Token[] = [];
+
   private cursor = 0;
 
   public constructor(args: string[]) {
     this.args = args;
+  }
+
+  public reset() {
+    this.cursor = 0;
   }
 
   /**
@@ -15,8 +21,11 @@ export class Lexer {
    * @returns next arg
    */
   public next(): Token | undefined {
-    const arg = this.args[this.cursor++];
-    return arg !== undefined ? new Token(arg) : undefined;
+    const arg = this.args[this.cursor];
+    if (arg === undefined) return undefined;
+    const token = this.tokens[this.cursor] ?? (this.tokens[this.cursor] = new Token(arg));
+    this.cursor++;
+    return token;
   }
 
   /**
@@ -26,7 +35,10 @@ export class Lexer {
    */
   public peek(): Token | undefined {
     const arg = this.args[this.cursor];
-    return arg !== undefined ? new Token(arg) : undefined;
+    if (arg === undefined) return undefined;
+    const token = this.tokens[this.cursor];
+    if (token !== undefined) return token;
+    return this.tokens[this.cursor] = new Token(arg);
   }
 
   /**
