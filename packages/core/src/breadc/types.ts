@@ -4,8 +4,8 @@ import type { Command, ArgumentConfig } from './command.ts';
 export type OptionType = 'boolean' | 'optional' | 'required' | 'array';
 
 export type IOption<F extends string = string> = {
-  format: F,
-  config: OptionConfig,
+  format: F;
+  config: OptionConfig;
   type: OptionType;
   long: string;
   short: string | undefined;
