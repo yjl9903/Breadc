@@ -9,14 +9,37 @@ export class MatchedArgument {
 
   public readonly token: Token | undefined;
 
-  public value: any;
+  public dirty = false;
+
+  public raw: any;
 
   public constructor(argument: IArgument) {
     this.argument = argument;
+    if (argument.config.initial !== undefined) {
+      this.raw = argument.config.initial;
+    } else {
+      switch (argument.type) {
+        case 'required':
+        case 'optional':
+          this.raw = undefined;
+        case 'spread':
+          this.raw = [];
+      }
+    }
   }
 
-  public accept(_context: Context, text: string | string[] | undefined) {
-    // TODO
+  public get value() {
+    if (this.dirty || this.argument.config.default === undefined) {
+      const cast = this.argument.config.cast;
+      return cast ? cast(this.raw) : this.raw;
+    } else {
+      return this.argument.config.default;
+    }
+  }
+
+  public accept(_context: Context, text: undefined | string | string[]) {
+    this.dirty = true;
+    this.raw = text;
     return this;
   }
 }
@@ -26,33 +49,37 @@ export class MatchedOption {
 
   public readonly option: IOption;
 
-  // TODO: default value, cast value
-
   public dirty = false;
 
   public raw: any;
 
   public constructor(option: IOption) {
     this.option = option;
-  }
-
-  public get value() {
-    if (this.dirty) {
-      return this.raw;
+    if (option.config.initial !== undefined) {
+      this.raw = option.config.initial;
     } else {
-      switch (this.option.type) {
+      switch (option.type) {
         case 'boolean':
         case 'optional':
-          return false;
+          this.raw = false;
         case 'required':
-          return undefined;
+          this.raw = undefined;
         case 'array':
-          return [];
+          this.raw = [];
       }
     }
   }
 
-  public accept(context: Context, text: string | undefined) {
+  public get value() {
+    if (this.dirty || this.option.config.default === undefined) {
+      const cast = this.option.config.cast;
+      return cast ? cast(this.raw) : this.raw;
+    } else {
+      return this.option.config.default;
+    }
+  }
+
+  public accept(context: Context, text: undefined | string) {
     switch (this.option.type) {
       case 'boolean': {
         // TODO: support --no-* options
