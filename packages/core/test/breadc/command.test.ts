@@ -65,6 +65,7 @@ describe('command', () => {
     expect(cmd.requireds).toMatchInlineSnapshot(`
       [
         {
+          "config": {},
           "format": "<abc>",
           "name": "abc",
           "type": "required",
@@ -74,6 +75,7 @@ describe('command', () => {
     expect(cmd.optionals).toMatchInlineSnapshot(`
       [
         {
+          "config": {},
           "format": "[def]",
           "name": "def",
           "type": "optional",
@@ -82,6 +84,7 @@ describe('command', () => {
     `);
     expect(cmd.spread).toMatchInlineSnapshot(`
       {
+        "config": {},
         "format": "[...rest]",
         "name": "rest",
         "type": "spread",
@@ -102,6 +105,7 @@ describe('command', () => {
     expect(cmd.requireds).toMatchInlineSnapshot(`
       [
         {
+          "config": {},
           "format": "<abc>",
           "name": "abc",
           "type": "required",
@@ -111,6 +115,7 @@ describe('command', () => {
     expect(cmd.optionals).toMatchInlineSnapshot(`
       [
         {
+          "config": {},
           "format": "[def]",
           "name": "def",
           "type": "optional",
@@ -119,6 +124,7 @@ describe('command', () => {
     `);
     expect(cmd.spread).toMatchInlineSnapshot(`
       {
+        "config": {},
         "format": "[...rest]",
         "name": "rest",
         "type": "spread",
@@ -141,6 +147,7 @@ describe('command', () => {
     expect(cmd.requireds).toMatchInlineSnapshot(`
       [
         {
+          "config": {},
           "format": "<abc>",
           "name": "abc",
           "type": "required",
@@ -150,6 +157,7 @@ describe('command', () => {
     expect(cmd.optionals).toMatchInlineSnapshot(`
       [
         {
+          "config": {},
           "format": "[def]",
           "name": "def",
           "type": "optional",
@@ -158,6 +166,7 @@ describe('command', () => {
     `);
     expect(cmd.spread).toMatchInlineSnapshot(`
       {
+        "config": {},
         "format": "[...rest]",
         "name": "rest",
         "type": "spread",
@@ -265,6 +274,7 @@ describe('command', () => {
       expect(cmd.optionals).toMatchInlineSnapshot(`
         [
           {
+            "config": {},
             "format": "[abc [def]",
             "name": "abc [def",
             "type": "optional",

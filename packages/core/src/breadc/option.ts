@@ -2,17 +2,17 @@ import { BreadcError } from '../error.ts';
 
 import type { IOption, OptionType } from './types.ts';
 
-export interface OptionConfig<R = any> {
+export interface OptionConfig<R = {}> {
   /**
    * Option description
    */
   description?: string;
 
-  initial?: undefined | string | string[];
+  initial?: boolean | string | string[];
 
   cast?: (value: any) => R;
 
-  default?: any;
+  default?: R;
 }
 
 /**
@@ -52,7 +52,8 @@ export function makeOption<F extends string = string>(
   let short: string | undefined;
 
   const madeOption = {
-    option,
+    format,
+    config: option.config,
     type,
     long,
     short,

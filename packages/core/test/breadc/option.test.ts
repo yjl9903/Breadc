@@ -8,12 +8,10 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       {
+        "config": {},
+        "format": "-v, --version",
         "long": "version",
         "name": undefined,
-        "option": Option {
-          "config": {},
-          "format": "-v, --version",
-        },
         "resolve": [Function],
         "short": "v",
         "type": "boolean",
@@ -26,12 +24,10 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       {
+        "config": {},
+        "format": "--version",
         "long": "version",
         "name": undefined,
-        "option": Option {
-          "config": {},
-          "format": "--version",
-        },
         "resolve": [Function],
         "short": undefined,
         "type": "boolean",
@@ -53,12 +49,10 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       {
+        "config": {},
+        "format": "--root <root>",
         "long": "root",
         "name": "<root>",
-        "option": Option {
-          "config": {},
-          "format": "--root <root>",
-        },
         "resolve": [Function],
         "short": undefined,
         "type": "required",
@@ -71,12 +65,10 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       {
+        "config": {},
+        "format": "--root [root]",
         "long": "root",
         "name": "[root]",
-        "option": Option {
-          "config": {},
-          "format": "--root [root]",
-        },
         "resolve": [Function],
         "short": undefined,
         "type": "optional",
@@ -89,12 +81,10 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       {
+        "config": {},
+        "format": "--plugin [...plugins]",
         "long": "plugin",
         "name": "[...plugins]",
-        "option": Option {
-          "config": {},
-          "format": "--plugin [...plugins]",
-        },
         "resolve": [Function],
         "short": undefined,
         "type": "array",
