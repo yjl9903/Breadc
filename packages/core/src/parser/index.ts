@@ -4,7 +4,7 @@ import { Context } from './context.ts';
 
 export { parse } from './parser.ts';
 
-export function run(context: Context): Promise<any> {
+export function run<T>(context: Context): T {
   if (context.command && context.command.command.actionFn) {
     const args = context.arguments.map((ma) => ma.value);
 
@@ -35,5 +35,6 @@ export function run(context: Context): Promise<any> {
 
     return context.command.command.actionFn(...args, options);
   }
+
   throw new RuntimeError('There is no matched command');
 }
