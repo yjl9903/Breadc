@@ -75,16 +75,30 @@ describe('breadc app type infer', () => {
   it('should infer option type', () => {
     new Breadc('cli')
       .option('--flag')
+      .option('--name <name>')
+      .option('--plugin [...name]')
       .command('')
       .action((option) => {
-        expectTypeOf(option).toEqualTypeOf<{ flag: boolean; '--': string[] }>();
+        expectTypeOf(option).toEqualTypeOf<{
+          flag: boolean;
+          name: undefined | string;
+          plugin: string[];
+          '--': string[];
+        }>();
       });
 
     new Breadc('cli')
       .addOption(new Option('--flag'))
+      .addOption(new Option('--name <name>'))
+      .addOption(new Option('--plugin [...name]'))
       .command('')
       .action((option) => {
-        expectTypeOf(option).toEqualTypeOf<{ flag: boolean; '--': string[] }>();
+        expectTypeOf(option).toEqualTypeOf<{
+          flag: boolean;
+          name: undefined | string;
+          plugin: string[];
+          '--': string[];
+        }>();
       });
   });
 
