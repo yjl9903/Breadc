@@ -39,7 +39,7 @@
     "coverage": "vitest run --coverage",
     "format": "prettier --write src/**/*.ts test/**/*.ts",
     "size": "size-limit",
-    "test": "vitest",
+    "test": "vitest --typecheck",
     "test:bench": "vitest bench",
     "test:ci": "vitest --run",
     "test:coverage": "vitest run --coverage --typecheck"
