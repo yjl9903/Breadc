@@ -87,12 +87,10 @@ describe('parser', () => {
           "onUnknownOptions": undefined,
           "options": [
             {
+              "config": {},
+              "format": "--flag",
               "long": "flag",
               "name": undefined,
-              "option": Option {
-                "config": {},
-                "format": "--flag",
-              },
               "resolve": [Function],
               "short": undefined,
               "type": "boolean",
@@ -115,12 +113,10 @@ describe('parser', () => {
         "flag" => MatchedOption {
           "dirty": false,
           "option": {
+            "config": {},
+            "format": "--flag",
             "long": "flag",
             "name": undefined,
-            "option": Option {
-              "config": {},
-              "format": "--flag",
-            },
             "resolve": [Function],
             "short": undefined,
             "type": "boolean",

@@ -11,10 +11,12 @@ export interface CommandConfig {
   description?: string;
 }
 
-export interface ArgumentConfig {
-  initial?: undefined | string | string;
+export interface ArgumentConfig<AF extends string = string, R = {}> {
+  initial?: string | string[];
 
-  cast?: (value: any) => any;
+  cast?: (value: any) => R;
+
+  default?: R;
 }
 
 /**
@@ -69,13 +71,13 @@ export class Command<F extends string = string> {
     return this;
   }
 
-  public addArgument<AF extends string>(format: AF) {
-    const argument = new Argument(format);
+  public addArgument<AF extends string>(argument: Argument<AF>) {
     this.arguments.push(makeCustomArgument(argument));
     return this;
   }
 
-  public argument<AF extends string>(argument: Argument<AF>) {
+  public argument<AF extends string>(format: AF, config?: ArgumentConfig<AF>) {
+    const argument = new Argument(format, config);
     this.arguments.push(makeCustomArgument(argument));
     return this;
   }
@@ -117,11 +119,11 @@ export class Command<F extends string = string> {
 }
 
 export class Argument<F extends string = string> {
-  public readonly format: string;
+  public readonly format: F;
 
-  public readonly config: ArgumentConfig;
+  public readonly config: ArgumentConfig<F>;
 
-  constructor(format: F, config: ArgumentConfig = {}) {
+  constructor(format: F, config: ArgumentConfig<F> = {}) {
     this.format = format;
     this.config = config;
   }
@@ -451,6 +453,7 @@ function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
   return {
     type,
     name,
+    config: {},
     get format() {
       switch (type) {
         case 'required':
@@ -517,9 +520,8 @@ function makeCustomArgument<F extends string = string>(
       }
       return name!;
     },
-    get format() {
-      return argument.format;
-    }
+    format: argument.format,
+    config: argument.config
   };
 }
 

@@ -24,6 +24,8 @@ export class Breadc<GO extends object = {}> {
 
   public constructor(name: string, config: BreadcConfig = {}) {
     this.name = name;
+    this.version = config.version;
+    this.description = config.descriptions;
   }
 
   // --- Builder ---
