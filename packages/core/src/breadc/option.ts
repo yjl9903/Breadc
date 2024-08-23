@@ -48,8 +48,8 @@ export function makeOption<F extends string = string>(
   let resolved = false;
   let type!: OptionType;
   let long!: string;
-  let short: string | undefined;
   let name: string | undefined;
+  let short: string | undefined;
 
   const madeOption = {
     option,

@@ -10,7 +10,6 @@ export function run(context: Context): Promise<any> {
 
     const options = Object.fromEntries(
       [...context.options.entries()].map(
-        // TODO: handle dot path
         ([key, mo]) => [key, mo.value] as const
       )
     );
@@ -19,14 +18,14 @@ export function run(context: Context): Promise<any> {
     if (context.command.command.onUnknownOptions) {
       const onUnknownOptions = context.command.command.onUnknownOptions;
       if (onUnknownOptions === true) {
-        for (const [key, value] of context.unknownOptions) {
+        for (const [key, value] of context.matching.unknownOptions) {
           // TODO: handle more cases
           options[key] = value;
         }
       } else {
-        onUnknownOptions(options, context.unknownOptions);
+        onUnknownOptions(options, context.matching.unknownOptions);
       }
-    } else if (context.unknownOptions.length > 0) {
+    } else if (context.matching.unknownOptions.length > 0) {
       // TODO: throw error here
       throw new Error('');
     }
