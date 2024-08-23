@@ -1,10 +1,11 @@
-import type { Option } from './option.ts';
-import type { Command } from './command.ts';
+import type { OptionConfig } from './option.ts';
+import type { Command, ArgumentConfig } from './command.ts';
 
 export type OptionType = 'boolean' | 'optional' | 'required' | 'array';
 
 export type IOption<F extends string = string> = {
-  option: Option<F>;
+  format: F,
+  config: OptionConfig,
   type: OptionType;
   long: string;
   short: string | undefined;
@@ -74,8 +75,9 @@ export type ICommand<F extends string = string> = {
 
 export type ArgumentType = 'required' | 'optional' | 'spread';
 
-export type IArgument<F extends string = string> = {
+export type IArgument<AF extends string = string> = {
   type: ArgumentType;
+  config: ArgumentConfig<AF>;
   name: string;
   format: string;
 };
