@@ -1,6 +1,12 @@
 import { BreadcError } from '../error.ts';
 
-import type { ActionFn, InferOptionName, InferOptionType } from './infer.ts';
+import type {
+  ActionFn,
+  InferOption,
+  InferArgumentRawType,
+  InferArgumentsType,
+  InferArgumentType
+} from './infer.ts';
 import type { ArgumentType, IArgument, ICommand, IOption } from './types.ts';
 
 import { type OptionConfig, makeOption, Option } from './option.ts';
@@ -13,9 +19,9 @@ export interface CommandConfig {
 }
 
 export interface ArgumentConfig<AF extends string = string, R = {}> {
-  initial?: string | string[];
+  initial?: InferArgumentRawType<AF>;
 
-  cast?: (value: any) => R;
+  cast?: (value: InferArgumentRawType<AF>) => R;
 
   default?: R;
 }
@@ -30,8 +36,10 @@ export interface ArgumentConfig<AF extends string = string, R = {}> {
  * - [...remaining]
  */
 export class Command<
-  F extends string = string,
-  O extends Record<string, any> = {}
+  F extends string,
+  O extends Record<string, any> = {},
+  A extends unknown[] = InferArgumentsType<F>,
+  R = any
 > {
   public readonly format: F;
 
@@ -75,18 +83,23 @@ export class Command<
     return this;
   }
 
-  public addArgument<AF extends string>(argument: Argument<AF>) {
+  public addArgument<AF extends string, AA extends Argument<AF>>(
+    argument: AA
+  ): Command<F, O, [...A, InferArgumentType<AA['format'], AA['config']>]> {
     this.arguments.push(makeCustomArgument(argument));
-    return this;
+    return this as any;
   }
 
-  public argument<AF extends string>(format: AF, config?: ArgumentConfig<AF>) {
+  public argument<AF extends string, C extends ArgumentConfig<AF>>(
+    format: AF,
+    config?: C
+  ): Command<F, O, [...A, InferArgumentType<AF, C>]> {
     const argument = new Argument(format, config);
     this.arguments.push(makeCustomArgument(argument));
-    return this;
+    return this as any;
   }
 
-  public addOption<OF extends string>(option: Option<OF>): Command<OF, O> {
+  public addOption<OF extends string>(option: Option<OF>): Command<OF, O, A> {
     this.options.push(makeOption(option));
     return this as any;
   }
@@ -95,7 +108,7 @@ export class Command<
     format: OF,
     descriptionOrConfig?: string | C,
     config?: Omit<C, 'description'>
-  ): Command<OF, O & { [k in InferOptionName<F>]: InferOptionType<OF, C> }> {
+  ): Command<OF, O & InferOption<OF, C>, A> {
     const resolvedConfig =
       typeof descriptionOrConfig === 'string'
         ? { ...config, description: descriptionOrConfig }
@@ -116,9 +129,22 @@ export class Command<
    * @param fn action function
    * @returns this
    */
-  public action(fn: ActionFn<[], O>): this {
+  public action<Fn extends ActionFn<A, O>>(
+    fn: Fn
+  ): Command<F, O, A, ReturnType<Fn>> {
     this.actionFn = fn;
-    return this;
+    return this as any;
+  }
+
+  /**
+   * Run the action function
+   *
+   * @param fn action function
+   * @returns this
+   */
+  public run(...args: Parameters<ActionFn<A, O>>): R {
+    // TODO: throw error when action is not bound
+    return this.actionFn?.(...args);
   }
 }
 
