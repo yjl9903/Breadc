@@ -1,5 +1,5 @@
 import type { Option } from './option.ts';
-import type { Command, Argument } from './command.ts';
+import type { Command } from './command.ts';
 
 export type OptionType = 'boolean' | 'optional' | 'required' | 'array';
 
