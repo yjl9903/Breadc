@@ -91,7 +91,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @param args input arguments
    * @returns the returned value from the corresponding action function
    */
-  public async run<T = unknown>(args: string[]): Promise<T> {
+  public run<T = unknown>(args: string[]): T {
     const context = this.parse(args);
     return run(context);
   }
