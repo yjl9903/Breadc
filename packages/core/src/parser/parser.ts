@@ -7,7 +7,6 @@ import { MatchedArgument, MatchedOption } from './matched.ts';
 
 export function parse(context: Context): Context {
   // 1. Resolve the first constant pieces of all the command
-  let subCommandIndex = 0; // Maintain sub-command length
   let defaultCommand: ICommand | undefined; // Find default command
   for (const command of context.container.commands) {
     command.resolveSubCommand();
@@ -17,7 +16,7 @@ export function parse(context: Context): Context {
       }
       defaultCommand = command;
     } else {
-      const piece = command.pieces[subCommandIndex];
+      const piece = command.pieces[0];
       if (piece) {
         if (context.matching.commands.has(piece)) {
           context.matching.commands.get(piece)!.push([command, undefined]);
@@ -34,7 +33,7 @@ export function parse(context: Context): Context {
       ) {
         command.resolveAliasSubCommand(aliasIndex);
         const alias = command.aliases[aliasIndex];
-        const piece = alias[subCommandIndex];
+        const piece = alias[0];
         if (piece) {
           if (context.matching.commands.has(piece)) {
             context.matching.commands.get(piece)!.push([command, aliasIndex]);
@@ -46,47 +45,115 @@ export function parse(context: Context): Context {
     }
   }
 
-  /**
+  const onlyDefaultCommand = defaultCommand !== undefined && context.container.commands.length === 1;
+  if (onlyDefaultCommand) {
+    defaultCommand!.resolve();
+    context.command = defaultCommand;
+  }
+
+  // 2. Try parsing without command
+  doParse(context, onlyDefaultCommand);
+
+  // 3. Match command or fallback to default command
+  if (context.command) {
+    // Resolve matched command
+    context.command.resolve();
+  } else if (defaultCommand) {
+    // Fall back to the default command, reset context state
+    context.reset();
+    // Resolve default command
+    defaultCommand.resolve();
+    context.command = defaultCommand;
+    doParse(context, true);
+  }
+
+  // 4. Fulfill the matched arguments
+  if (context.command) {
+    let it = 0;
+    if (context.command.requireds) {
+      for (const required of context.command.requireds) {
+        const token = context.matching.arguments[it];
+        if (token !== undefined) {
+          const argument = new MatchedArgument(required);
+          argument.accept(context, token.toRaw());
+          context.arguments.push(argument);
+        } else {
+          // TODO: record error
+          throw new RuntimeError();
+        }
+        it++;
+      }
+    }
+    if (context.command.optionals) {
+      for (const optional of context.command.optionals) {
+        const token = context.matching.arguments[it];
+        const argument = new MatchedArgument(optional);
+        argument.accept(context, token ? token.toRaw() : undefined);
+        context.arguments.push(argument);
+
+        if (token !== undefined) {
+          it++;
+        }
+      }
+    }
+    if (context.command.spread) {
+      const spread = new MatchedArgument(context.command.spread);
+      const args = context.matching.arguments.slice(it);
+      spread.accept(context, args.map(t => t.toRaw()));
+      context.arguments.push(spread);
+    } else {
+      context.remaining.unshift(...context.matching.arguments.slice(it));
+    }
+  }
+
+  return context;
+}
+
+/**
    * Add pending options
    *
    * @param options the pending options
    */
-  function addPendingOptions(options: IOption[]) {
-    for (const option of options) {
-      option.resolve();
+function addPendingOptions(context: Context, options: IOption[]) {
+  for (const option of options) {
+    option.resolve();
 
-      // Initialize the matched option
-      const matched = new MatchedOption(option);
-      context.options.set(option, matched);
+    // Initialize the matched option
+    const matched = new MatchedOption(option);
+    context.options.set(option.long, matched);
 
-      // Find the options by string
-      context.matching.options.set(option.long, option);
-      if (option.short !== undefined) {
-        context.matching.options.set(option.short, option);
-      }
-      // TODO: support more options
+    // Find the options by string
+    context.matching.options.set(option.long, option);
+    if (option.short !== undefined) {
+      context.matching.options.set(option.short, option);
     }
+    // TODO: support more options
+  }
+}
+
+function doParse(context: Context, withDefaultCommand: boolean = false) {
+  // 1. Commit pending global options
+  addPendingOptions(context, context.container.globalOptions);
+  if (context.command) {
+    addPendingOptions(context, context.command.command.options);
   }
 
-  // 2. Commit pending global options
-  addPendingOptions(context.container.globalOptions);
-  if (defaultCommand) {
-    addPendingOptions(defaultCommand.command.options);
-  }
-
-  // 3. Parse arguments
+  // 2. Parse arguments
+  let matched = withDefaultCommand;
+  let subCommandIndex = 0; // Maintain sub-command length
   while (!context.tokens.isEnd) {
     const token = context.tokens.next()!;
     const rawToken = token.toRaw();
 
     if (token.isEscape) {
-      // 3.1. `--` handle escape
+      // 2.1. `--` handle escape
       context.remaining.push(...context.tokens.remaining());
-    } else if (context.matching.commands.has(rawToken)) {
-      // 3.2. sub-command matched
+    } else if (!matched && context.matching.commands.has(rawToken)) {
+      // 2.2. sub-command matched
       const nextCommands = context.matching.commands.get(rawToken)!;
 
-      // 3.2.1. Commit pending sub-commands
+      // 2.2.1. Commit pending sub-commands
+      let matchedCommand;
       const currentIndex = ++subCommandIndex;
       context.matching.commands.clear();
       for (const [command, aliasIndex] of nextCommands) {
@@ -95,114 +162,69 @@ export function parse(context: Context): Context {
           command.resolveSubCommand();
           const piece = command.pieces[currentIndex];
           if (piece) {
+            // Still need matching
             if (context.matching.commands.has(piece)) {
               context.matching.commands.get(piece)!.push([command, undefined]);
             } else {
               context.matching.commands.set(piece, [[command, undefined]]);
             }
+          } else {
+            // Fully matched
+            if (matchedCommand) {
+              // TODO: throw breadc error
+            }
+            matchedCommand = command;
           }
         } else {
           // Alias command
           command.resolveAliasSubCommand(aliasIndex);
           const piece = command.aliases[aliasIndex][currentIndex];
           if (piece) {
+            // Still need matching
             if (context.matching.commands.has(piece)) {
               context.matching.commands.get(piece)!.push([command, aliasIndex]);
             } else {
               context.matching.commands.set(piece, [[command, aliasIndex]]);
             }
+          } else {
+            // Fully matched
+            if (matchedCommand) {
+              // TODO: throw breadc error
+            }
+            matchedCommand = command;
           }
         }
       }
 
-      // 3.2.2. Commit pending options
-      for (const [command] of nextCommands) {
-        addPendingOptions(command.command.options);
-      }
-
-      // 3.2.3. Find the matched command
-      if (nextCommands.length === 1) {
-        const nextCommand = nextCommands[0][0];
-        const aliasIndex = nextCommands[0][1];
-        if (aliasIndex === undefined) {
-          if (currentIndex >= nextCommand.pieces.length) {
-            context.command = nextCommand;
-          }
-        } else {
-          if (currentIndex >= nextCommand.aliases[aliasIndex].length) {
-            context.command = nextCommand;
-          }
-        }
+      // 2.2.2. Find matched command and add pending options
+      if (matchedCommand) {
+        context.command = matchedCommand;
+        addPendingOptions(context, matchedCommand.command.options);
       }
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
-      // 3.3. handle long options or short options (not negative number)
+      // 2.3. handle long options or short options (not negative number)
       const [key, value] = token.isLong ? token.toLong()! : token.toShort()!;
       const option = context.matching.options.get(key);
 
       if (option) {
         // Match option and set value
-        const matched = context.options.get(option)!;
+        const matched = context.options.get(option.long)!;
         matched.accept(context, value);
       } else {
         // Handle unknown long options or short options
-        context.unknownOptions.push([key, value]);
+        context.matching.unknownOptions.push([key, value]);
       }
     } else {
-      // 3.4. no matching
-      context.matching.unknown.push(token);
-    }
-  }
-
-  // 4. Fall back to the default command
-  if (context.command) {
-    // Resolve matched command
-    context.command.resolve();
-  } else {
-    if (defaultCommand) {
-      // Resolve default command
-      defaultCommand.resolve();
-      context.command = defaultCommand;
-    } else {
-      throw new RuntimeError(`Invalid arguments`);
-    }
-  }
-
-  // 5. Fulfill the matched arguments
-  let it = 0;
-  if (context.command.requireds) {
-    for (const required of context.command.requireds) {
-      const token = context.matching.unknown[it];
-      if (token !== undefined) {
-        const argument = new MatchedArgument(required);
-        argument.accept(context, token.toRaw());
-        context.arguments.push(argument);
+      // 2.4. no matching
+      if (context.command) {
+        matched = true;
+        context.matching.arguments.push(token);
       } else {
-        // TODO: throw new Error
-        throw new RuntimeError();
-      }
-      it++;
-    }
-  }
-  if (context.command.optionals) {
-    for (const optional of context.command.optionals) {
-      const token = context.matching.unknown[it];
-      const argument = new MatchedArgument(optional);
-      argument.accept(context, token ? token.toRaw() : undefined);
-      context.arguments.push(argument);
-
-      if (token !== undefined) {
-        it++;
+        // TODO: record error
+        return false;
       }
     }
   }
-  if (context.command.spread) {
-    const argument = new MatchedArgument(context.command.spread);
-    const unknowns = context.matching.unknown.slice(it);
-    argument.accept(context, unknowns.map(t => t.toRaw()));
-    context.arguments.push(argument);
-  } else {
-    context.remaining.unshift(...context.matching.unknown.slice(it));
-  }
 
-  return context;
+  return true;
 }

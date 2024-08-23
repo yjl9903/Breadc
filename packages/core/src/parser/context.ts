@@ -36,47 +36,59 @@ export class Context {
   /**
    * Matched arguments
    */
-  public readonly arguments: MatchedArgument[] = [];
+  public arguments: MatchedArgument[] = [];
 
   /**
    * Matched options
    */
-  public readonly options: Map<IOption, MatchedOption> = new Map();
-
-  /**
-   * Unknown options
-   */
-  public readonly unknownOptions: Array<[string, string | undefined]> = [];
+  public options: Map<string, MatchedOption> = new Map();
 
   /**
    * Remaining arguments
    */
-  public readonly remaining: Token[] = [];
+  public remaining: Token[] = [];
 
   /**
    * Pending commands and options which are used internal
    */
-  public readonly matching: {
+  public matching: {
     /**
-     * Spread arguments
+     * Arguments
      */
-    unknown: Token[];
+    readonly arguments: Token[];
     /**
      * Matching commands or command aliases
-     */
-    commands: Map<string, [ICommand, number | undefined][]>;
+    */
+    readonly commands: Map<string, [ICommand, number | undefined][]>;
     /**
      * Pending options
      */
-    options: Map<string, IOption>;
+    readonly options: Map<string, IOption>;
+    /**
+     * Unknown options
+     */
+    readonly unknownOptions: Array<[string, string | undefined]>;
   } = {
-      unknown: [],
       commands: new Map(),
-      options: new Map()
+      arguments: [],
+      options: new Map(),
+      unknownOptions: [],
     };
 
   public constructor(container: Container, args: string[]) {
     this.container = container;
     this.tokens = new Lexer(args);
+  }
+
+  public reset() {
+    this.tokens.reset();
+    this.options = new Map();
+    this.remaining = [];
+    this.matching = {
+      commands: new Map(),
+      arguments: [],
+      options: new Map(),
+      unknownOptions: [],
+    };
   }
 }
