@@ -9,7 +9,7 @@ import { type CommandConfig, Command, makeCommand } from './command.ts';
 export interface BreadcConfig {
   version?: string;
 
-  descriptions?: string;
+  description?: string;
 }
 
 export class Breadc<GO extends Record<string, any> = {}> {
@@ -27,7 +27,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
   public constructor(name: string, config: BreadcConfig = {}) {
     this.name = name;
     this.version = config.version;
-    this.description = config.descriptions;
+    this.description = config.description;
   }
 
   // --- Builder ---
