@@ -1,4 +1,4 @@
-import { Breadc } from '../src';
+import { Breadc } from '../packages/core/src';
 
 for (let i = 0; i < 10000; i++) {
   const b = new Breadc('cli');
