@@ -1,7 +1,7 @@
 import { BreadcError } from '../error.ts';
 
+import type { IOption } from './types.ts';
 import type { InferOptionRawType } from './infer.ts';
-import type { IOption, OptionType } from './types.ts';
 
 export interface OptionConfig<F extends string = string, R = {}> {
   /**
@@ -53,59 +53,54 @@ const OptionRE =
   /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
 export function makeOption<F extends string = string>(
-  option: Option<F>
+  _option: Option<F>
 ): IOption<F> {
+  const option = _option as unknown as IOption<F>;
   const format = option.format;
 
   let resolved = false;
-  let type!: OptionType;
-  let long!: string;
-  let name: string | undefined;
-  let short: string | undefined;
 
-  const madeOption = {
-    format,
-    config: option.config,
-    type,
-    long,
-    short,
-    name,
-    resolve() {
-      if (resolved) return madeOption;
+  option.type = undefined!;
+  option.long = undefined!;
+  option.short = undefined;
+  option.name = undefined;
 
-      const match = OptionRE.exec(format);
-      if (match) {
-        madeOption.long = match[2];
+  option.resolve = () => {
+    if (resolved) return option;
 
-        if (match[1]) {
-          madeOption.short = match[1][1];
-        }
+    const match = OptionRE.exec(format);
+    if (match) {
+      option.long = match[2];
 
-        if (match[3]) {
-          madeOption.name = name = match[3];
-          if (name[0] === '<') {
-            madeOption.type = type = 'required';
-          } else if (name[1] === '.') {
-            madeOption.type = type = 'array';
-          } else {
-            madeOption.type = type = 'optional';
-          }
-        } else {
-          madeOption.type = type = 'boolean';
-        }
-      } else {
-        throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
-          format
-        });
+      if (match[1]) {
+        option.short = match[1][1];
       }
 
-      resolved = true;
-
-      return madeOption;
+      if (match[3]) {
+        const name = match[3];
+        option.name = name;
+        if (name[0] === '<') {
+          option.type = 'required';
+        } else if (name[1] === '.') {
+          option.type = 'array';
+        } else {
+          option.type = 'optional';
+        }
+      } else {
+        option.type = 'boolean';
+      }
+    } else {
+      throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
+        format
+      });
     }
+
+    resolved = true;
+
+    return option;
   };
 
-  return madeOption;
+  return option;
 }
 
 export class ResolveOptionError extends BreadcError {
