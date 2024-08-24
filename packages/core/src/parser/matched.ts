@@ -22,8 +22,10 @@ export class MatchedArgument {
         case 'required':
         case 'optional':
           this.raw = undefined;
+          break;
         case 'spread':
           this.raw = [];
+          break;
       }
     }
   }
@@ -62,10 +64,13 @@ export class MatchedOption {
         case 'boolean':
         case 'optional':
           this.raw = false;
+          break;
         case 'required':
           this.raw = undefined;
+          break;
         case 'array':
           this.raw = [];
+          break;
       }
     }
   }
