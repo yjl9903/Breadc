@@ -1,5 +1,9 @@
 export { Breadc, type BreadcConfig } from './breadc/app.ts';
-export { Option, ResolveOptionError, type OptionConfig } from './breadc/option.ts';
+export {
+  Option,
+  ResolveOptionError,
+  type OptionConfig
+} from './breadc/option.ts';
 export {
   Command,
   ResolveCommandError,
