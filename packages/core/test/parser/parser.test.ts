@@ -39,7 +39,7 @@ describe('parser', () => {
     expect(context.options).toMatchInlineSnapshot(`Map {}`);
   });
 
-  it('shoud parse simple sub-command', () => {
+  it('should parse simple sub-command', () => {
     const cli = new Breadc('cli');
     cli.command('dev').action(() => true);
     const context = cli.parse(['dev']);
@@ -71,7 +71,7 @@ describe('parser', () => {
     expect(context.options).toMatchInlineSnapshot(`Map {}`);
   });
 
-  it('shoud parse simple default command options', () => {
+  it('should parse simple default command options', () => {
     const cli = new Breadc('cli');
     cli.command('').option('--flag').action(() => true);
     const context = cli.parse(['--flag']);
@@ -126,4 +126,92 @@ describe('parser', () => {
       }
     `);
   });
+
+  it('Test Cover: duplicated default command',()=>{
+    const context = new Context(
+      { globalOptions: [], commands: [makeCommand(new Command('')),makeCommand(new Command(''))] },
+      []
+    );
+    expect(() => parse(context)).toThrow('Find duplicated default command');
+  })
+
+  it('Test cover: multi pieces in matching',()=>{
+    const cli = new Breadc('cli');
+    cli.command('dev').action(() => true);
+    cli.command('dev').option('--flag').action(() => true);
+    const context = cli.parse(['dev1']);
+    console.log(context.matching)
+    expect(context.matching).toMatchInlineSnapshot(`
+      {
+        "arguments": [],
+        "commands": Map {
+          "dev" => [
+            [
+              {
+                "aliases": [],
+                "command": Command {
+                  "actionFn": [Function],
+                  "aliases": [],
+                  "arguments": [],
+                  "config": {},
+                  "format": "dev",
+                  "onUnknownOptions": undefined,
+                  "options": [],
+                },
+                "isDefault": false,
+                "optionals": undefined,
+                "pieces": [
+                  "dev",
+                ],
+                "requireds": undefined,
+                "resolve": [Function],
+                "resolveAliasSubCommand": [Function],
+                "resolveSubCommand": [Function],
+                "spread": undefined,
+              },
+              undefined,
+            ],
+            [
+              {
+                "aliases": [],
+                "command": Command {
+                  "actionFn": [Function],
+                  "aliases": [],
+                  "arguments": [],
+                  "config": {},
+                  "format": "dev",
+                  "onUnknownOptions": undefined,
+                  "options": [
+                    {
+                      "config": {},
+                      "format": "--flag",
+                      "long": undefined,
+                      "name": undefined,
+                      "resolve": [Function],
+                      "short": undefined,
+                      "type": undefined,
+                    },
+                  ],
+                },
+                "isDefault": false,
+                "optionals": undefined,
+                "pieces": [
+                  "dev",
+                ],
+                "requireds": undefined,
+                "resolve": [Function],
+                "resolveAliasSubCommand": [Function],
+                "resolveSubCommand": [Function],
+                "spread": undefined,
+              },
+              undefined,
+            ],
+          ],
+        },
+        "options": Map {},
+        "unknownOptions": [],
+      }
+    `);
+  })
 });
+
