@@ -89,8 +89,7 @@ describe('parser', () => {
       }
     `);
 
-    // TODO: should fix this
-    // expect(cli.run([])).toMatchInlineSnapshot(`false`);
+    expect(cli.run([])).toMatchInlineSnapshot(`false`);
     expect(cli.run(['--flag'])).toMatchInlineSnapshot(`true`);
   });
 
