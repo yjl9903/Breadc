@@ -184,10 +184,10 @@ export function makeCommand<F extends string = string>(
   /**
    * Matching position in each alias
    */
-  const aliasPos = command.aliases.map(() => 0);
+  const aliasPos: number[] = [];
 
   const pieces: string[] = [];
-  const aliasPieces: string[][] = command.aliases.map(() => []);
+  const aliasPieces: string[][] = [];
   const requireds: IArgument[] = [];
   const optionals: IArgument[] = [];
 
@@ -227,6 +227,12 @@ export function makeCommand<F extends string = string>(
 
   command.resolveAliasSubCommand = (index: number) => {
     const format = command.aliases[index];
+
+    if (aliasPos[index] === undefined) {
+      aliasPos[index] = 0;
+      aliasPieces[index] = [];
+    }
+
     let i = aliasPos[index];
 
     for (; i < format.length; ) {
@@ -484,8 +490,8 @@ function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
     type === 'required'
       ? `<${name}>`
       : type === 'optional'
-        ? `[${name}]`
-        : `[...${name}]`;
+      ? `[${name}]`
+      : `[...${name}]`;
   return {
     type,
     name,

@@ -5,19 +5,45 @@ import type { InferOption } from './infer.ts';
 
 import { type OptionConfig, makeOption, Option } from './option.ts';
 import { type CommandConfig, Command, makeCommand } from './command.ts';
+import { makeVersionCommand } from './builtin/version.ts';
+import { makeHelpCommand } from './builtin/help.ts';
 
 export interface BreadcConfig {
   version?: string;
 
   description?: string;
+
+  builtin?: {
+    version?: {
+      /**
+       * @default true
+       */
+      enable?: boolean;
+
+      /**
+       * @default '-v, --version'
+       */
+      format?: string | string[];
+    };
+
+    help?: {
+      /**
+       * @default true
+       */
+      enable?: boolean;
+
+      /**
+       * @default '-h, --help'
+       */
+      format?: string | string[];
+    };
+  };
 }
 
 export class Breadc<GO extends Record<string, any> = {}> {
   name: string;
 
-  version: string | undefined = undefined;
-
-  description: string | undefined = undefined;
+  config: BreadcConfig;
 
   #container: Container = {
     globalOptions: [],
@@ -26,8 +52,14 @@ export class Breadc<GO extends Record<string, any> = {}> {
 
   public constructor(name: string, config: BreadcConfig = {}) {
     this.name = name;
-    this.version = config.version;
-    this.description = config.description;
+    this.config = config;
+
+    if (config.builtin?.version?.enable !== false) {
+      this.#container.commands.push(makeVersionCommand(name, config));
+    }
+    if (config.builtin?.help?.enable !== false) {
+      this.#container.commands.push(makeHelpCommand(name, config));
+    }
   }
 
   // --- Builder ---

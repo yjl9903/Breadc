@@ -8,64 +8,24 @@ describe('parser', () => {
     cli.command('').action(() => true);
 
     const context = cli.parse([]);
-    expect(context).toMatchInlineSnapshot(`
-      Context {
+    expect(context.command).toMatchInlineSnapshot(`
+      Command {
+        "actionFn": [Function],
+        "aliasPieces": [],
+        "aliases": [],
         "arguments": [],
-        "command": Command {
-          "actionFn": [Function],
-          "aliasPieces": [],
-          "aliases": [],
-          "arguments": [],
-          "config": {},
-          "format": "",
-          "isDefault": true,
-          "onUnknownOptions": undefined,
-          "optionals": [],
-          "options": [],
-          "pieces": [],
-          "requireds": [],
-          "resolve": [Function],
-          "resolveAliasSubCommand": [Function],
-          "resolveSubCommand": [Function],
-          "spread": undefined,
-        },
-        "container": {
-          "commands": [
-            Command {
-              "actionFn": [Function],
-              "aliasPieces": [],
-              "aliases": [],
-              "arguments": [],
-              "config": {},
-              "format": "",
-              "isDefault": true,
-              "onUnknownOptions": undefined,
-              "optionals": [],
-              "options": [],
-              "pieces": [],
-              "requireds": [],
-              "resolve": [Function],
-              "resolveAliasSubCommand": [Function],
-              "resolveSubCommand": [Function],
-              "spread": undefined,
-            },
-          ],
-          "globalOptions": [],
-        },
-        "matching": {
-          "arguments": [],
-          "commands": Map {},
-          "options": Map {},
-          "unknownOptions": [],
-        },
-        "metadata": {},
-        "options": Map {},
-        "remaining": [],
-        "tokens": Lexer {
-          "args": [],
-          "cursor": 0,
-          "tokens": [],
-        },
+        "config": {},
+        "format": "",
+        "isDefault": true,
+        "onUnknownOptions": undefined,
+        "optionals": [],
+        "options": [],
+        "pieces": [],
+        "requireds": [],
+        "resolve": [Function],
+        "resolveAliasSubCommand": [Function],
+        "resolveSubCommand": [Function],
+        "spread": undefined,
       }
     `);
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
@@ -174,98 +134,38 @@ describe('parser', () => {
       .action(() => true);
 
     const context = cli.parse(['dev1']);
-    expect(context.matching).toMatchInlineSnapshot(`
-      {
-        "arguments": [],
-        "commands": Map {
-          "dev" => [
-            [
-              Command {
-                "actionFn": [Function],
-                "aliasPieces": [],
-                "aliases": [],
-                "arguments": [],
-                "config": {},
-                "format": "dev",
-                "isDefault": false,
-                "onUnknownOptions": undefined,
-                "optionals": [],
-                "options": [],
-                "pieces": [
-                  "dev",
-                ],
-                "requireds": [],
-                "resolve": [Function],
-                "resolveAliasSubCommand": [Function],
-                "resolveSubCommand": [Function],
-                "spread": undefined,
-              },
-              undefined,
-            ],
-            [
-              Command {
-                "actionFn": [Function],
-                "aliasPieces": [],
-                "aliases": [],
-                "arguments": [],
-                "config": {},
-                "format": "dev",
-                "isDefault": false,
-                "onUnknownOptions": undefined,
-                "optionals": [],
-                "options": [
-                  Option {
-                    "config": {},
-                    "format": "--flag",
-                    "long": undefined,
-                    "name": undefined,
-                    "resolve": [Function],
-                    "short": undefined,
-                    "type": undefined,
-                  },
-                ],
-                "pieces": [
-                  "dev",
-                ],
-                "requireds": [],
-                "resolve": [Function],
-                "resolveAliasSubCommand": [Function],
-                "resolveSubCommand": [Function],
-                "spread": undefined,
-              },
-              undefined,
-            ],
-          ],
-        },
-        "options": Map {},
-        "unknownOptions": [],
-      }
-    `);
+    expect(context.command).toMatchInlineSnapshot(`undefined`);
+    expect(context.arguments).toMatchInlineSnapshot(`[]`);
+    expect(context.options).toMatchInlineSnapshot(`Map {}`);
   });
 
   it('should parse command with alias', () => {
     const cli = new Breadc('cli');
     cli
-      .command('--version')
-      .alias('-V')
+      .command('push')
+      .alias('p')
       .action(() => true);
 
-    expect(cli.parse(['--version']).command).toMatchInlineSnapshot(`
+    expect(cli.parse(['push']).command).toMatchInlineSnapshot(`
       Command {
         "actionFn": [Function],
-        "aliasPieces": [],
+        "aliasPieces": [
+          [
+            "p",
+          ],
+        ],
         "aliases": [
-          "-V",
+          "p",
         ],
         "arguments": [],
         "config": {},
-        "format": "--version",
+        "format": "push",
         "isDefault": false,
         "onUnknownOptions": undefined,
         "optionals": [],
         "options": [],
         "pieces": [
-          "--version",
+          "push",
         ],
         "requireds": [],
         "resolve": [Function],
@@ -274,8 +174,34 @@ describe('parser', () => {
         "spread": undefined,
       }
     `);
-    // TODO: should fix this
-    // expect(cli.parse(['-V']).command).toMatchInlineSnapshot(`undefined`);
+    expect(cli.parse(['p']).command).toMatchInlineSnapshot(`
+      Command {
+        "actionFn": [Function],
+        "aliasPieces": [
+          [
+            "p",
+          ],
+        ],
+        "aliases": [
+          "p",
+        ],
+        "arguments": [],
+        "config": {},
+        "format": "push",
+        "isDefault": false,
+        "onUnknownOptions": undefined,
+        "optionals": [],
+        "options": [],
+        "pieces": [
+          "push",
+        ],
+        "requireds": [],
+        "resolve": [Function],
+        "resolveAliasSubCommand": [Function],
+        "resolveSubCommand": [Function],
+        "spread": undefined,
+      }
+    `);
   });
 
   it('should parse command when there is default command', () => {
