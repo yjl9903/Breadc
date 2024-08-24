@@ -484,8 +484,8 @@ function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
     type === 'required'
       ? `<${name}>`
       : type === 'optional'
-      ? `[${name}]`
-      : `[...${name}]`;
+        ? `[${name}]`
+        : `[...${name}]`;
   return {
     type,
     name,
