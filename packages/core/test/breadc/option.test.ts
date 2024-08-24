@@ -7,7 +7,7 @@ describe('option', () => {
     const opt = makeOption(new Option('-v, --version'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      {
+      Option {
         "config": {},
         "format": "-v, --version",
         "long": "version",
@@ -23,7 +23,7 @@ describe('option', () => {
     const opt = makeOption(new Option('--version'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      {
+      Option {
         "config": {},
         "format": "--version",
         "long": "version",
@@ -48,7 +48,7 @@ describe('option', () => {
     const opt = makeOption(new Option('--root <root>'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      {
+      Option {
         "config": {},
         "format": "--root <root>",
         "long": "root",
@@ -64,7 +64,7 @@ describe('option', () => {
     const opt = makeOption(new Option('--root [root]'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      {
+      Option {
         "config": {},
         "format": "--root [root]",
         "long": "root",
@@ -80,7 +80,7 @@ describe('option', () => {
     const opt = makeOption(new Option('--plugin [...plugins]'));
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
-      {
+      Option {
         "config": {},
         "format": "--plugin [...plugins]",
         "long": "plugin",
