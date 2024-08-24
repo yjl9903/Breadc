@@ -18,8 +18,8 @@ describe('command', () => {
         "submodule",
       ]
     `);
-    expect(cmd.requireds).toMatchInlineSnapshot(`undefined`);
-    expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.requireds).toMatchInlineSnapshot(`[]`);
+    expect(cmd.optionals).toMatchInlineSnapshot(`[]`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
   });
 
@@ -33,8 +33,8 @@ describe('command', () => {
         "add",
       ]
     `);
-    expect(cmd.requireds).toMatchInlineSnapshot(`undefined`);
-    expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.requireds).toMatchInlineSnapshot(`[]`);
+    expect(cmd.optionals).toMatchInlineSnapshot(`[]`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
   });
 
@@ -57,8 +57,8 @@ describe('command', () => {
         "add",
       ]
     `);
-    expect(cmd.requireds).toMatchInlineSnapshot(`undefined`);
-    expect(cmd.optionals).toMatchInlineSnapshot(`undefined`);
+    expect(cmd.requireds).toMatchInlineSnapshot(`[]`);
+    expect(cmd.optionals).toMatchInlineSnapshot(`[]`);
     expect(cmd.spread).toMatchInlineSnapshot(`undefined`);
 
     cmd.resolve();
