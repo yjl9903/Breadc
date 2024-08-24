@@ -41,31 +41,31 @@ export class Command<
   A extends unknown[] = InferArgumentsType<F>,
   R = any
 > {
-  public readonly format: F;
+  readonly format: F;
 
-  public readonly config: CommandConfig;
+  readonly config: CommandConfig;
 
-  public readonly aliases: string[] = [];
+  readonly aliases: string[] = [];
 
   /**
    * The bound action function
    */
-  public actionFn: Function | undefined;
+  actionFn: Function | undefined;
 
   /**
    * The bound arguments
    */
-  public arguments: IArgument[] = [];
+  arguments: IArgument[] = [];
 
   /**
    * The bound options
    */
-  public options: IOption[] = [];
+  options: IOption[] = [];
 
   /**
    * Callback on handling unknown options
    */
-  public onUnknownOptions:
+  onUnknownOptions:
     | undefined
     | true
     | ((
@@ -155,9 +155,9 @@ export class Command<
 }
 
 export class Argument<F extends string = string> {
-  public readonly format: F;
+  readonly format: F;
 
-  public readonly config: ArgumentConfig<F>;
+  readonly config: ArgumentConfig<F>;
 
   constructor(format: F, config: ArgumentConfig<F> = {}) {
     this.format = format;

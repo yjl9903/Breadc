@@ -39,9 +39,9 @@ export class Option<
   F extends string,
   C extends OptionConfig<F> = OptionConfig<F>
 > {
-  public readonly format: F;
+  readonly format: F;
 
-  public readonly config: C;
+  readonly config: C;
 
   public constructor(format: F, config?: C) {
     this.format = format;
