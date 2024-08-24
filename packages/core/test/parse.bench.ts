@@ -111,14 +111,7 @@ describe('Parse sub-commands', () => {
   b.command('preview').action(action);
   b.command('test [case]').action(action);
   b.command('run [...args]').action(action);
-
   bench('breadc', () => {
-    // b.parse(['op']);
-    // b.parse(['dev']);
-    // b.parse(['build', 'root']);
-    // b.parse(['preview']);
-    // b.parse(['test']);
-    // b.parse(['test', '1']);
     b.parse([
       'run',
       'a',
@@ -146,12 +139,6 @@ describe('Parse sub-commands', () => {
   c.command('test [case]').action(action);
   c.command('run [...args]').action(action);
   bench('cac', () => {
-    // c.parse(['op']);
-    // c.parse(['dev']);
-    // c.parse(['build', 'root']);
-    // c.parse(['preview']);
-    // c.parse(['test']);
-    // c.parse(['test', '1']);
     c.parse([
       'run',
       'a',
@@ -180,12 +167,6 @@ describe('Parse sub-commands', () => {
   d.command('test [case]').action(action);
   d.command('run [...args]').action(action);
   bench('commander.js', () => {
-    // d.parse(['node', 'cli', 'op']);
-    // d.parse(['node', 'cli', 'dev']);
-    // d.parse(['node', 'cli', 'build', 'root']);
-    // d.parse(['node', 'cli', 'preview']);
-    // d.parse(['node', 'cli', 'test']);
-    // d.parse(['node', 'cli', 'test', '1']);
     d.parse([
       'run',
       'a',
