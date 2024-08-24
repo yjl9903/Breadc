@@ -14,21 +14,19 @@ describe('parser', () => {
     parse(context);
 
     expect(context.command).toMatchInlineSnapshot(`
-      {
+      Command {
+        "actionFn": undefined,
+        "aliasPieces": [],
         "aliases": [],
-        "command": Command {
-          "actionFn": undefined,
-          "aliases": [],
-          "arguments": [],
-          "config": {},
-          "format": "",
-          "onUnknownOptions": undefined,
-          "options": [],
-        },
+        "arguments": [],
+        "config": {},
+        "format": "",
         "isDefault": true,
-        "optionals": undefined,
+        "onUnknownOptions": undefined,
+        "optionals": [],
+        "options": [],
         "pieces": [],
-        "requireds": undefined,
+        "requireds": [],
         "resolve": [Function],
         "resolveAliasSubCommand": [Function],
         "resolveSubCommand": [Function],
@@ -44,23 +42,21 @@ describe('parser', () => {
     cli.command('dev').action(() => true);
     const context = cli.parse(['dev']);
     expect(context.command).toMatchInlineSnapshot(`
-      {
+      Command {
+        "actionFn": [Function],
+        "aliasPieces": [],
         "aliases": [],
-        "command": Command {
-          "actionFn": [Function],
-          "aliases": [],
-          "arguments": [],
-          "config": {},
-          "format": "dev",
-          "onUnknownOptions": undefined,
-          "options": [],
-        },
+        "arguments": [],
+        "config": {},
+        "format": "dev",
         "isDefault": false,
-        "optionals": undefined,
+        "onUnknownOptions": undefined,
+        "optionals": [],
+        "options": [],
         "pieces": [
           "dev",
         ],
-        "requireds": undefined,
+        "requireds": [],
         "resolve": [Function],
         "resolveAliasSubCommand": [Function],
         "resolveSubCommand": [Function],
@@ -73,34 +69,35 @@ describe('parser', () => {
 
   it('should parse simple default command options', () => {
     const cli = new Breadc('cli');
-    cli.command('').option('--flag').action(() => true);
+    cli
+      .command('')
+      .option('--flag')
+      .action(() => true);
     const context = cli.parse(['--flag']);
     expect(context.command).toMatchInlineSnapshot(`
-      {
+      Command {
+        "actionFn": [Function],
+        "aliasPieces": [],
         "aliases": [],
-        "command": Command {
-          "actionFn": [Function],
-          "aliases": [],
-          "arguments": [],
-          "config": {},
-          "format": "",
-          "onUnknownOptions": undefined,
-          "options": [
-            {
-              "config": {},
-              "format": "--flag",
-              "long": "flag",
-              "name": undefined,
-              "resolve": [Function],
-              "short": undefined,
-              "type": "boolean",
-            },
-          ],
-        },
+        "arguments": [],
+        "config": {},
+        "format": "",
         "isDefault": true,
-        "optionals": undefined,
+        "onUnknownOptions": undefined,
+        "optionals": [],
+        "options": [
+          {
+            "config": {},
+            "format": "--flag",
+            "long": "flag",
+            "name": undefined,
+            "resolve": [Function],
+            "short": undefined,
+            "type": "boolean",
+          },
+        ],
         "pieces": [],
-        "requireds": undefined,
+        "requireds": [],
         "resolve": [Function],
         "resolveAliasSubCommand": [Function],
         "resolveSubCommand": [Function],
@@ -127,43 +124,47 @@ describe('parser', () => {
     `);
   });
 
-  it('Test Cover: duplicated default command',()=>{
+  it('Test Cover: duplicated default command', () => {
     const context = new Context(
-      { globalOptions: [], commands: [makeCommand(new Command('')),makeCommand(new Command(''))] },
+      {
+        globalOptions: [],
+        commands: [makeCommand(new Command('')), makeCommand(new Command(''))]
+      },
       []
     );
     expect(() => parse(context)).toThrow('Find duplicated default command');
   });
 
-  it('Test Cover: multi pieces in matching',()=>{
+  it('Test Cover: multi pieces in matching', () => {
     const cli = new Breadc('cli');
     cli.command('dev').action(() => true);
-    cli.command('dev').option('--flag').action(() => true);
+    cli
+      .command('dev')
+      .option('--flag')
+      .action(() => true);
     const context = cli.parse(['dev1']);
-    console.log(context.matching)
+    console.log(context.matching);
     expect(context.matching).toMatchInlineSnapshot(`
       {
         "arguments": [],
         "commands": Map {
           "dev" => [
             [
-              {
+              Command {
+                "actionFn": [Function],
+                "aliasPieces": [],
                 "aliases": [],
-                "command": Command {
-                  "actionFn": [Function],
-                  "aliases": [],
-                  "arguments": [],
-                  "config": {},
-                  "format": "dev",
-                  "onUnknownOptions": undefined,
-                  "options": [],
-                },
+                "arguments": [],
+                "config": {},
+                "format": "dev",
                 "isDefault": false,
-                "optionals": undefined,
+                "onUnknownOptions": undefined,
+                "optionals": [],
+                "options": [],
                 "pieces": [
                   "dev",
                 ],
-                "requireds": undefined,
+                "requireds": [],
                 "resolve": [Function],
                 "resolveAliasSubCommand": [Function],
                 "resolveSubCommand": [Function],
@@ -172,33 +173,31 @@ describe('parser', () => {
               undefined,
             ],
             [
-              {
+              Command {
+                "actionFn": [Function],
+                "aliasPieces": [],
                 "aliases": [],
-                "command": Command {
-                  "actionFn": [Function],
-                  "aliases": [],
-                  "arguments": [],
-                  "config": {},
-                  "format": "dev",
-                  "onUnknownOptions": undefined,
-                  "options": [
-                    {
-                      "config": {},
-                      "format": "--flag",
-                      "long": undefined,
-                      "name": undefined,
-                      "resolve": [Function],
-                      "short": undefined,
-                      "type": undefined,
-                    },
-                  ],
-                },
+                "arguments": [],
+                "config": {},
+                "format": "dev",
                 "isDefault": false,
-                "optionals": undefined,
+                "onUnknownOptions": undefined,
+                "optionals": [],
+                "options": [
+                  {
+                    "config": {},
+                    "format": "--flag",
+                    "long": undefined,
+                    "name": undefined,
+                    "resolve": [Function],
+                    "short": undefined,
+                    "type": undefined,
+                  },
+                ],
                 "pieces": [
                   "dev",
                 ],
-                "requireds": undefined,
+                "requireds": [],
                 "resolve": [Function],
                 "resolveAliasSubCommand": [Function],
                 "resolveSubCommand": [Function],
@@ -214,10 +213,14 @@ describe('parser', () => {
     `);
   });
 
-  it('Test Cover: alias in matching',()=>{
+  it('Test Cover: alias in matching', () => {
     const cli = new Breadc('cli');
     cli.command('git').action(() => true);
-    cli.command('git').option('-V').alias('--version').action(() => true);
+    cli
+      .command('git')
+      .option('-V')
+      .alias('--version')
+      .action(() => true);
     const context = cli.parse(['git -V']);
     expect(context.matching).toMatchInlineSnapshot(`
       {
@@ -225,23 +228,21 @@ describe('parser', () => {
         "commands": Map {
           "git" => [
             [
-              {
+              Command {
+                "actionFn": [Function],
+                "aliasPieces": [],
                 "aliases": [],
-                "command": Command {
-                  "actionFn": [Function],
-                  "aliases": [],
-                  "arguments": [],
-                  "config": {},
-                  "format": "git",
-                  "onUnknownOptions": undefined,
-                  "options": [],
-                },
+                "arguments": [],
+                "config": {},
+                "format": "git",
                 "isDefault": false,
-                "optionals": undefined,
+                "onUnknownOptions": undefined,
+                "optionals": [],
+                "options": [],
                 "pieces": [
                   "git",
                 ],
-                "requireds": undefined,
+                "requireds": [],
                 "resolve": [Function],
                 "resolveAliasSubCommand": [Function],
                 "resolveSubCommand": [Function],
@@ -250,35 +251,33 @@ describe('parser', () => {
               undefined,
             ],
             [
-              {
-                "aliases": [],
-                "command": Command {
-                  "actionFn": [Function],
-                  "aliases": [
-                    "--version",
-                  ],
-                  "arguments": [],
-                  "config": {},
-                  "format": "git",
-                  "onUnknownOptions": undefined,
-                  "options": [
-                    {
-                      "config": {},
-                      "format": "-V",
-                      "long": undefined,
-                      "name": undefined,
-                      "resolve": [Function],
-                      "short": undefined,
-                      "type": undefined,
-                    },
-                  ],
-                },
+              Command {
+                "actionFn": [Function],
+                "aliasPieces": [],
+                "aliases": [
+                  "--version",
+                ],
+                "arguments": [],
+                "config": {},
+                "format": "git",
                 "isDefault": false,
-                "optionals": undefined,
+                "onUnknownOptions": undefined,
+                "optionals": [],
+                "options": [
+                  {
+                    "config": {},
+                    "format": "-V",
+                    "long": undefined,
+                    "name": undefined,
+                    "resolve": [Function],
+                    "short": undefined,
+                    "type": undefined,
+                  },
+                ],
                 "pieces": [
                   "git",
                 ],
-                "requireds": undefined,
+                "requireds": [],
                 "resolve": [Function],
                 "resolveAliasSubCommand": [Function],
                 "resolveSubCommand": [Function],
@@ -287,32 +286,70 @@ describe('parser', () => {
               undefined,
             ],
           ],
+          "-" => [
+            [
+              Command {
+                "actionFn": [Function],
+                "aliasPieces": [],
+                "aliases": [
+                  "--version",
+                ],
+                "arguments": [],
+                "config": {},
+                "format": "git",
+                "isDefault": false,
+                "onUnknownOptions": undefined,
+                "optionals": [],
+                "options": [
+                  {
+                    "config": {},
+                    "format": "-V",
+                    "long": undefined,
+                    "name": undefined,
+                    "resolve": [Function],
+                    "short": undefined,
+                    "type": undefined,
+                  },
+                ],
+                "pieces": [
+                  "git",
+                ],
+                "requireds": [],
+                "resolve": [Function],
+                "resolveAliasSubCommand": [Function],
+                "resolveSubCommand": [Function],
+                "spread": undefined,
+              },
+              0,
+            ],
+          ],
         },
         "options": Map {},
         "unknownOptions": [],
       }
-    `)
+    `);
   });
 
-  it('Test Cover: not only defaultCommand',()=>{
+  it('Test Cover: not only defaultCommand', () => {
     const cli = new Breadc('cli');
-    cli.command('<XLor>').action(()=>true)
-    cli.command('XLor').option('-V').action(()=>true)
+    cli.command('<XLor>').action(() => true);
+    cli
+      .command('XLor')
+      .option('-V')
+      .action(() => true);
     const context = cli.parse(['XLor -V']);
     expect(context.command).toMatchInlineSnapshot(`
-      {
+      Command {
+        "actionFn": [Function],
+        "aliasPieces": [],
         "aliases": [],
-        "command": Command {
-          "actionFn": [Function],
-          "aliases": [],
-          "arguments": [],
-          "config": {},
-          "format": "<XLor>",
-          "onUnknownOptions": undefined,
-          "options": [],
-        },
+        "arguments": [],
+        "config": {},
+        "format": "<XLor>",
         "isDefault": true,
+        "onUnknownOptions": undefined,
         "optionals": [],
+        "options": [],
         "pieces": [],
         "requireds": [
           {
@@ -327,27 +364,25 @@ describe('parser', () => {
         "resolveSubCommand": [Function],
         "spread": undefined,
       }
-    `)
+    `);
   });
 
-  it('Test Cover: require args',()=>{
+  it('Test Cover: require args', () => {
     const cli = new Breadc('cli');
     cli.command('dev --name <name>').action(() => true);
-    const context = cli.parse(['dev','--name' ,'XLor']);
+    const context = cli.parse(['dev', '--name', 'XLor']);
     expect(context.command).toMatchInlineSnapshot(`
-      {
+      Command {
+        "actionFn": [Function],
+        "aliasPieces": [],
         "aliases": [],
-        "command": Command {
-          "actionFn": [Function],
-          "aliases": [],
-          "arguments": [],
-          "config": {},
-          "format": "dev --name <name>",
-          "onUnknownOptions": undefined,
-          "options": [],
-        },
+        "arguments": [],
+        "config": {},
+        "format": "dev --name <name>",
         "isDefault": false,
+        "onUnknownOptions": undefined,
         "optionals": [],
+        "options": [],
         "pieces": [
           "dev",
           "--name",
@@ -365,7 +400,6 @@ describe('parser', () => {
         "resolveSubCommand": [Function],
         "spread": undefined,
       }
-    `)
-  })
+    `);
+  });
 });
-

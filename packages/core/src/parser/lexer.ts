@@ -23,7 +23,8 @@ export class Lexer {
   public next(): Token | undefined {
     const arg = this.args[this.cursor];
     if (arg === undefined) return undefined;
-    const token = this.tokens[this.cursor] ?? (this.tokens[this.cursor] = new Token(arg));
+    const token =
+      this.tokens[this.cursor] ?? (this.tokens[this.cursor] = new Token(arg));
     this.cursor++;
     return token;
   }
@@ -38,7 +39,7 @@ export class Lexer {
     if (arg === undefined) return undefined;
     const token = this.tokens[this.cursor];
     if (token !== undefined) return token;
-    return this.tokens[this.cursor] = new Token(arg);
+    return (this.tokens[this.cursor] = new Token(arg));
   }
 
   /**
