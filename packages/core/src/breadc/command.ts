@@ -486,20 +486,17 @@ export function makeCommand<F extends string = string>(
 }
 
 function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
+  const format =
+    type === 'required'
+      ? `<${name}>`
+      : type === 'optional'
+      ? `[${name}]`
+      : `[...${name}]`;
   return {
     type,
     name,
-    config: {},
-    get format() {
-      switch (type) {
-        case 'required':
-          return `<${name}>`;
-        case 'optional':
-          return `[${name}]`;
-        case 'spread':
-          return `[...${name}]`;
-      }
-    }
+    format,
+    config: {}
   };
 }
 
