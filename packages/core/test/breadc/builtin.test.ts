@@ -14,6 +14,40 @@ describe('breadc builtin version comamnd', () => {
     expect(app.run(['-v'])).toMatchInlineSnapshot(`"cli/1.0.0"`);
     expect(app.run(['--version'])).toMatchInlineSnapshot(`"cli/1.0.0"`);
   });
+
+  it('should be overwritten by single format', () => {
+    const app = new Breadc('cli', {
+      version: '2.0.0',
+      builtin: {
+        version: {
+          format: '-V'
+        }
+      }
+    });
+    expect(app.run(['-V'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(() => app.run(['-v'])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no matched command]`
+    );
+    expect(() => app.run(['--version'])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no matched command]`
+    );
+  });
+
+  it('should be overwritten by format array', () => {
+    const app = new Breadc('cli', {
+      version: '2.0.0',
+      builtin: {
+        version: {
+          format: ['-V', '--version']
+        }
+      }
+    });
+    expect(() => app.run(['-v'])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no matched command]`
+    );
+    expect(app.run(['-V'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(app.run(['--version'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+  });
 });
 
 describe('breadc builtin help comamnd', () => {
@@ -21,5 +55,39 @@ describe('breadc builtin help comamnd', () => {
     const app = new Breadc('cli');
     expect(app.run(['-h'])).toMatchInlineSnapshot(`"cli/unknown"`);
     expect(app.run(['--help'])).toMatchInlineSnapshot(`"cli/unknown"`);
+  });
+
+  it('should be overwritten by single format', () => {
+    const app = new Breadc('cli', {
+      version: '2.0.0',
+      builtin: {
+        help: {
+          format: 'help'
+        }
+      }
+    });
+    expect(app.run(['help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(() => app.run(['-h'])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no matched command]`
+    );
+    expect(() => app.run(['--help'])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no matched command]`
+    );
+  });
+
+  it('should be overwritten by format array', () => {
+    const app = new Breadc('cli', {
+      version: '2.0.0',
+      builtin: {
+        help: {
+          format: ['help', '--help']
+        }
+      }
+    });
+    expect(() => app.run(['-h'])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no matched command]`
+    );
+    expect(app.run(['help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(app.run(['--help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
   });
 });
