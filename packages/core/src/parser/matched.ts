@@ -5,13 +5,13 @@ import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
 
 export class MatchedArgument {
-  public readonly argument: IArgument;
+  readonly argument: IArgument;
 
-  public readonly token: Token | undefined;
+  readonly token: Token | undefined;
 
-  public dirty = false;
+  dirty = false;
 
-  public raw: any;
+  raw: any;
 
   public constructor(argument: IArgument) {
     this.argument = argument;
@@ -45,13 +45,13 @@ export class MatchedArgument {
 }
 
 export class MatchedOption {
-  public static FALSE_OPTION = ['false', 'no', 'off'];
+  static FALSE_OPTION = ['false', 'no', 'off'];
 
-  public readonly option: IOption;
+  readonly option: IOption;
 
-  public dirty = false;
+  dirty = false;
 
-  public raw: any;
+  raw: any;
 
   public constructor(option: IOption) {
     this.option = option;

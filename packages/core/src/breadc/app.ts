@@ -13,13 +13,13 @@ export interface BreadcConfig {
 }
 
 export class Breadc<GO extends Record<string, any> = {}> {
-  public name: string;
+  name: string;
 
-  public version: string | undefined = undefined;
+  version: string | undefined = undefined;
 
-  public description: string | undefined = undefined;
+  description: string | undefined = undefined;
 
-  private container: Container = {
+  #container: Container = {
     globalOptions: [],
     commands: []
   };
@@ -35,7 +35,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
   public addOption<F extends string, O extends Option<F>>(
     option: O
   ): Breadc<GO & InferOption<O['format'], O['config']>> {
-    this.container.globalOptions.push(makeOption(option as any));
+    this.#container.globalOptions.push(makeOption(option as any));
     return this;
   }
 
@@ -49,12 +49,12 @@ export class Breadc<GO extends Record<string, any> = {}> {
         ? { ...config, description }
         : { ...description, ...config };
     const option = new Option<F>(format, resolvedConfig);
-    this.container.globalOptions.push(makeOption(option));
+    this.#container.globalOptions.push(makeOption(option));
     return this;
   }
 
   public addCommand<F extends string>(command: Command<F, GO>): Breadc<GO> {
-    this.container.commands.push(makeCommand(command));
+    this.#container.commands.push(makeCommand(command));
     return this;
   }
 
@@ -68,7 +68,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
         ? { ...config, description }
         : { ...description, ...config };
     const command = new Command<F, GO>(format, resolvedConfig);
-    this.container.commands.push(makeCommand(command));
+    this.#container.commands.push(makeCommand(command));
     return command;
   }
 
@@ -81,7 +81,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the parsed context
    */
   public parse(args: string[]) {
-    const context = new Context(this.container, args);
+    const context = new Context(this.#container, args);
     return parse(context);
   }
 
