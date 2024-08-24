@@ -145,7 +145,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
   // 1. Commit pending global options
   addPendingOptions(context, context.container.globalOptions);
   if (context.command) {
-    addPendingOptions(context, context.command.command.options);
+    addPendingOptions(context, context.command.options);
   }
 
   // 2. Parse arguments
@@ -216,7 +216,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
       // 2.2.2. Find matched command and add pending options
       if (matchedCommand) {
         context.command = matchedCommand;
-        addPendingOptions(context, matchedCommand.command.options);
+        addPendingOptions(context, matchedCommand.options);
 
         if (commands.size === 0) {
           matched = true;

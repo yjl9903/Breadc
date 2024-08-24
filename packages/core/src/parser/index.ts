@@ -5,7 +5,7 @@ import { Context } from './context.ts';
 export { parse } from './parser.ts';
 
 export function run<T>(context: Context): T {
-  if (context.command && context.command.command.actionFn) {
+  if (context.command && context.command.actionFn) {
     const args = context.arguments.map((ma) => ma.value);
 
     const options = Object.fromEntries(
@@ -15,8 +15,8 @@ export function run<T>(context: Context): T {
     );
 
     // Handle unknown options
-    if (context.command.command.onUnknownOptions) {
-      const onUnknownOptions = context.command.command.onUnknownOptions;
+    if (context.command.onUnknownOptions) {
+      const onUnknownOptions = context.command.onUnknownOptions;
       if (onUnknownOptions === true) {
         for (const [key, value] of context.matching.unknownOptions) {
           // TODO: handle more cases
@@ -33,7 +33,7 @@ export function run<T>(context: Context): T {
     // Add rest arguments
     options['--'] = context.remaining.map((t) => t.toRaw());
 
-    return context.command.command.actionFn(...args, options);
+    return context.command.actionFn(...args, options);
   }
 
   throw new RuntimeError('There is no matched command');
