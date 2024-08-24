@@ -10,7 +10,7 @@ export interface Container {
   commands: ICommand[];
 }
 
-export interface ContextMetadata { }
+export interface ContextMetadata {}
 
 export class Context {
   /**
@@ -58,7 +58,7 @@ export class Context {
     readonly arguments: Token[];
     /**
      * Matching commands or command aliases
-    */
+     */
     readonly commands: Map<string, [ICommand, number | undefined][]>;
     /**
      * Pending options
@@ -69,11 +69,11 @@ export class Context {
      */
     readonly unknownOptions: Array<[string, string | undefined]>;
   } = {
-      commands: new Map(),
-      arguments: [],
-      options: new Map(),
-      unknownOptions: [],
-    };
+    commands: new Map(),
+    arguments: [],
+    options: new Map(),
+    unknownOptions: []
+  };
 
   public constructor(container: Container, args: string[]) {
     this.container = container;
@@ -88,7 +88,7 @@ export class Context {
       commands: new Map(),
       arguments: [],
       options: new Map(),
-      unknownOptions: [],
+      unknownOptions: []
     };
   }
 }

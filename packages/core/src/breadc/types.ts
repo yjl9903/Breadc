@@ -1,5 +1,5 @@
 import type { OptionConfig } from './option.ts';
-import type { Command, ArgumentConfig } from './command.ts';
+import type { CommandConfig, ArgumentConfig } from './command.ts';
 
 export type OptionType = 'boolean' | 'optional' | 'required' | 'array';
 
@@ -14,7 +14,39 @@ export type IOption<F extends string = string> = {
 };
 
 export type ICommand<F extends string = string> = {
-  command: Command<F>;
+  format: F;
+
+  config: CommandConfig;
+
+  aliases: string[];
+
+  /**
+   * The bound action function
+   */
+  actionFn: Function | undefined;
+
+  /**
+   * The bound arguments
+   */
+  arguments: IArgument[];
+
+  /**
+   * The bound options
+   */
+  options: IOption[];
+
+  /**
+   * Callback on handling unknown options
+   */
+  onUnknownOptions:
+    | undefined
+    | true
+    | ((
+        options: any,
+        unknownOptions: Array<[string, string | undefined]>
+      ) => void);
+
+  // --- Internal ---
   /**
    * Const pieces
    *
@@ -23,10 +55,12 @@ export type ICommand<F extends string = string> = {
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
   pieces: string[];
+
   /**
    * Like const pieces, but for each alias
    */
-  aliases: string[][];
+  aliasPieces: string[][];
+
   /**
    * Required arguments
    *
@@ -37,6 +71,7 @@ export type ICommand<F extends string = string> = {
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
   requireds: IArgument[];
+
   /**
    * Optional arguments
    *
@@ -50,6 +85,7 @@ export type ICommand<F extends string = string> = {
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
   optionals: IArgument[];
+
   /**
    * Spread arguments
    *
@@ -64,6 +100,7 @@ export type ICommand<F extends string = string> = {
    * aaa bbb &lt;xxx&gt; &lt;yyy&gt; [zzz] [...www]
    */
   spread: IArgument | undefined;
+
   /**
    * Whether it is a default command
    */
