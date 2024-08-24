@@ -5,98 +5,107 @@ import { Command } from 'commander';
 
 import { Breadc } from '../src';
 
+const name = 'cli';
+const version = '0.0.0';
+const description = 'This is an empty cli';
+
 describe('Init empty cli', () => {
   bench('breadc', () => {
-    new Breadc('cli', {
-      version: '0.0.0',
-      description: 'This is an empty cli'
+    new Breadc(name, {
+      version,
+      description
     });
   });
 
   bench('cac', () => {
-    const cli = cac('cli');
+    const cli = cac(name);
     cli.help();
-    cli.version('0.0.0');
+    cli.version(version);
   });
 
   bench('commander.js', () => {
     const program = new Command();
-    program.name('cli').description('This is an empty cli').version('0.0.0');
+    program.name(name).description(description).version(version);
   });
 });
 
 describe('Parse simple option', () => {
-  // breadc
-  const b = new Breadc('cli');
-  b.option('--flag')
-    .command('')
-    .action(() => {});
-
-  // cac
-  const c = cac('cli');
-  c.option('--flag', '')
-    .command('')
-    .action(() => {});
-
-  // commander.js
-  const d = new Command();
-  d.name('cli');
-  d.option('--flag', '');
-  d.action(() => {});
-
-  const args = ['--flag'];
-  const argv = ['node', 'cli', ...args];
+  const argv = ['node', name, '--flag'];
 
   bench('breadc', () => {
-    b.parse(args);
+    const b = new Breadc(name, {
+      version
+    });
+    b.option('--flag')
+      .command('')
+      .action(() => {});
+    b.parse(argv.slice(2));
   });
 
   bench('cac', () => {
-    c.parse(args);
+    const c = cac(name);
+    c.help();
+    c.version(version);
+    c.option('--flag', '')
+      .command('')
+      .action(() => {});
+    c.parse(argv.slice(2));
   });
 
   bench('commander.js', () => {
+    const d = new Command();
+    d.name(name).description(description).version(version);
+    d.option('--flag', '');
+    d.action(() => {});
     d.parse(argv);
   });
 });
 
 describe('Parse more option', () => {
-  const b = new Breadc('cli');
-  b.option('--flag')
-    .option('--host <addr>')
-    .option('--local')
-    .option('--root <root>')
-    .command('')
-    .action(() => {});
-
-  const c = cac('cli');
-  c.option('--flag', '')
-    .option('--host <addr>', '')
-    .option('--local', '')
-    .option('--root <root>', '')
-    .command('')
-    .action(() => {});
-
-  const d = new Command();
-  d.name('cli');
-  d.option('--flag', '')
-    .option('--host <addr>', '')
-    .option('--local', '')
-    .option('--root <root>', '');
-  d.action(() => {});
-
-  const args = ['--flag', '--host', '1.1.1.1', '--local', '--root=./'];
-  const argv = ['node', 'cli', ...args];
+  const argv = [
+    'node',
+    name,
+    '--flag',
+    '--host',
+    '1.1.1.1',
+    '--local',
+    '--root=./'
+  ];
 
   bench('breadc', () => {
-    b.parse(args);
+    const b = new Breadc(name, {
+      version
+    });
+    b.option('--flag')
+      .option('--host <addr>')
+      .option('--local')
+      .option('--root <root>')
+      .command('')
+      .action(() => {});
+    b.parse(argv.slice(2));
   });
 
   bench('cac', () => {
-    c.parse(args);
+    const c = cac(name);
+    c.help();
+    c.version(version);
+    c.option('--flag', '')
+      .option('--host <addr>', '')
+      .option('--local', '')
+      .option('--root <root>', '')
+      .command('')
+      .action(() => {});
+    c.parse(argv.slice(2));
   });
 
   bench('commander.js', () => {
+    const d = new Command();
+    d.name(name).description(description).version(version);
+    d.option('--flag', '')
+      .option('--host <addr>', '')
+      .option('--local', '')
+      .option('--root <root>', '');
+    d.action(() => {});
     d.parse(argv);
   });
 });
@@ -105,7 +114,7 @@ describe('Parse sub-commands', () => {
   const action = () => {};
 
   bench('breadc', () => {
-    const b = new Breadc('cli');
+    const b = new Breadc(name, { version });
     b.command('[op]').action(action);
     b.command('dev').action(action);
     b.command('build <root>').action(action);
@@ -132,7 +141,9 @@ describe('Parse sub-commands', () => {
   });
 
   bench('cac', () => {
-    const c = cac('cli');
+    const c = cac(name);
+    c.help();
+    c.version(version);
     c.command('[op]').action(action);
     c.command('dev').action(action);
     c.command('build <root>').action(action);
@@ -157,9 +168,10 @@ describe('Parse sub-commands', () => {
       'n'
     ]);
   });
+
   bench('commander.js', () => {
     const d = new Command();
-    d.name('cli');
+    d.name(name).description(description).version(version);
     d.argument('[op]').action(action);
     d.command('dev').action(action);
     d.command('build <root>').action(action);
