@@ -34,7 +34,7 @@ export function parse(context: Context): Context {
         aliasIndex++
       ) {
         command.resolveAliasSubCommand(aliasIndex);
-        const alias = command.aliases[aliasIndex];
+        const alias = command.aliasPieces[aliasIndex];
         const piece = alias[0];
         if (piece) {
           if (commands.has(piece)) {
@@ -195,7 +195,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
         } else {
           // Alias command
           command.resolveAliasSubCommand(aliasIndex);
-          const piece = command.aliases[aliasIndex][currentIndex];
+          const piece = command.aliasPieces[aliasIndex][currentIndex];
           if (piece) {
             // Still need matching
             if (commands.has(piece)) {
