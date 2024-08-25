@@ -41,12 +41,12 @@ export interface Breadc<GlobalOption extends object = {}> {
     OR extends any = OO extends { cast(...args: any[]): infer CR }
       ? CR
       : OO['default'] extends OT
-      ? OT
-      : OT extends string
-      ? undefined | string
-      : OT extends boolean
-      ? boolean
-      : undefined | string | boolean
+        ? OT
+        : OT extends string
+          ? undefined | string
+          : OT extends boolean
+            ? boolean
+            : undefined | string | boolean
   >(
     format: OF,
     description?: string | OO,
@@ -93,12 +93,12 @@ export interface Command<
     OR extends any = OO extends { cast(...args: any[]): infer CR }
       ? CR
       : OO['default'] extends OT
-      ? OT
-      : OT extends string
-      ? undefined | string
-      : OT extends boolean
-      ? boolean
-      : undefined | string | boolean
+        ? OT
+        : OT extends string
+          ? undefined | string
+          : OT extends boolean
+            ? boolean
+            : undefined | string | boolean
   >(
     format: OF,
     description?: string | OO,

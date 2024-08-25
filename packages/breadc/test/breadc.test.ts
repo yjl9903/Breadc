@@ -208,7 +208,9 @@ describe('Breadc', () => {
     );
     expect(
       async () => await cli.run(['--no-flag'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Unknown option --no-flag]`);
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Unknown option --no-flag]`
+    );
   });
 });
 
@@ -303,7 +305,9 @@ describe('Parse Error', () => {
     cli.command('page get <page>').action((p) => p);
     expect(async () =>
       cli.run(['page'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Unknown sub-command]`);
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Unknown sub-command]`
+    );
     expect(async () =>
       cli.run(['page', 'post'])
     ).rejects.toThrowErrorMatchingInlineSnapshot(
