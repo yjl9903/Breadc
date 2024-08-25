@@ -5,15 +5,13 @@ import { Command, makeCommand } from '../command.ts';
 export function makeHelpCommand(name: string, config: BreadcConfig) {
   const raw = config.builtin?.help?.format;
 
-  let command;
+  const command = new Command('');
   if (raw === undefined) {
-    command = new Command('--help').alias('-h');
+    command.aliases.push('-h', '--help');
+  } else if (Array.isArray(raw)) {
+    command.aliases.push(...raw);
   } else {
-    const formats = Array.isArray(raw) ? raw : [raw];
-    command = new Command(formats[0]);
-    for (let i = 1; i < formats.length; i++) {
-      command.alias(formats[i]);
-    }
+    command.aliases.push(raw);
   }
 
   // TODO: support sub-commands
