@@ -20,6 +20,15 @@ export function splitOnce(
   return [first, second];
 }
 
+export function camelCase(text: string): string {
+  if (text.indexOf('-') === -1) return text;
+
+  return text
+    .split('-')
+    .map((t, idx) => (idx === 0 ? t : t[0].toUpperCase() + t.slice(1)))
+    .join('');
+}
+
 if (import.meta.vitest) {
   const { it, expect } = import.meta.vitest;
 
@@ -41,5 +50,10 @@ if (import.meta.vitest) {
         undefined,
       ]
     `);
+  });
+
+  it('camelCase', () => {
+    expect(camelCase('flag')).toMatchInlineSnapshot(`"flag"`);
+    expect(camelCase('bao-zhi-guo')).toMatchInlineSnapshot(`"baoZhiGuo"`);
   });
 }

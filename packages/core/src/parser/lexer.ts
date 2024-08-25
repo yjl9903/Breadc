@@ -126,17 +126,24 @@ export class Token {
    * @returns whether arg can treat as a long-flag
    */
   public get isLong(): boolean {
-    return (
-      this.text[0] === '-' && this.text[1] === '-' && this.text.length >= 3
-    );
+    return this.text[0] === '-' && this.text[1] === '-' && this.text.length > 2;
   }
 
   /**
-   * Treat as a long-flag
+   * Treat as a long-flag, un-checked version
    *
-   * @returns long-flag
+   * @returns a long flag and its argument
    */
   public toLong(): [key: string, value: string | undefined] | undefined {
+    return splitOnce(this.text, '=');
+  }
+
+  /**
+   * Treat as a long-flag, checked version
+   *
+   * @returns a long flag and its argument
+   */
+  public checkToLong(): [key: string, value: string | undefined] | undefined {
     // Should start with '--'
     if (this.text[0] !== '-') return undefined;
     if (this.text[1] !== '-') return undefined;
@@ -150,17 +157,24 @@ export class Token {
    * @returns whether arg can treat as a long-flag
    */
   public get isShort(): boolean {
-    return (
-      this.text[0] === '-' && this.text[1] !== '-' && this.text.length >= 2
-    );
+    return this.text[0] === '-' && this.text[1] !== '-' && this.text.length > 1;
   }
 
   /**
-   * Treat as a short-flag
+   * Treat as a short-flag, un-checked version
    *
-   * @returns short-flag
+   * @returns a short flag and its argument
    */
   public toShort(): [key: string, value: string | undefined] | undefined {
+    return splitOnce(this.text, '=');
+  }
+
+  /**
+   * Treat as a short-flag, checked version
+   *
+   * @returns a short flag and its argument
+   */
+  public checkToShort(): [key: string, value: string | undefined] | undefined {
     // Should start with '-'
     if (this.text[0] !== '-') return undefined;
     // Should not be '-'
