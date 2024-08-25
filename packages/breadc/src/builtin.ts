@@ -123,10 +123,10 @@ export function makeHelpCommand(
           allCommands.length === 0
             ? `[OPTIONS]`
             : allCommands.length === 1
-            ? `[OPTIONS] ${allCommands[0].format}`
-            : allCommands.some((c) => c._default)
-            ? `[OPTIONS] [COMMAND]`
-            : `[OPTIONS] <COMMAND>`;
+              ? `[OPTIONS] ${allCommands[0].format}`
+              : allCommands.some((c) => c._default)
+                ? `[OPTIONS] [COMMAND]`
+                : `[OPTIONS] <COMMAND>`;
 
         const output: HelpMessage = [
           `${name}/${config.version ? config.version : 'unknown'}`,

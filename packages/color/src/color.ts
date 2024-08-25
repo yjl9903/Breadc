@@ -22,12 +22,12 @@ const globalVar =
     ? // @ts-ignore
       self
     : // @ts-ignore
-    typeof window !== 'undefined'
-    ? // @ts-ignore
-      window
-    : typeof global !== 'undefined'
-    ? global
-    : ({} as any);
+      typeof window !== 'undefined'
+      ? // @ts-ignore
+        window
+      : typeof global !== 'undefined'
+        ? global
+        : ({} as any);
 
 if (globalVar.process && globalVar.process.env && globalVar.process.stdout) {
   const { FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } =

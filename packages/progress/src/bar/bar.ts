@@ -36,8 +36,8 @@ export class ProgressBar<P> extends EventEmitter {
     this.options = options;
     this.terminal = new Terminal(options.stream ?? process.stderr);
     this.schedulingRate = this.terminal.isTTY
-      ? this.options.throttleTime ?? 100
-      : this.options.notTTYSchedule ?? 2000;
+      ? (this.options.throttleTime ?? 100)
+      : (this.options.notTTYSchedule ?? 2000);
 
     if (!options.align) {
       options.align = 'left';
