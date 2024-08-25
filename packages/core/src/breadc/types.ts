@@ -58,6 +58,11 @@ export type ICommand<F extends string = string> = {
   pieces: string[];
 
   /**
+   * The lazy matching position for each alias
+   */
+  aliasPos: number[];
+
+  /**
    * Like const pieces, but for each alias
    */
   aliasPieces: string[][];

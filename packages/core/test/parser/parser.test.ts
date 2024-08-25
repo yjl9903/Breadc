@@ -12,6 +12,7 @@ describe('parser', () => {
       Command {
         "actionFn": [Function],
         "aliasPieces": [],
+        "aliasPos": [],
         "aliases": [],
         "arguments": [],
         "config": {},
@@ -44,6 +45,7 @@ describe('parser', () => {
       Command {
         "actionFn": [Function],
         "aliasPieces": [],
+        "aliasPos": [],
         "aliases": [],
         "arguments": [],
         "config": {},
@@ -104,6 +106,7 @@ describe('parser', () => {
       Command {
         "actionFn": [Function],
         "aliasPieces": [],
+        "aliasPos": [],
         "aliases": [],
         "arguments": [],
         "config": {},
@@ -182,6 +185,9 @@ describe('parser', () => {
             "p",
           ],
         ],
+        "aliasPos": [
+          1,
+        ],
         "aliases": [
           "p",
         ],
@@ -209,6 +215,9 @@ describe('parser', () => {
           [
             "p",
           ],
+        ],
+        "aliasPos": [
+          1,
         ],
         "aliases": [
           "p",
