@@ -33,7 +33,7 @@ export function run<T>(context: Context): T {
     // Add rest arguments
     options['--'] = context.remaining.map((t) => t.toRaw());
 
-    return context.command.actionFn(...args, options);
+    return context.command.actionFn.call(context, ...args, options);
   }
 
   throw new RuntimeError('There is no matched command');
