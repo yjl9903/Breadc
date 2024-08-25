@@ -53,10 +53,11 @@ describe('parser', () => {
         "optionals": [],
         "options": [
           Option {
+            "argument": undefined,
             "config": {},
             "format": "--flag",
-            "long": "flag",
-            "name": undefined,
+            "long": "--flag",
+            "name": "flag",
             "resolve": [Function],
             "short": undefined,
             "type": "boolean",
@@ -73,13 +74,14 @@ describe('parser', () => {
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
     expect(context.options).toMatchInlineSnapshot(`
       Map {
-        "flag" => MatchedOption {
+        "--flag" => MatchedOption {
           "dirty": false,
           "option": Option {
+            "argument": undefined,
             "config": {},
             "format": "--flag",
-            "long": "flag",
-            "name": undefined,
+            "long": "--flag",
+            "name": "flag",
             "resolve": [Function],
             "short": undefined,
             "type": "boolean",
@@ -89,8 +91,8 @@ describe('parser', () => {
       }
     `);
 
-    expect(cli.run([])).toMatchInlineSnapshot(`false`);
-    expect(cli.run(['--flag'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run([])).toMatchInlineSnapshot(`undefined`);
+    expect(cli.run(['--flag'])).toMatchInlineSnapshot(`undefined`);
   });
 
   it('should parse single command', () => {

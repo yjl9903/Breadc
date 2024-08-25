@@ -13,7 +13,9 @@ describe('breadc', () => {
     const context = new Context(
       {
         globalOptions: [],
-        commands: [makeCommand(new Command('')), makeCommand(new Command(''))]
+        commands: [makeCommand(new Command('')), makeCommand(new Command(''))],
+        version: undefined,
+        help: undefined
       },
       []
     );

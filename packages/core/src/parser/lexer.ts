@@ -126,7 +126,9 @@ export class Token {
    * @returns whether arg can treat as a long-flag
    */
   public get isLong(): boolean {
-    return this.text.startsWith('--') && this.text !== '--';
+    return (
+      this.text[0] === '-' && this.text[1] === '-' && this.text.length >= 3
+    );
   }
 
   /**
@@ -135,12 +137,13 @@ export class Token {
    * @returns long-flag
    */
   public toLong(): [key: string, value: string | undefined] | undefined {
-    const remainder = stripPrefix(this.text, '--');
-    if (remainder === undefined) return undefined;
+    // Should start with '--'
+    if (this.text[0] !== '-') return undefined;
+    if (this.text[1] !== '-') return undefined;
     // Should not be escape
-    if (remainder.length === 0) return undefined;
+    if (this.text.length <= 2) return undefined;
 
-    return splitOnce(remainder, '=');
+    return splitOnce(this.text, '=');
   }
 
   /**
@@ -148,9 +151,7 @@ export class Token {
    */
   public get isShort(): boolean {
     return (
-      this.text.startsWith('-') &&
-      !this.text.startsWith('--') &&
-      this.text !== '-'
+      this.text[0] === '-' && this.text[1] !== '-' && this.text.length >= 2
     );
   }
 
@@ -160,14 +161,14 @@ export class Token {
    * @returns short-flag
    */
   public toShort(): [key: string, value: string | undefined] | undefined {
-    const remainder = stripPrefix(this.text, '-');
-    if (remainder === undefined) return undefined;
+    // Should start with '-'
+    if (this.text[0] !== '-') return undefined;
     // Should not be '-'
-    if (remainder.length === 0) return undefined;
+    if (this.text.length <= 1) return undefined;
     // Should not start with '--'
-    if (remainder.startsWith('-')) return undefined;
+    if (this.text[1] === '-') return undefined;
 
-    return splitOnce(remainder, '=');
+    return splitOnce(this.text, '=');
   }
 
   // --- String ---

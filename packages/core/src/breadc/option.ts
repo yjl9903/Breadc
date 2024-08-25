@@ -50,7 +50,7 @@ export class Option<
 }
 
 const OptionRE =
-  /^(-[a-zA-Z], )?--([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
+  /^(?:(-[a-zA-Z]), )?--([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
 export function makeOption<F extends string = string>(
   _option: Option<F>
@@ -63,25 +63,28 @@ export function makeOption<F extends string = string>(
   option.type = undefined!;
   option.long = undefined!;
   option.short = undefined;
-  option.name = undefined;
+  option.argument = undefined;
 
   option.resolve = () => {
     if (resolved) return option;
 
     const match = OptionRE.exec(format);
     if (match) {
-      option.long = match[2];
+      // --([a-zA-Z0-9\-]+)
+      option.name = match[2];
+      option.long = '--' + match[2];
 
+      // (-[a-zA-Z])
       if (match[1]) {
-        option.short = match[1][1];
+        option.short = match[1];
       }
 
       if (match[3]) {
-        const name = match[3];
-        option.name = name;
-        if (name[0] === '<') {
+        const arg = match[3];
+        option.argument = arg;
+        if (arg[0] === '<') {
           option.type = 'required';
-        } else if (name[1] === '.') {
+        } else if (arg[1] === '.') {
           option.type = 'array';
         } else {
           option.type = 'optional';
