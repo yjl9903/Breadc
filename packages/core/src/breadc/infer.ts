@@ -1,3 +1,4 @@
+import type { Context } from '../parser/context.ts';
 import type { Letter, Prettify } from '../utils/types.ts';
 
 import type { OptionConfig } from './option.ts';
@@ -152,7 +153,7 @@ type InferArgumentsType1<F extends string> = F extends `<${string}> ${infer U}`
                 ? never
                 : [];
 
-type InferArgumentsType2<F extends string> = F extends `<${string}> ${infer U}`
+type InferArgumentsType2<F extends string> = F extends `<${string}> ${string}`
   ? never
   : F extends `[...${string}] ${string}`
     ? never
@@ -173,5 +174,6 @@ type InferArgumentsType2<F extends string> = F extends `<${string}> ${infer U}`
 type Push<T extends any[], U, R> = [...T, U, R];
 
 export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
+  this: Context,
   ...arg: Push<T, Prettify<Option & { '--': string[] }>, {}>
 ) => R | Promise<R>;

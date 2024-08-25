@@ -8,12 +8,13 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       Option {
+        "argument": undefined,
         "config": {},
         "format": "-v, --version",
-        "long": "version",
-        "name": undefined,
+        "long": "--version",
+        "name": "version",
         "resolve": [Function],
-        "short": "v",
+        "short": "-v",
         "type": "boolean",
       }
     `);
@@ -24,10 +25,11 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       Option {
+        "argument": undefined,
         "config": {},
         "format": "--version",
-        "long": "version",
-        "name": undefined,
+        "long": "--version",
+        "name": "version",
         "resolve": [Function],
         "short": undefined,
         "type": "boolean",
@@ -49,10 +51,11 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       Option {
+        "argument": "<root>",
         "config": {},
         "format": "--root <root>",
-        "long": "root",
-        "name": "<root>",
+        "long": "--root",
+        "name": "root",
         "resolve": [Function],
         "short": undefined,
         "type": "required",
@@ -65,10 +68,11 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       Option {
+        "argument": "[root]",
         "config": {},
         "format": "--root [root]",
-        "long": "root",
-        "name": "[root]",
+        "long": "--root",
+        "name": "root",
         "resolve": [Function],
         "short": undefined,
         "type": "optional",
@@ -81,10 +85,11 @@ describe('option', () => {
     opt.resolve();
     expect(opt).toMatchInlineSnapshot(`
       Option {
+        "argument": "[...plugins]",
         "config": {},
         "format": "--plugin [...plugins]",
-        "long": "plugin",
-        "name": "[...plugins]",
+        "long": "--plugin",
+        "name": "plugin",
         "resolve": [Function],
         "short": undefined,
         "type": "array",

@@ -7,9 +7,10 @@ export type IOption<F extends string = string> = {
   format: F;
   config: OptionConfig;
   type: OptionType;
+  name: string;
   long: string;
   short: string | undefined;
-  name: string | undefined;
+  argument: string | undefined;
   resolve(): IOption<F>;
 };
 
