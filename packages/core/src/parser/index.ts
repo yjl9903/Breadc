@@ -1,3 +1,4 @@
+import { camelCase } from '../utils/index.ts';
 import { RuntimeError } from '../error.ts';
 
 import { Context } from './context.ts';
@@ -10,7 +11,7 @@ export function run<T>(context: Context): T {
 
     const options = Object.fromEntries(
       [...context.options.entries()].map(
-        ([key, mo]) => [key, mo.value] as const
+        ([key, mo]) => [camelCase(key), mo.value] as const
       )
     );
 
@@ -20,7 +21,7 @@ export function run<T>(context: Context): T {
       if (onUnknownOptions === true) {
         for (const [key, value] of context.matching.unknownOptions) {
           // TODO: handle more cases
-          options[key] = value;
+          options[camelCase(key)] = value;
         }
       } else {
         onUnknownOptions(options, context.matching.unknownOptions);
