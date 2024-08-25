@@ -212,6 +212,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
       context.remaining.push(...context.tokens.remaining());
     } else if (!matched && commands.has(rawToken)) {
       // 2.2. sub-command matched
+      context.matching.pieces.push(rawToken);
       const nextCommands = commands.get(rawToken)!;
 
       // 2.2.1. Commit pending sub-commands
