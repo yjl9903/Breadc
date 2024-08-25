@@ -1,3 +1,4 @@
+import type { Context } from '../../parser/context.ts';
 import type { BreadcConfig } from '../app.ts';
 
 import { Command, makeCommand } from '../command.ts';
@@ -14,10 +15,14 @@ export function makeHelpCommand(name: string, config: BreadcConfig) {
     command.aliases.push(raw);
   }
 
-  // TODO: support sub-commands
-  command.actionFn = () => {
+  command.actionFn = function () {
+    // Prepare context
+    const context = this as unknown as Context;
+
+    // TODO: print help and support sub-commands
     const text = `${name}/${config.version ? config.version : 'unknown'}`;
     console.log(text);
+
     return text;
   };
 
