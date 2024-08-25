@@ -8,6 +8,10 @@ export interface Container {
   globalOptions: IOption[];
 
   commands: ICommand[];
+
+  help: ICommand | undefined;
+
+  version: ICommand | undefined;
 }
 
 export interface ContextMetadata {}
