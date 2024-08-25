@@ -46,6 +46,46 @@ describe('option', () => {
     );
   });
 
+  it('should resolve negated option', () => {
+    const opt = makeOption(new Option('--no-flag'));
+    opt.resolve();
+    expect(opt).toMatchInlineSnapshot(`
+      Option {
+        "argument": undefined,
+        "config": {
+          "initial": true,
+          "negated": true,
+        },
+        "format": "--no-flag",
+        "long": "--flag",
+        "name": "flag",
+        "resolve": [Function],
+        "short": undefined,
+        "type": "boolean",
+      }
+    `);
+  });
+
+  it('should not resolve negated option with argument', () => {
+    const opt1 = makeOption(new Option('--no-flag <helo>'));
+
+    expect(() => opt1.resolve()).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid option at the option "--no-flag <helo>"]`
+    );
+
+    const opt2 = makeOption(new Option('--no-flag [helo]'));
+
+    expect(() => opt2.resolve()).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid option at the option "--no-flag [helo]"]`
+    );
+
+    const opt3 = makeOption(new Option('--no-flag [...helo]'));
+
+    expect(() => opt3.resolve()).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid option at the option "--no-flag [...helo]"]`
+    );
+  });
+
   it('should resolve required option', () => {
     const opt = makeOption(new Option('--root <root>'));
     opt.resolve();

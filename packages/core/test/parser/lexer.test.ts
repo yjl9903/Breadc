@@ -107,9 +107,11 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['-', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['-', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -120,9 +122,11 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['123', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['123', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(true);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -133,9 +137,11 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -146,9 +152,16 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['-f', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-f",
+        undefined,
+      ]
+    `);
+    expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
         "-f",
         undefined,
@@ -164,9 +177,16 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['-fg', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-fg",
+        undefined,
+      ]
+    `);
+    expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
         "-fg",
         undefined,
@@ -182,9 +202,16 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['-n', '1']);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-n",
+        "1",
+      ]
+    `);
+    expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
         "-n",
         "1",
@@ -206,8 +233,15 @@ describe('lexer', () => {
         undefined,
       ]
     `);
+    expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+      [
+        "--flag",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['--flag', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -224,8 +258,15 @@ describe('lexer', () => {
         "def",
       ]
     `);
+    expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+      [
+        "--value",
+        "def",
+      ]
+    `);
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['--value', 'def']);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -236,9 +277,16 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['-1', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-1",
+        undefined,
+      ]
+    `);
+    expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
         "-1",
         undefined,
@@ -260,8 +308,15 @@ describe('lexer', () => {
         undefined,
       ]
     `);
+    expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+      [
+        "--1",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['--1', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -272,9 +327,11 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(true);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['--', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['--', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -285,9 +342,11 @@ describe('lexer', () => {
     expect(lexer.peek()?.isEscape).toBe(false);
     expect(lexer.peek()?.isEmpty).toBe(false);
     expect(lexer.peek()?.isLong).toBe(false);
-    expect(lexer.peek()?.toLong()).toBeUndefined();
+    expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toBe(false);
-    expect(lexer.peek()?.toShort()).toBeUndefined();
+    expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toBe(false);
     expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -322,9 +381,11 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['-', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['-', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -335,9 +396,11 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['123', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['123', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(true);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -348,9 +411,11 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -361,14 +426,21 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['-f', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
-        [
-          "-f",
-          undefined,
-        ]
-      `);
+      [
+        "-f",
+        undefined,
+      ]
+    `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+      [
+        "-f",
+        undefined,
+      ]
+    `);
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -379,14 +451,21 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['-fg', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
-        [
-          "-fg",
-          undefined,
-        ]
-      `);
+      [
+        "-fg",
+        undefined,
+      ]
+    `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+      [
+        "-fg",
+        undefined,
+      ]
+    `);
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -397,14 +476,21 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['-n', '1']);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
-        [
-          "-n",
-          "1",
-        ]
-      `);
+      [
+        "-n",
+        "1",
+      ]
+    `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+      [
+        "-n",
+        "1",
+      ]
+    `);
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -416,13 +502,20 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(true);
       expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
-        [
-          "--flag",
-          undefined,
-        ]
-      `);
+      [
+        "--flag",
+        undefined,
+      ]
+    `);
+      expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+      [
+        "--flag",
+        undefined,
+      ]
+    `);
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['--flag', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -434,13 +527,20 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(true);
       expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
-        [
-          "--value",
-          "def",
-        ]
-      `);
+      [
+        "--value",
+        "def",
+      ]
+    `);
+      expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+      [
+        "--value",
+        "def",
+      ]
+    `);
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['--value', 'def']);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -451,14 +551,21 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['-1', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
-        [
-          "-1",
-          undefined,
-        ]
-      `);
+      [
+        "-1",
+        undefined,
+      ]
+    `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+      [
+        "-1",
+        undefined,
+      ]
+    `);
       expect(lexer.peek()?.isNumber).toBe(true);
       expect(lexer.peek()?.isNegativeNumber).toBe(true);
 
@@ -470,13 +577,20 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(true);
       expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
-        [
-          "--1",
-          undefined,
-        ]
-      `);
+      [
+        "--1",
+        undefined,
+      ]
+    `);
+      expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+      [
+        "--1",
+        undefined,
+      ]
+    `);
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['--1', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -487,9 +601,11 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(true);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['--', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['--', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 
@@ -500,9 +616,11 @@ describe('lexer', () => {
       expect(lexer.peek()?.isEscape).toBe(false);
       expect(lexer.peek()?.isEmpty).toBe(false);
       expect(lexer.peek()?.isLong).toBe(false);
-      expect(lexer.peek()?.toLong()).toBeUndefined();
+      expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toBe(false);
-      expect(lexer.peek()?.toShort()).toBeUndefined();
+      expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toBe(false);
       expect(lexer.peek()?.isNegativeNumber).toBe(false);
 

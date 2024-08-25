@@ -74,7 +74,7 @@ describe('parser', () => {
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
     expect(context.options).toMatchInlineSnapshot(`
       Map {
-        "--flag" => MatchedOption {
+        "flag" => MatchedOption {
           "dirty": false,
           "option": Option {
             "argument": undefined,
@@ -91,8 +91,8 @@ describe('parser', () => {
       }
     `);
 
-    expect(cli.run([])).toMatchInlineSnapshot(`undefined`);
-    expect(cli.run(['--flag'])).toMatchInlineSnapshot(`undefined`);
+    expect(cli.run([])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['--flag'])).toMatchInlineSnapshot(`true`);
   });
 
   it('should parse single command', () => {
@@ -138,6 +138,33 @@ describe('parser', () => {
     expect(context.command).toMatchInlineSnapshot(`undefined`);
     expect(context.arguments).toMatchInlineSnapshot(`[]`);
     expect(context.options).toMatchInlineSnapshot(`Map {}`);
+  });
+
+  it('should parse single command with negated boolean option', () => {
+    const cli = new Breadc('cli');
+    cli.command('dev').action(() => true);
+    cli
+      .command('dev')
+      .option('--no-flag')
+      .action((options) => options.flag);
+
+    expect(cli.run(['dev'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--flag'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--flag=true'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--flag=false'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--flag=f'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--flag=no'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--flag=n'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--flag=off'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--flag=123'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--no-flag'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--no-flag=true'])).toMatchInlineSnapshot(`false`);
+    expect(cli.run(['dev', '--no-flag=false'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--no-flag=f'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--no-flag=no'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--no-flag=n'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--no-flag=off'])).toMatchInlineSnapshot(`true`);
+    expect(cli.run(['dev', '--no-flag=123'])).toMatchInlineSnapshot(`false`);
   });
 
   it('should parse command with alias', () => {
