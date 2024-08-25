@@ -57,6 +57,10 @@ export class Context {
    */
   public matching: {
     /**
+     * Sub-command pieces
+     */
+    readonly pieces: string[];
+    /**
      * Arguments
      */
     readonly arguments: Token[];
@@ -73,6 +77,7 @@ export class Context {
      */
     readonly unknownOptions: Array<[string, string | undefined]>;
   } = {
+    pieces: [],
     commands: new Map(),
     arguments: [],
     options: new Map(),
@@ -89,6 +94,7 @@ export class Context {
     this.options = new Map();
     this.remaining = [];
     this.matching = {
+      pieces: [],
       commands: new Map(),
       arguments: [],
       options: new Map(),
