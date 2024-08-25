@@ -130,14 +130,18 @@ function addPendingOptions(context: Context, pendingOptions: IOption[]) {
 
     // Initialize the matched option
     const matched = new MatchedOption(option);
-    context.options.set(option.long, matched);
+    context.options.set(option.name, matched);
 
-    // Find the options by string
+    // Find the options by its long, short, or negated format
     options.set(option.long, option);
+
     if (option.short !== undefined) {
       options.set(option.short, option);
     }
-    // TODO: support more options
+
+    if (option.config.negated) {
+      options.set(`--no-${option.name}`, option);
+    }
   }
 }
 
@@ -229,8 +233,8 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
 
       if (option) {
         // Match option and set value
-        const matched = context.options.get(option.long)!;
-        matched.accept(context, value);
+        const matched = context.options.get(option.name)!;
+        matched.accept(context, key, value);
       } else {
         // Handle unknown long options or short options
         unknownOptions.push([key, value]);

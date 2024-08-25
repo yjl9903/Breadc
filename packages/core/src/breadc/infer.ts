@@ -61,17 +61,19 @@ export type InferOptionRawName<F extends string> =
             ? R
             : F extends `-${Letter}, --${infer R}`
               ? R
-              : F extends `--no-${infer R} <${string}>`
-                ? R
-                : F extends `--no-${infer R} [${string}]`
-                  ? R
-                  : F extends `--${infer R} <${string}>`
+              : F extends `--no-${string} <${string}>`
+                ? never
+                : F extends `--no-${string} [${string}]`
+                  ? never
+                  : F extends `--no-${infer R}`
                     ? R
-                    : F extends `--${infer R} [${string}]`
+                    : F extends `--${infer R} <${string}>`
                       ? R
-                      : F extends `--${infer R}`
+                      : F extends `--${infer R} [${string}]`
                         ? R
-                        : string;
+                        : F extends `--${infer R}`
+                          ? R
+                          : string;
 
 /**
  * Infer camel case option name
