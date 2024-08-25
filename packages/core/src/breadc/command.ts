@@ -193,6 +193,7 @@ export function makeCommand<F extends string = string>(
 
   command.isDefault = format === '' || format[0] === '[' || format[0] === '<';
   command.pieces = pieces;
+  command.aliasPos = aliasPos;
   command.aliasPieces = aliasPieces;
   command.requireds = requireds;
   command.optionals = optionals;

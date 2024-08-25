@@ -46,6 +46,8 @@ export function parse(context: Context): Context {
       }
     }
   }
+  // Add builtin version and help command
+  addPendingBuiltinCommands(context, true);
 
   const onlyDefaultCommand =
     defaultCommand !== undefined && context.container.commands.length === 1;
@@ -115,6 +117,45 @@ export function parse(context: Context): Context {
   }
 
   return context;
+}
+
+function addPendingBuiltinCommands(context: Context, initialize: boolean) {
+  const { commands } = context.matching;
+
+  if (context.container.version) {
+    const command = context.container.version;
+    for (
+      let aliasIndex = 0;
+      aliasIndex < command.aliases.length;
+      aliasIndex++
+    ) {
+      const piece = command.aliases[aliasIndex];
+      if (piece && !commands.has(piece)) {
+        commands.set(piece, [[command, aliasIndex]]);
+        if (initialize) {
+          command.aliasPos[aliasIndex] = piece.length;
+          command.aliasPieces[aliasIndex] = [piece];
+        }
+      }
+    }
+  }
+  if (context.container.help) {
+    const command = context.container.help;
+    for (
+      let aliasIndex = 0;
+      aliasIndex < command.aliases.length;
+      aliasIndex++
+    ) {
+      const piece = command.aliases[aliasIndex];
+      if (piece && !commands.has(piece)) {
+        commands.set(piece, [[command, aliasIndex]]);
+        if (initialize) {
+          command.aliasPos[aliasIndex] = piece.length;
+          command.aliasPieces[aliasIndex] = [piece];
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -217,14 +258,17 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
         }
       }
 
-      // 2.2.2. Find matched command and add pending options
       if (matchedCommand) {
+        // 2.2.2. Find matched command and add pending options
         context.command = matchedCommand;
         addPendingOptions(context, matchedCommand.options);
 
         if (commands.size === 0) {
           matched = true;
         }
+      } else {
+        // 2.2.3. Commit builtin version and help command
+        addPendingBuiltinCommands(context, false);
       }
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
       // 2.3. handle long options or short options (not negative number)

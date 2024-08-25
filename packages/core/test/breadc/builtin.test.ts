@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import { Breadc } from '../../src/index.ts';
 
-describe.skip('breadc builtin version comamnd', () => {
+describe('breadc builtin version comamnd', () => {
   it('should print unknown version', () => {
     const app = new Breadc('cli');
     expect(app.run(['-v'])).toMatchInlineSnapshot(`"cli/unknown"`);
@@ -50,7 +50,7 @@ describe.skip('breadc builtin version comamnd', () => {
   });
 });
 
-describe.skip('breadc builtin help comamnd', () => {
+describe('breadc builtin help comamnd', () => {
   it('should print default help', () => {
     const app = new Breadc('cli');
     expect(app.run(['-h'])).toMatchInlineSnapshot(`"cli/unknown"`);
