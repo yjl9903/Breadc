@@ -5,14 +5,14 @@ import { Breadc } from '../../src/index.ts';
 describe('breadc builtin version comamnd', () => {
   it('should print unknown version', () => {
     const app = new Breadc('cli');
-    expect(app.run(['-v'])).toMatchInlineSnapshot(`"cli/unknown"`);
-    expect(app.run(['--version'])).toMatchInlineSnapshot(`"cli/unknown"`);
+    expect(app.runSync(['-v'])).toMatchInlineSnapshot(`"cli/unknown"`);
+    expect(app.runSync(['--version'])).toMatchInlineSnapshot(`"cli/unknown"`);
   });
 
   it('should print passed version', () => {
     const app = new Breadc('cli', { version: '1.0.0' });
-    expect(app.run(['-v'])).toMatchInlineSnapshot(`"cli/1.0.0"`);
-    expect(app.run(['--version'])).toMatchInlineSnapshot(`"cli/1.0.0"`);
+    expect(app.runSync(['-v'])).toMatchInlineSnapshot(`"cli/1.0.0"`);
+    expect(app.runSync(['--version'])).toMatchInlineSnapshot(`"cli/1.0.0"`);
   });
 
   it('should be overwritten by single format', () => {
@@ -24,11 +24,11 @@ describe('breadc builtin version comamnd', () => {
         }
       }
     });
-    expect(app.run(['-V'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
-    expect(() => app.run(['-v'])).toThrowErrorMatchingInlineSnapshot(
+    expect(app.runSync(['-V'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(() => app.runSync(['-v'])).toThrowErrorMatchingInlineSnapshot(
       `[Error: There is no matched command]`
     );
-    expect(() => app.run(['--version'])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => app.runSync(['--version'])).toThrowErrorMatchingInlineSnapshot(
       `[Error: There is no matched command]`
     );
   });
@@ -42,19 +42,19 @@ describe('breadc builtin version comamnd', () => {
         }
       }
     });
-    expect(() => app.run(['-v'])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => app.runSync(['-v'])).toThrowErrorMatchingInlineSnapshot(
       `[Error: There is no matched command]`
     );
-    expect(app.run(['-V'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
-    expect(app.run(['--version'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(app.runSync(['-V'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(app.runSync(['--version'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
   });
 });
 
 describe('breadc builtin help comamnd', () => {
   it('should print default help', () => {
     const app = new Breadc('cli');
-    expect(app.run(['-h'])).toMatchInlineSnapshot(`"cli/unknown"`);
-    expect(app.run(['--help'])).toMatchInlineSnapshot(`"cli/unknown"`);
+    expect(app.runSync(['-h'])).toMatchInlineSnapshot(`"cli/unknown"`);
+    expect(app.runSync(['--help'])).toMatchInlineSnapshot(`"cli/unknown"`);
   });
 
   it('should be overwritten by single format', () => {
@@ -66,11 +66,11 @@ describe('breadc builtin help comamnd', () => {
         }
       }
     });
-    expect(app.run(['help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
-    expect(() => app.run(['-h'])).toThrowErrorMatchingInlineSnapshot(
+    expect(app.runSync(['help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(() => app.runSync(['-h'])).toThrowErrorMatchingInlineSnapshot(
       `[Error: There is no matched command]`
     );
-    expect(() => app.run(['--help'])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => app.runSync(['--help'])).toThrowErrorMatchingInlineSnapshot(
       `[Error: There is no matched command]`
     );
   });
@@ -84,10 +84,10 @@ describe('breadc builtin help comamnd', () => {
         }
       }
     });
-    expect(() => app.run(['-h'])).toThrowErrorMatchingInlineSnapshot(
+    expect(() => app.runSync(['-h'])).toThrowErrorMatchingInlineSnapshot(
       `[Error: There is no matched command]`
     );
-    expect(app.run(['help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
-    expect(app.run(['--help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(app.runSync(['help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
+    expect(app.runSync(['--help'])).toMatchInlineSnapshot(`"cli/2.0.0"`);
   });
 });
