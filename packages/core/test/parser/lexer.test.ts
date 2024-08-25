@@ -71,7 +71,7 @@ describe('lexer', () => {
     `);
   });
 
-  it('treat token as string', () => {
+  it('should treat token as string', () => {
     const lexer = new Lexer(['abc', 'bc', 'c']);
     const token = lexer.next()!;
     expect(token.length).toMatchInlineSnapshot(`3`);
@@ -150,7 +150,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "f",
+        "-f",
         undefined,
       ]
     `);
@@ -168,7 +168,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "fg",
+        "-fg",
         undefined,
       ]
     `);
@@ -186,7 +186,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "n",
+        "-n",
         "1",
       ]
     `);
@@ -202,7 +202,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isLong).toBe(true);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
-        "flag",
+        "--flag",
         undefined,
       ]
     `);
@@ -220,7 +220,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isLong).toBe(true);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
-        "value",
+        "--value",
         "def",
       ]
     `);
@@ -240,7 +240,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isShort).toBe(true);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "1",
+        "-1",
         undefined,
       ]
     `);
@@ -256,7 +256,7 @@ describe('lexer', () => {
     expect(lexer.peek()?.isLong).toBe(true);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
-        "1",
+        "--1",
         undefined,
       ]
     `);
@@ -365,7 +365,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
         [
-          "f",
+          "-f",
           undefined,
         ]
       `);
@@ -383,7 +383,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
         [
-          "fg",
+          "-fg",
           undefined,
         ]
       `);
@@ -401,7 +401,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
         [
-          "n",
+          "-n",
           "1",
         ]
       `);
@@ -417,7 +417,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isLong).toBe(true);
       expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
         [
-          "flag",
+          "--flag",
           undefined,
         ]
       `);
@@ -435,7 +435,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isLong).toBe(true);
       expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
         [
-          "value",
+          "--value",
           "def",
         ]
       `);
@@ -455,7 +455,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isShort).toBe(true);
       expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
         [
-          "1",
+          "-1",
           undefined,
         ]
       `);
@@ -471,7 +471,7 @@ describe('lexer', () => {
       expect(lexer.peek()?.isLong).toBe(true);
       expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
         [
-          "1",
+          "--1",
           undefined,
         ]
       `);

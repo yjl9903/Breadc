@@ -45,21 +45,25 @@ export class Breadc<GO extends Record<string, any> = {}> {
 
   config: BreadcConfig;
 
-  #container: Container = {
-    globalOptions: [],
-    commands: []
-  };
+  #container: Container;
 
   public constructor(name: string, config: BreadcConfig = {}) {
     this.name = name;
     this.config = config;
 
+    let version, help;
     if (config.builtin?.version?.enable !== false) {
-      this.#container.commands.push(makeVersionCommand(name, config));
+      version = makeVersionCommand(name, config);
     }
     if (config.builtin?.help?.enable !== false) {
-      this.#container.commands.push(makeHelpCommand(name, config));
+      help = makeHelpCommand(name, config);
     }
+    this.#container = {
+      globalOptions: [],
+      commands: [],
+      version,
+      help
+    };
   }
 
   // --- Builder ---
