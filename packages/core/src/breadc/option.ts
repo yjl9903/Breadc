@@ -10,6 +10,11 @@ export interface OptionConfig<F extends string = string, R = {}> {
   description?: string;
 
   /**
+   * Generate negated option
+   */
+  negated?: InferOptionRawType<F> extends boolean ? boolean : never;
+
+  /**
    * Overwrite the initial value of the corresponding matched option
    * - &lt;required&gt;: undefined
    * - [optional]: false
@@ -50,7 +55,7 @@ export class Option<
 }
 
 const OptionRE =
-  /^(?:(-[a-zA-Z]), )?--([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
+  /^(?:(-[a-zA-Z]), )?--(no-)?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
 export function makeOption<F extends string = string>(
   _option: Option<F>
@@ -70,17 +75,19 @@ export function makeOption<F extends string = string>(
 
     const match = OptionRE.exec(format);
     if (match) {
-      // --([a-zA-Z0-9\-]+)
-      option.name = match[2];
-      option.long = '--' + match[2];
+      // long: --([a-zA-Z0-9\-]+)
+      const name = match[3];
+      option.name = name;
+      option.long = '--' + name;
 
-      // (-[a-zA-Z])
+      // short: (-[a-zA-Z])
       if (match[1]) {
         option.short = match[1];
       }
 
-      if (match[3]) {
-        const arg = match[3];
+      // argument
+      if (match[4]) {
+        const arg = match[4];
         option.argument = arg;
         if (arg[0] === '<') {
           option.type = 'required';
@@ -89,8 +96,24 @@ export function makeOption<F extends string = string>(
         } else {
           option.type = 'optional';
         }
+        if (match[2]) {
+          // Invalid --no-option <value>
+          throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
+            format
+          });
+        }
       } else {
         option.type = 'boolean';
+        if (
+          match[2] &&
+          option.config.negated === undefined &&
+          option.config.initial === undefined &&
+          option.config.default === undefined
+        ) {
+          // @ts-ignore
+          option.config.negated = true;
+          option.config.initial = true;
+        }
       }
     } else {
       throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {

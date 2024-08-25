@@ -47,7 +47,7 @@ export class MatchedArgument {
 }
 
 export class MatchedOption {
-  static FALSE_OPTION = ['false', 'no', 'off'];
+  static FALSE_OPTION = ['false', 'f', 'no', 'n', 'off'];
 
   readonly option: IOption;
 
@@ -84,15 +84,26 @@ export class MatchedOption {
     }
   }
 
-  public accept(context: Context, text: undefined | string) {
+  public accept(context: Context, long: string, text: undefined | string) {
     switch (this.option.type) {
       case 'boolean': {
-        // TODO: support --no-* options
         if (text !== undefined) {
           const value = text.toLowerCase();
-          this.raw = MatchedOption.FALSE_OPTION.includes(value) ? false : true;
+          if (!long.startsWith('--no-')) {
+            this.raw = MatchedOption.FALSE_OPTION.includes(value)
+              ? false
+              : true;
+          } else {
+            this.raw = MatchedOption.FALSE_OPTION.includes(value)
+              ? true
+              : false;
+          }
         } else {
-          this.raw = true;
+          if (!long.startsWith('--no-')) {
+            this.raw = true;
+          } else {
+            this.raw = false;
+          }
         }
         break;
       }
