@@ -192,14 +192,8 @@ describe('parser', () => {
     expect(cli.parse(['push']).command).toMatchInlineSnapshot(`
       Command {
         "actionFn": [Function],
-        "aliasPieces": [
-          [
-            "p",
-          ],
-        ],
-        "aliasPos": [
-          1,
-        ],
+        "aliasPieces": [],
+        "aliasPos": [],
         "aliases": [
           "p",
         ],

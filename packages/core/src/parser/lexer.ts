@@ -30,6 +30,13 @@ export class Lexer {
   }
 
   /**
+   * Move the cursor to preivous position
+   */
+  public prev() {
+    this.cursor--;
+  }
+
+  /**
    * Peek the next arg and does not advance the cursor
    *
    * @returns next arg
