@@ -1,4 +1,4 @@
-import { BreadcError } from '../error.ts';
+import { BreadcAppError, ResolveCommandError } from '../error.ts';
 
 import type {
   ActionFn,
@@ -149,7 +149,14 @@ export class Command<
    * @returns this
    */
   public run(...args: Parameters<ActionFn<A, O>>): R {
-    // TODO: throw error when action is not bound
+    if (!this.actionFn) {
+      throw new BreadcAppError(BreadcAppError.NO_ACTION_BOUND, {
+        command: this as unknown as ICommand
+      });
+    }
+
+    // TODO: use the default values
+
     return this.actionFn?.(...args);
   }
 }
@@ -557,36 +564,4 @@ function makeCustomArgument<F extends string = string>(
     format: argument.format,
     config: argument.config
   };
-}
-
-export class ResolveCommandError extends BreadcError {
-  static INVALID_ARG = 'Resolving invalid argument';
-
-  static INVALID_EMPTY_ARG = 'Resolving invalid empty argument';
-
-  static INVALID_REQUIRED_ARG = 'Resolving invalid required argument';
-
-  static INVALID_OPTIONAL_ARG = 'Resolving invalid optional argument';
-
-  static INVALID_SPREAD_ARG = 'Resolving invalid spread argument';
-
-  static PIECE_BEFORE_REQUIRED =
-    'Sub-command should be placed in the beginning';
-
-  static REQUIRED_BEFORE_OPTIONAL =
-    'Required argument should be placed before optional arguments';
-
-  static OPTIONAL_BEFORE_SPREAD =
-    'Optional argument should be placed before spread arguments';
-
-  static SPREAD_ONLY_ONCE = 'Spread argument can only appear once';
-
-  public constructor(
-    message: string,
-    cause: { format: string; position: number }
-  ) {
-    super(
-      `${message} at the command "${cause.format}", position ${cause.position}`
-    );
-  }
 }
