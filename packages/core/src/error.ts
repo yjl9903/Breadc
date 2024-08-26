@@ -1,5 +1,7 @@
 import type { ICommand } from './breadc/types.ts';
 
+import { getI18n } from './i18n.ts';
+
 export abstract class BreadcError extends Error {}
 
 export class RuntimeError extends Error {}
@@ -14,7 +16,7 @@ export class BreadcAppError extends BreadcError {
   public cause: { command?: ICommand; commands?: ICommand[] };
 
   public constructor(message: string, cause: BreadcAppError['cause']) {
-    super(message);
+    super(getI18n(message));
     this.cause = cause;
   }
 }

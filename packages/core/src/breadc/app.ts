@@ -1,6 +1,8 @@
 import { parse, run } from '../parser/index.ts';
-import { BreadcAppError, BreadcError } from '../error.ts';
 import { type Container, Context } from '../parser/context.ts';
+
+import { BreadcAppError } from '../error.ts';
+import { I18nFn, setI18nInstance } from '../i18n.ts';
 
 import type { InferOption } from './infer.ts';
 
@@ -13,6 +15,11 @@ export interface BreadcConfig {
   version?: string;
 
   description?: string;
+
+  /**
+   * @default 'en'
+   */
+  i18n?: 'en' | 'zh' | I18nFn;
 
   builtin?: {
     version?: {
@@ -140,6 +147,9 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the parsed context
    */
   public parse(args: string[]) {
+    if (this.config.i18n && this.config.i18n !== 'en') {
+      setI18nInstance(this.config.i18n);
+    }
     const context = new Context(this.#container, args);
     return parse(context);
   }
@@ -151,6 +161,9 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the returned value from the corresponding action function
    */
   public async run<T = unknown>(args: string[]): Promise<T> {
+    if (this.config.i18n && this.config.i18n !== 'en') {
+      setI18nInstance(this.config.i18n);
+    }
     const context = this.parse(args);
     return run(context);
   }
@@ -162,6 +175,9 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the returned value from the corresponding action function
    */
   public runSync<T = unknown>(args: string[]): T {
+    if (this.config.i18n && this.config.i18n !== 'en') {
+      setI18nInstance(this.config.i18n);
+    }
     const context = this.parse(args);
     return run(context);
   }
