@@ -1,12 +1,13 @@
 import { parse, run } from '../parser/index.ts';
+import { BreadcError } from '../error.ts';
 import { type Container, Context } from '../parser/context.ts';
 
 import type { InferOption } from './infer.ts';
 
+import { makeHelpCommand } from './builtin/help.ts';
+import { makeVersionCommand } from './builtin/version.ts';
 import { type OptionConfig, makeOption, Option } from './option.ts';
 import { type CommandConfig, Command, makeCommand } from './command.ts';
-import { makeVersionCommand } from './builtin/version.ts';
-import { makeHelpCommand } from './builtin/help.ts';
 
 export interface BreadcConfig {
   version?: string;
@@ -60,6 +61,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
     }
     this.#container = {
       globalOptions: [],
+      defaultCommand: undefined,
       commands: [],
       version,
       help
@@ -90,7 +92,17 @@ export class Breadc<GO extends Record<string, any> = {}> {
   }
 
   public addCommand<F extends string>(command: Command<F, GO>): Breadc<GO> {
-    this.#container.commands.push(makeCommand(command));
+    const format = command.format;
+    const wrapped = makeCommand(command);
+    if (format === '' || format[0] === '[' || format[0] === '<') {
+      if (this.#container.defaultCommand) {
+        // TODO: throw breadc error
+        throw new BreadcError('Find duplicated default command');
+      }
+      this.#container.defaultCommand = wrapped;
+    } else {
+      this.#container.commands.push(wrapped);
+    }
     return this;
   }
 
@@ -104,7 +116,16 @@ export class Breadc<GO extends Record<string, any> = {}> {
         ? { ...config, description }
         : { ...description, ...config };
     const command = new Command<F, GO>(format, resolvedConfig);
-    this.#container.commands.push(makeCommand(command));
+    const wrapped = makeCommand(command);
+    if (format === '' || format[0] === '[' || format[0] === '<') {
+      if (this.#container.defaultCommand) {
+        // TODO: throw breadc error
+        throw new BreadcError('Find duplicated default command');
+      }
+      this.#container.defaultCommand = wrapped;
+    } else {
+      this.#container.commands.push(wrapped);
+    }
     return command;
   }
 
