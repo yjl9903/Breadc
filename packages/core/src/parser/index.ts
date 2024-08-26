@@ -1,12 +1,18 @@
 import { camelCase } from '../utils/index.ts';
-import { RuntimeError } from '../error.ts';
+import { BreadcAppError, RuntimeError } from '../error.ts';
 
 import { Context } from './context.ts';
 
 export { parse } from './parser.ts';
 
 export function run<T>(context: Context): T {
-  if (context.command && context.command.actionFn) {
+  if (context.command) {
+    if (!context.command.actionFn) {
+      throw new BreadcAppError(BreadcAppError.NO_ACTION_BOUND, {
+        command: context.command
+      });
+    }
+
     const args = context.arguments.map((ma) => ma.value);
 
     const options = Object.fromEntries(
