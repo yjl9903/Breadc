@@ -4,14 +4,56 @@ import { Breadc } from '../../src/index.ts';
 
 describe('breadc', () => {
   it('should create breadc', () => {
-    const app = new Breadc('cli', { version: '0.0.0', description: 'app' });
+    new Breadc('cli', { version: '0.0.0', description: 'app' });
   });
 
   it('should not parse duplicated default command', () => {
-    const app = new Breadc('cli');
     expect(() => {
+      const app = new Breadc('cli');
       app.command('');
+      app.command('[flag]');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Find duplicated default commands]`
+    );
+
+    expect(() => {
+      const app = new Breadc('cli');
       app.command('');
-    }).toThrowErrorMatchingInlineSnapshot(`[Error: Find duplicated default command]`);
+      app.command('<flag>');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Find duplicated default commands]`
+    );
+
+    expect(() => {
+      const app = new Breadc('cli');
+      app.command('[flag]');
+      app.command('');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Find duplicated default commands]`
+    );
+
+    expect(() => {
+      const app = new Breadc('cli');
+      app.command('[flag]');
+      app.command('<flag>');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Find duplicated default commands]`
+    );
+
+    expect(() => {
+      const app = new Breadc('cli');
+      app.command('<flag>');
+      app.command('');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Find duplicated default commands]`
+    );
+
+    expect(() => {
+      const app = new Breadc('cli');
+      app.command('<flag>');
+      app.command('[flag]');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Find duplicated default commands]`
+    );
   });
 });

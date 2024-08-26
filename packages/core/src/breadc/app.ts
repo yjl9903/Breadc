@@ -1,5 +1,5 @@
 import { parse, run } from '../parser/index.ts';
-import { BreadcError } from '../error.ts';
+import { BreadcAppError, BreadcError } from '../error.ts';
 import { type Container, Context } from '../parser/context.ts';
 
 import type { InferOption } from './infer.ts';
@@ -96,8 +96,9 @@ export class Breadc<GO extends Record<string, any> = {}> {
     const wrapped = makeCommand(command);
     if (format === '' || format[0] === '[' || format[0] === '<') {
       if (this.#container.defaultCommand) {
-        // TODO: throw breadc error
-        throw new BreadcError('Find duplicated default command');
+        throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
+          command: wrapped
+        });
       }
       this.#container.defaultCommand = wrapped;
     } else {
@@ -119,8 +120,9 @@ export class Breadc<GO extends Record<string, any> = {}> {
     const wrapped = makeCommand(command);
     if (format === '' || format[0] === '[' || format[0] === '<') {
       if (this.#container.defaultCommand) {
-        // TODO: throw breadc error
-        throw new BreadcError('Find duplicated default command');
+        throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
+          command: wrapped
+        });
       }
       this.#container.defaultCommand = wrapped;
     } else {
