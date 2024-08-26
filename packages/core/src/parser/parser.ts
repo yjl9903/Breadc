@@ -1,6 +1,6 @@
-import type { IOption, ICommand } from '../breadc/types.ts';
+import type { IOption } from '../breadc/types.ts';
 
-import { BreadcError, RuntimeError } from '../error.ts';
+import { BreadcAppError, RuntimeError } from '../error.ts';
 
 import type { Context } from './context.ts';
 
@@ -256,6 +256,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
       // 3.2. sub-command matched
       context.matching.pieces.push(rawToken);
       const nextCommands = commands.get(rawToken)!;
+      // console.log('next commands', nextCommands)
 
       // 3.2.1. Commit pending sub-commands
       let matchedCommand;
@@ -276,7 +277,9 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
           } else {
             // Fully matched
             if (matchedCommand) {
-              // TODO: throw breadc error
+              throw new BreadcAppError(BreadcAppError.DUPLICATED_COMMAND, {
+                commands: [matchedCommand, command]
+              });
             }
             matchedCommand = command;
           }
@@ -294,7 +297,9 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
           } else {
             // Fully matched
             if (matchedCommand) {
-              // TODO: throw breadc error
+              throw new BreadcAppError(BreadcAppError.DUPLICATED_COMMAND, {
+                commands: [matchedCommand, command]
+              });
             }
             matchedCommand = command;
           }

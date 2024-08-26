@@ -1,4 +1,4 @@
-import { BreadcError } from '../error.ts';
+import { ResolveOptionError } from '../error.ts';
 
 import type { IOption } from './types.ts';
 import type { InferOptionRawType } from './infer.ts';
@@ -127,12 +127,4 @@ export function makeOption<F extends string = string>(
   };
 
   return option;
-}
-
-export class ResolveOptionError extends BreadcError {
-  static INVALID_OPTION = 'Resolving invalid option';
-
-  public constructor(message: string, cause: { format: string }) {
-    super(`${message} at the option "${cause.format}"`);
-  }
 }

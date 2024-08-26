@@ -145,7 +145,6 @@ describe('parser', () => {
 
   it('should parse single command with negated boolean option', async () => {
     const cli = new Breadc('cli');
-    cli.command('dev').action(() => true);
     cli
       .command('dev')
       .option('--no-flag')
@@ -298,5 +297,16 @@ describe('parser', () => {
       ]
     `
     );
+  });
+
+  // --- Errors ---
+  it('should not parse duplicated commands', async () => {
+    const cli = new Breadc('cli');
+    cli.command('dev --name [...name]').action((name) => name);
+    cli.command('dev --name <id>').action((name) => name);
+
+    expect(() =>
+      cli.runSync(['dev', '--name', '123'])
+    ).toThrowErrorMatchingInlineSnapshot(`[Error: Find duplicated commands]`);
   });
 });

@@ -336,4 +336,29 @@ describe('command', () => {
       `[Error: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`
     );
   });
+
+  it('should run action function', () => {
+    const cmd = new Command('submodule add <abc> [def] [...rest]').action(
+      (a, b, c) => {
+        return [a, b, c];
+      }
+    );
+
+    expect(cmd.run('a', 'b', ['c'], { '--': [] })).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+        [
+          "c",
+        ],
+      ]
+    `);
+
+    expect(() => {
+      const cmd = new Command('submodule add <abc> [def] [...rest]');
+      cmd.run('a', 'b', ['c'], { '--': [] });
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[Error: There is no action function bound in this command]`
+    );
+  });
 });
