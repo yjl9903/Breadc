@@ -7,52 +7,11 @@ import type { Context } from './context.ts';
 import { MatchedArgument, MatchedOption } from './matched.ts';
 
 export function parse(context: Context): Context {
-  // 1. Resolve the first constant pieces of all the command
-  const { commands } = context.matching;
-  let defaultCommand: ICommand | undefined; // Find default command
-  for (const command of context.container.commands) {
-    command.resolveSubCommand();
-    if (command.isDefault) {
-      if (defaultCommand !== undefined) {
-        throw new BreadcError(`Find duplicated default command`);
-      }
-      defaultCommand = command;
-    } else {
-      const piece = command.pieces[0];
-      if (piece) {
-        if (commands.has(piece)) {
-          commands.get(piece)!.push([command, undefined]);
-        } else {
-          commands.set(piece, [[command, undefined]]);
-        }
-      }
-
-      // Commit sub-command with alias
-      for (
-        let aliasIndex = 0;
-        aliasIndex < command.aliases.length;
-        aliasIndex++
-      ) {
-        command.resolveAliasSubCommand(aliasIndex);
-        const alias = command.aliasPieces[aliasIndex];
-        const piece = alias[0];
-        if (piece) {
-          if (commands.has(piece)) {
-            commands.get(piece)!.push([command, aliasIndex]);
-          } else {
-            commands.set(piece, [[command, aliasIndex]]);
-          }
-        }
-      }
-    }
-  }
-  // Add builtin version and help command
-  addPendingBuiltinCommands(context, true);
-
+  // 1. Check whether it only has default command
+  const { defaultCommand } = context.container;
   const onlyDefaultCommand =
-    defaultCommand !== undefined && context.container.commands.length === 1;
+    defaultCommand !== undefined && context.container.commands.length === 0;
   if (onlyDefaultCommand) {
-    defaultCommand!.resolve();
     context.command = defaultCommand;
   }
 
@@ -119,6 +78,12 @@ export function parse(context: Context): Context {
   return context;
 }
 
+/**
+ * Add builtin version and help commands to pending commands
+ *
+ * @param context
+ * @param initialize
+ */
 function addPendingBuiltinCommands(context: Context, initialize: boolean) {
   const { commands } = context.matching;
 
@@ -187,15 +152,7 @@ function addPendingOptions(context: Context, pendingOptions: IOption[]) {
 }
 
 function doParse(context: Context, withDefaultCommand: boolean = false) {
-  // 1. Commit pending global options
-  addPendingOptions(context, context.container.globalOptions);
-  if (context.command) {
-    addPendingOptions(context, context.command.options);
-  }
-
-  // 2. Parse arguments
-  let matched = withDefaultCommand; // Command has been matched and will not be changed
-  let subCommandIndex = 0; // Maintain sub-command length
+  const { tokens } = context;
   const {
     commands,
     arguments: args,
@@ -203,19 +160,104 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
     unknownOptions
   } = context.matching;
 
-  while (!context.tokens.isEnd) {
-    const token = context.tokens.next()!;
+  // 1. Commit pending global options
+  addPendingOptions(context, context.container.globalOptions);
+  if (withDefaultCommand) {
+    addPendingOptions(context, context.command!.options);
+  }
+
+  let matched = withDefaultCommand; // Command has been matched and will not be changed
+  let subCommandIndex = 0; // Maintain sub-command length
+
+  if (!withDefaultCommand) {
+    // 2. Pre-parsing until the first unknown argument
+    while (!tokens.isEnd) {
+      const token = tokens.next()!;
+      const rawToken = token.toRaw();
+
+      if (token.isEscape) {
+        // 2.1. handle `--` escape
+        context.remaining.push(...tokens.remaining());
+        break;
+      }
+      if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
+        // 2.2. handle long options or short options (not negative number)
+        const [key, value] = token.isLong ? token.toLong()! : token.toShort()!;
+        const option = options.get(key);
+
+        if (option) {
+          // Match option and set value
+          const matched = context.options.get(option.name)!;
+          matched.accept(context, key, value);
+          continue;
+        }
+      }
+      {
+        // 2.3. try matching each prefix of sub-commands
+        const { commands } = context.matching;
+        for (const command of context.container.commands) {
+          // Match the sub-command prefix
+          if (command.format.startsWith(rawToken)) {
+            command.resolveSubCommand();
+            const piece = command.pieces[0];
+            if (piece) {
+              if (commands.has(piece)) {
+                commands.get(piece)!.push([command, undefined]);
+              } else {
+                commands.set(piece, [[command, undefined]]);
+              }
+            }
+          }
+          // Commit sub-command with alias
+          for (
+            let aliasIndex = 0;
+            aliasIndex < command.aliases.length;
+            aliasIndex++
+          ) {
+            if (command.aliases[aliasIndex].startsWith(rawToken)) {
+              command.resolveAliasSubCommand(aliasIndex);
+              const alias = command.aliasPieces[aliasIndex];
+              const piece = alias[0];
+              if (piece) {
+                if (commands.has(piece)) {
+                  commands.get(piece)!.push([command, aliasIndex]);
+                } else {
+                  commands.set(piece, [[command, aliasIndex]]);
+                }
+              }
+            }
+          }
+        }
+
+        // Initialize builtin version and help commands
+        addPendingBuiltinCommands(context, true);
+
+        // Recover lexer state
+        tokens.prev();
+        break;
+      }
+    }
+
+    if (tokens.isEnd) {
+      context.command = context.container.defaultCommand;
+      return true;
+    }
+  }
+
+  // 3. Main parsing logic
+  while (!tokens.isEnd) {
+    const token = tokens.next()!;
     const rawToken = token.toRaw();
 
     if (token.isEscape) {
-      // 2.1. `--` handle escape
-      context.remaining.push(...context.tokens.remaining());
+      // 3.1. `--` handle escape
+      context.remaining.push(...tokens.remaining());
     } else if (!matched && commands.has(rawToken)) {
-      // 2.2. sub-command matched
+      // 3.2. sub-command matched
       context.matching.pieces.push(rawToken);
       const nextCommands = commands.get(rawToken)!;
 
-      // 2.2.1. Commit pending sub-commands
+      // 3.2.1. Commit pending sub-commands
       let matchedCommand;
       const currentIndex = ++subCommandIndex;
       commands.clear();
@@ -260,7 +302,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
       }
 
       if (matchedCommand) {
-        // 2.2.2. Find matched command and add pending options
+        // 3.2.2. Find matched command and add pending options
         context.command = matchedCommand;
         addPendingOptions(context, matchedCommand.options);
 
@@ -268,11 +310,11 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
           matched = true;
         }
       } else {
-        // 2.2.3. Commit builtin version and help command
+        // 3.2.3. Add pending builtin version and help command
         addPendingBuiltinCommands(context, false);
       }
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
-      // 2.3. handle long options or short options (not negative number)
+      // 3.3. handle long options or short options (not negative number)
       const [key, value] = token.isLong ? token.toLong()! : token.toShort()!;
       const option = options.get(key);
 
@@ -285,7 +327,7 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
         unknownOptions.push([key, value]);
       }
     } else {
-      // 2.4. no matching
+      // 3.4. no matching
       if (context.command) {
         matched = true;
         args.push(token);
