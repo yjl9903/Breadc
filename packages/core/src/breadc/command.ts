@@ -1,3 +1,5 @@
+import type { Context } from '../parser/context.ts';
+
 import { BreadcAppError, ResolveCommandError } from '../error.ts';
 
 import type {
@@ -26,6 +28,12 @@ export interface ArgumentConfig<AF extends string = string, R = {}> {
   default?: R;
 }
 
+export interface CommandHooks {
+  'pre:action': (this: Command<string>, context: Context) => any;
+
+  'post:action': (this: Command<string>, context: Context, ret: any) => any;
+}
+
 /**
  * Command abstraction.
  *
@@ -46,6 +54,8 @@ export class Command<
   readonly config: CommandConfig;
 
   readonly aliases: string[] = [];
+
+  hooks?: { [K in keyof CommandHooks]?: CommandHooks[K][] };
 
   /**
    * The bound action function
@@ -140,6 +150,19 @@ export class Command<
   ): Command<F, O, A, ReturnType<Fn>> {
     this.actionFn = fn;
     return this as any;
+  }
+
+  /**
+   * Register 'pre:action' or 'post:action' hooks
+   */
+  public hook<E extends keyof CommandHooks>(
+    event: E,
+    fn: CommandHooks[E]
+  ): this {
+    if (!this.hooks) this.hooks = {};
+    if (!this.hooks[event]) this.hooks[event] = [];
+    this.hooks[event].push(fn);
+    return this;
   }
 
   /**
