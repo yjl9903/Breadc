@@ -176,6 +176,5 @@ type InferArgumentsType2<F extends string> = F extends `<${string}> ${string}`
 type Push<T extends any[], U> = [...T, U];
 
 export type ActionFn<T extends any[], Option extends object = {}, R = any> = (
-  this: Context | undefined,
   ...arg: Push<T, Prettify<Option & { '--': string[] }>>
 ) => R | Promise<R>;

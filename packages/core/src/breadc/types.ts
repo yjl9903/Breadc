@@ -1,5 +1,5 @@
 import type { OptionConfig } from './option.ts';
-import type { CommandConfig, ArgumentConfig } from './command.ts';
+import type { CommandConfig, CommandHooks, ArgumentConfig } from './command.ts';
 
 export type OptionType = 'boolean' | 'optional' | 'required' | 'array';
 
@@ -20,6 +20,8 @@ export type ICommand<F extends string = string> = {
   config: CommandConfig;
 
   aliases: string[];
+
+  hooks?: { [K in keyof CommandHooks]?: CommandHooks[K][] };
 
   /**
    * The bound action function
