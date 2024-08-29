@@ -12,6 +12,7 @@ describe('breadc', () => {
       const app = new Breadc('cli');
       app.command('');
       app.command('[flag]');
+      app.runSync([]);
     }).toThrowErrorMatchingInlineSnapshot(
       `[Error: Find duplicated default commands]`
     );
@@ -20,6 +21,7 @@ describe('breadc', () => {
       const app = new Breadc('cli');
       app.command('');
       app.command('<flag>');
+      app.runSync([]);
     }).toThrowErrorMatchingInlineSnapshot(
       `[Error: Find duplicated default commands]`
     );
@@ -28,6 +30,7 @@ describe('breadc', () => {
       const app = new Breadc('cli');
       app.command('[flag]');
       app.command('');
+      app.runSync([]);
     }).toThrowErrorMatchingInlineSnapshot(
       `[Error: Find duplicated default commands]`
     );
@@ -36,6 +39,7 @@ describe('breadc', () => {
       const app = new Breadc('cli');
       app.command('[flag]');
       app.command('<flag>');
+      app.runSync([]);
     }).toThrowErrorMatchingInlineSnapshot(
       `[Error: Find duplicated default commands]`
     );
@@ -44,6 +48,7 @@ describe('breadc', () => {
       const app = new Breadc('cli');
       app.command('<flag>');
       app.command('');
+      app.runSync([]);
     }).toThrowErrorMatchingInlineSnapshot(
       `[Error: Find duplicated default commands]`
     );
@@ -52,6 +57,7 @@ describe('breadc', () => {
       const app = new Breadc('cli');
       app.command('<flag>');
       app.command('[flag]');
+      app.runSync([]);
     }).toThrowErrorMatchingInlineSnapshot(
       `[Error: Find duplicated default commands]`
     );
