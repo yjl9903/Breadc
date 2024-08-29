@@ -55,6 +55,8 @@ export class Command<
 
   readonly aliases: string[] = [];
 
+  isDefault: boolean;
+
   hooks?: { [K in keyof CommandHooks]?: CommandHooks[K][] };
 
   /**
@@ -86,10 +88,15 @@ export class Command<
   public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
     this.config = config;
+    this.isDefault = format === '' || format[0] === '[' || format[0] === '<';
   }
 
   public alias(format: string): this {
-    this.aliases.push(format);
+    if (format === '' || format[0] === '[' || format[0] === '<') {
+      this.isDefault = true;
+    } else {
+      this.aliases.push(format);
+    }
     return this;
   }
 

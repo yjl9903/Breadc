@@ -68,7 +68,6 @@ export class Breadc<GO extends Record<string, any> = {}> {
     }
     this.#container = {
       globalOptions: [],
-      defaultCommand: undefined,
       commands: [],
       version,
       help
@@ -99,18 +98,8 @@ export class Breadc<GO extends Record<string, any> = {}> {
   }
 
   public addCommand<F extends string>(command: Command<F, GO>): Breadc<GO> {
-    const format = command.format;
     const wrapped = makeCommand(command);
-    if (format === '' || format[0] === '[' || format[0] === '<') {
-      if (this.#container.defaultCommand) {
-        throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
-          command: wrapped
-        });
-      }
-      this.#container.defaultCommand = wrapped;
-    } else {
-      this.#container.commands.push(wrapped);
-    }
+    this.#container.commands.push(wrapped);
     return this;
   }
 
@@ -125,16 +114,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
         : { ...description, ...config };
     const command = new Command<F, GO>(format, resolvedConfig);
     const wrapped = makeCommand(command);
-    if (format === '' || format[0] === '[' || format[0] === '<') {
-      if (this.#container.defaultCommand) {
-        throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
-          command: wrapped
-        });
-      }
-      this.#container.defaultCommand = wrapped;
-    } else {
-      this.#container.commands.push(wrapped);
-    }
+    this.#container.commands.push(wrapped);
     return command;
   }
 
