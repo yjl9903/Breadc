@@ -8,7 +8,14 @@ import { MatchedArgument, MatchedOption } from './matched.ts';
 
 export function parse(context: Context): Context {
   // 1. Check whether it only has default command
-  const { defaultCommand } = context.container;
+  const defaultCommands = context.container.commands.filter((c) => c.isDefault);
+  if (defaultCommands.length >= 2) {
+    throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
+      commands: defaultCommands
+    });
+  }
+
+  const defaultCommand = defaultCommands[0];
   const onlyDefaultCommand =
     defaultCommand !== undefined && context.container.commands.length === 0;
   if (onlyDefaultCommand) {
@@ -236,11 +243,6 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
         tokens.prev();
         break;
       }
-    }
-
-    if (tokens.isEnd) {
-      context.command = context.container.defaultCommand;
-      return true;
     }
   }
 

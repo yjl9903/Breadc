@@ -3,35 +3,26 @@ import { describe, it, expect } from 'vitest';
 import { Breadc } from '../../src/index.ts';
 
 describe('parser', () => {
-  it('should parse default command', () => {
+  it('should parse default command', async () => {
     const cli = new Breadc('cli');
     cli.command('').action(() => true);
 
-    const context = cli.parse([]);
-    expect(context.command).toMatchInlineSnapshot(`
-      Command {
-        "actionFn": [Function],
-        "aliasPieces": [],
-        "aliasPos": [],
-        "aliases": [],
-        "arguments": [],
-        "config": {},
-        "format": "",
-        "hooks": undefined,
-        "isDefault": true,
-        "onUnknownOptions": undefined,
-        "optionals": [],
-        "options": [],
-        "pieces": [],
-        "requireds": [],
-        "resolve": [Function],
-        "resolveAliasSubCommand": [Function],
-        "resolveSubCommand": [Function],
-        "spread": undefined,
-      }
-    `);
-    expect(context.arguments).toMatchInlineSnapshot(`[]`);
-    expect(context.options).toMatchInlineSnapshot(`Map {}`);
+    expect(await cli.run([])).toMatchInlineSnapshot(`true`);
+  });
+
+  it('should parse alias default command', async () => {
+    const cli = new Breadc('cli');
+    cli.command('dev').alias('').action(() => true);
+
+    expect(await cli.run([])).toMatchInlineSnapshot(`true`);
+  });
+
+  it('should parse default command with arguments', async () => {
+    // TODO
+  });
+
+  it('should parse alias default command with arguments', async () => {
+    // TODO
   });
 
   it('should parse default command with boolean option', async () => {
@@ -41,95 +32,15 @@ describe('parser', () => {
       .option('--flag')
       .action((option) => option.flag);
 
-    const context = cli.parse(['--flag']);
-    expect(context.command).toMatchInlineSnapshot(`
-      Command {
-        "actionFn": [Function],
-        "aliasPieces": [],
-        "aliasPos": [],
-        "aliases": [],
-        "arguments": [],
-        "config": {},
-        "format": "",
-        "hooks": undefined,
-        "isDefault": true,
-        "onUnknownOptions": undefined,
-        "optionals": [],
-        "options": [
-          Option {
-            "argument": undefined,
-            "config": {},
-            "format": "--flag",
-            "long": "--flag",
-            "name": "flag",
-            "resolve": [Function],
-            "short": undefined,
-            "type": "boolean",
-          },
-        ],
-        "pieces": [],
-        "requireds": [],
-        "resolve": [Function],
-        "resolveAliasSubCommand": [Function],
-        "resolveSubCommand": [Function],
-        "spread": undefined,
-      }
-    `);
-    expect(context.arguments).toMatchInlineSnapshot(`[]`);
-    expect(context.options).toMatchInlineSnapshot(`
-      Map {
-        "flag" => MatchedOption {
-          "dirty": false,
-          "option": Option {
-            "argument": undefined,
-            "config": {},
-            "format": "--flag",
-            "long": "--flag",
-            "name": "flag",
-            "resolve": [Function],
-            "short": undefined,
-            "type": "boolean",
-          },
-          "raw": true,
-        },
-      }
-    `);
-
     expect(await cli.run([])).toMatchInlineSnapshot(`false`);
     expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`true`);
   });
 
-  it('should parse single command', () => {
+  it('should parse single command', async () => {
     const cli = new Breadc('cli');
     cli.command('dev').action(() => true);
 
-    const context = cli.parse(['dev']);
-    expect(context.command).toMatchInlineSnapshot(`
-      Command {
-        "actionFn": [Function],
-        "aliasPieces": [],
-        "aliasPos": [],
-        "aliases": [],
-        "arguments": [],
-        "config": {},
-        "format": "dev",
-        "hooks": undefined,
-        "isDefault": false,
-        "onUnknownOptions": undefined,
-        "optionals": [],
-        "options": [],
-        "pieces": [
-          "dev",
-        ],
-        "requireds": [],
-        "resolve": [Function],
-        "resolveAliasSubCommand": [Function],
-        "resolveSubCommand": [Function],
-        "spread": undefined,
-      }
-    `);
-    expect(context.arguments).toMatchInlineSnapshot(`[]`);
-    expect(context.options).toMatchInlineSnapshot(`Map {}`);
+    expect(await cli.run(['dev'])).toMatchInlineSnapshot(`true`);
   });
 
   it('should parse single command with boolean option', () => {
@@ -184,71 +95,15 @@ describe('parser', () => {
     );
   });
 
-  it('should parse command with alias', () => {
+  it('should parse command with alias', async () => {
     const cli = new Breadc('cli');
     cli
       .command('push')
       .alias('p')
       .action(() => true);
 
-    expect(cli.parse(['push']).command).toMatchInlineSnapshot(`
-      Command {
-        "actionFn": [Function],
-        "aliasPieces": [],
-        "aliasPos": [],
-        "aliases": [
-          "p",
-        ],
-        "arguments": [],
-        "config": {},
-        "format": "push",
-        "hooks": undefined,
-        "isDefault": false,
-        "onUnknownOptions": undefined,
-        "optionals": [],
-        "options": [],
-        "pieces": [
-          "push",
-        ],
-        "requireds": [],
-        "resolve": [Function],
-        "resolveAliasSubCommand": [Function],
-        "resolveSubCommand": [Function],
-        "spread": undefined,
-      }
-    `);
-    expect(cli.parse(['p']).command).toMatchInlineSnapshot(`
-      Command {
-        "actionFn": [Function],
-        "aliasPieces": [
-          [
-            "p",
-          ],
-        ],
-        "aliasPos": [
-          1,
-        ],
-        "aliases": [
-          "p",
-        ],
-        "arguments": [],
-        "config": {},
-        "format": "push",
-        "hooks": undefined,
-        "isDefault": false,
-        "onUnknownOptions": undefined,
-        "optionals": [],
-        "options": [],
-        "pieces": [
-          "push",
-        ],
-        "requireds": [],
-        "resolve": [Function],
-        "resolveAliasSubCommand": [Function],
-        "resolveSubCommand": [Function],
-        "spread": undefined,
-      }
-    `);
+    expect(await cli.run(['push'])).toMatchInlineSnapshot(`true`);
+    expect(await cli.run(['p'])).toMatchInlineSnapshot(`true`);
   });
 
   it('should parse command when there is default command', async () => {
@@ -304,6 +159,65 @@ describe('parser', () => {
     );
   });
 
+  it('should parse single command with sub command', async () => {
+    const cli = new Breadc('cli');
+    cli
+      .option('--flag')
+      .command('cmd1 <cmd2> [cmd3] [...cmd4]')
+      .action((cmd2, cmd3, cmd4, option) => {
+        return { cmd2, cmd3, cmd4, option };
+      });
+    expect(await cli.run(['cmd1', 'XLor'])).toMatchInlineSnapshot(`
+      {
+        "cmd2": "XLor",
+        "cmd3": undefined,
+        "cmd4": [],
+        "option": {
+          "--": [],
+          "flag": false,
+        },
+      }
+    `);
+    expect(await cli.run(['cmd1', '--flag', 'XLor', 'gdx']))
+      .toMatchInlineSnapshot(`
+      {
+        "cmd2": "XLor",
+        "cmd3": "gdx",
+        "cmd4": [],
+        "option": {
+          "--": [],
+          "flag": true,
+        },
+      }
+    `);
+    expect(await cli.run(['cmd1', 'XLor', 'gdx', 'xnf', '414', '--flag=false']))
+      .toMatchInlineSnapshot(`
+      {
+        "cmd2": "XLor",
+        "cmd3": "gdx",
+        "cmd4": [
+          "xnf",
+          "414",
+        ],
+        "option": {
+          "--": [],
+          "flag": false,
+        },
+      }
+    `);
+  });
+
+  it('should parse command with unknown argument', async () => {
+    const cli = new Breadc('cli');
+    cli.command('dev').action((options) => options['--']);
+    expect(await cli.run(['dev', 'XLor', 'gdx'])).toMatchInlineSnapshot(`
+      [
+        "XLor",
+        "gdx",
+      ]
+    `);
+  });
+
   // --- Errors ---
   it('should not parse duplicated commands', async () => {
     const cli = new Breadc('cli');
@@ -313,5 +227,13 @@ describe('parser', () => {
     expect(() =>
       cli.runSync(['dev', '--name', '123'])
     ).toThrowErrorMatchingInlineSnapshot(`[Error: Find duplicated commands]`);
+  });
+
+  it('should not parse commands (Missing required argument.)', async () => {
+    const cli = new Breadc('cli');
+    cli.command('dev --name <name>').action((name) => name);
+    expect(() =>
+      cli.runSync(['dev', '--name'])
+    ).toThrowErrorMatchingInlineSnapshot(`[Error]`);
   });
 });

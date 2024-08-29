@@ -7,8 +7,6 @@ import { Lexer, Token } from './lexer.ts';
 export interface Container {
   globalOptions: IOption[];
 
-  defaultCommand: ICommand | undefined;
-
   commands: ICommand[];
 
   help: ICommand | undefined;

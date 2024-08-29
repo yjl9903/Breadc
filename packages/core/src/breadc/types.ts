@@ -21,6 +21,11 @@ export type ICommand<F extends string = string> = {
 
   aliases: string[];
 
+  /**
+   * Whether it is a default command
+   */
+  isDefault: boolean;
+
   hooks?: { [K in keyof CommandHooks]?: CommandHooks[K][] };
 
   /**
@@ -109,10 +114,6 @@ export type ICommand<F extends string = string> = {
    */
   spread: IArgument | undefined;
 
-  /**
-   * Whether it is a default command
-   */
-  isDefault: boolean;
   resolveSubCommand(): ICommand<F>;
   resolveAliasSubCommand(index: number): ICommand<F>;
   resolve(): ICommand<F>;
