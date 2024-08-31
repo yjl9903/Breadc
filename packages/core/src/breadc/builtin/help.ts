@@ -5,6 +5,7 @@ import type { BreadcConfig } from '../app.ts';
 import { Command, makeCommand } from '../command.ts';
 
 import { twoColumn } from './utils.ts';
+import { getI18n } from '../../i18n.ts';
 
 type Block = string | Array<[string, string]>;
 
@@ -64,23 +65,23 @@ export function makeHelpCommand(name: string, config: BreadcConfig) {
     // Usage
     const usage =
       allCommands.length === 0
-        ? `[OPTIONS]`
+        ? `${getI18n('[OPTIONS]')}`
         : allCommands.length === 1
-          ? `${allCommands[0].format ? allCommands[0].format + ' ' : ''}[OPTIONS]`
+          ? `${allCommands[0].format ? allCommands[0].format + ' ' : ''}${getI18n('[OPTIONS]')}`
           : allCommands.some((c) => c.isDefault)
-            ? `[COMMAND] [OPTIONS]`
-            : `<COMMAND> [OPTIONS]`;
+            ? `${getI18n('[COMMAND]')} ${getI18n('[OPTIONS]')}`
+            : `${getI18n('<OPTIONS>')} ${getI18n('[OPTIONS]')}`;
 
     // Help messages
     const blocks: (Block | undefined)[] = [
       `${name}/${config.version ? config.version : 'unknown'}`,
       ...(config.description ? ['', config.description] : []),
       '',
-      `${bold(underline('Usage:'))} ${bold(name)} ${usage}`,
+      `${bold(underline(getI18n('Usage:')))} ${bold(name)} ${usage}`,
       ...(allCommands.length > 1
         ? [
             '',
-            bold(underline('Commands:')),
+            bold(underline(getI18n('Commands:'))),
             allCommands.map(
               (command) =>
                 [
@@ -95,7 +96,7 @@ export function makeHelpCommand(name: string, config: BreadcConfig) {
       context.container.version
         ? [
             '',
-            bold(underline('Options:')),
+            bold(underline(getI18n('Options:'))),
             allOptions
               .map(
                 (option) =>
@@ -109,13 +110,13 @@ export function makeHelpCommand(name: string, config: BreadcConfig) {
                   context.container.help
                     ? [
                         `  ${bold(context.container.help.aliases.join(', '))}`,
-                        context.container.help.config.description!
+                        getI18n(context.container.help.config.description!)
                       ]
                     : undefined,
                   context.container.version
                     ? [
                         `  ${bold(context.container.version.aliases.join(', '))}`,
-                        context.container.version.config.description!
+                        getI18n(context.container.version.config.description!)
                       ]
                     : undefined
                 ].filter(Boolean) as [string, string][]
