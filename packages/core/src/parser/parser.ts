@@ -326,11 +326,32 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
       const option = options.get(key);
 
       if (option) {
-        // Match option and set value
-        const matched = context.options.get(option.name)!;
-        matched.accept(context, key, value);
+        // 3.3.1. Match option and set value
+        const matchedOption = context.options.get(option.name)!;
+        matchedOption.accept(context, key, value);
       } else {
-        // Handle unknown long options or short options
+        // 3.3.2. Fallback to help / version options
+        if (matched) {
+          if (context.container.help) {
+            const isHelp = context.container.help.aliases.includes(rawToken);
+            if (isHelp) {
+              context.matching.pieces.push(rawToken);
+              context.command = context.container.help;
+              continue;
+            }
+          }
+          if (context.container.version) {
+            const isVersion =
+              context.container.version.aliases.includes(rawToken);
+            if (isVersion) {
+              context.matching.pieces.push(rawToken);
+              context.command = context.container.version;
+              continue;
+            }
+          }
+        }
+
+        // 3.3.3. Handle unknown long options or short options
         unknownOptions.push([key, value]);
       }
     } else {
