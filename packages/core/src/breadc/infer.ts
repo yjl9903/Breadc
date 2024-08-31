@@ -110,10 +110,10 @@ export type InferArgumentType<
   F extends string,
   C extends ArgumentConfig<F>
 > = C['default'] extends {}
-  ? C['cast'] extends () => infer R
+  ? C['cast'] extends (...args: any[]) => infer R
     ? R
     : C['default'] | NonNullable<InferArgumentRawType<F>>
-  : C['cast'] extends () => infer R
+  : C['cast'] extends (...args: any[]) => infer R
     ? R
     : InferArgumentRawType<F>;
 
