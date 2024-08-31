@@ -520,7 +520,7 @@ describe('breadc builtin help comamnd', () => {
       [
         "cli/unknown",
         "",
-        "Usage: cli <COMMAND> [OPTIONS]",
+        "Usage: cli <OPTIONS> [OPTIONS]",
         "",
         "Commands:",
         [
@@ -629,6 +629,84 @@ describe('breadc builtin help comamnd', () => {
           [
             "  -v, --version",
             "Print version",
+          ],
+        ],
+      ]
+    `);
+  });
+
+  it('should output chinese help', () => {
+    const b = new Breadc('cli', { i18n: 'zh' })
+      .option('--flag', 'Flag')
+      .option('--host <addr>', 'Host')
+      .option('--local', 'Local')
+      .option('--root <root>', 'Root');
+    b.command('[op]');
+    b.command('dev');
+    b.command('build <root>');
+    b.command('preview');
+    b.command('test [case]');
+    b.command('run [...args]');
+
+    expect(b.runSync(['--help'])).toMatchInlineSnapshot(`
+      [
+        "cli/unknown",
+        "",
+        "用法: cli [命令] [选项]",
+        "",
+        "命令:",
+        [
+          [
+            "  cli [op]",
+            "",
+          ],
+          [
+            "  cli dev",
+            "",
+          ],
+          [
+            "  cli build <root>",
+            "",
+          ],
+          [
+            "  cli preview",
+            "",
+          ],
+          [
+            "  cli test [case]",
+            "",
+          ],
+          [
+            "  cli run [...args]",
+            "",
+          ],
+        ],
+        "",
+        "选项:",
+        [
+          [
+            "      --flag",
+            "Flag",
+          ],
+          [
+            "      --host <addr>",
+            "Host",
+          ],
+          [
+            "      --local",
+            "Local",
+          ],
+          [
+            "      --root <root>",
+            "Root",
+          ],
+          [
+            "  -h, --help",
+            "输出帮助",
+          ],
+          [
+            "  -v, --version",
+            "输出版本号",
           ],
         ],
       ]
