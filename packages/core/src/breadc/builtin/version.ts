@@ -5,7 +5,7 @@ import { Command, makeCommand } from '../command.ts';
 export function makeVersionCommand(name: string, config: BreadcConfig) {
   const raw = config.builtin?.version?.format;
 
-  const command = new Command('');
+  const command = new Command('', { description: 'Print version' });
   if (raw === undefined) {
     command.aliases.push('-v', '--version');
   } else if (Array.isArray(raw)) {
