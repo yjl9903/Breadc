@@ -32,6 +32,9 @@ export class ResolveCommandError extends BreadcError {
 
   static INVALID_SPREAD_ARG = 'Resolving invalid spread argument';
 
+  static INVALID_ALIAS_FORMAT =
+    'Alias command format should not have arguments';
+
   static PIECE_BEFORE_REQUIRED =
     'Sub-command should be placed in the beginning';
 
