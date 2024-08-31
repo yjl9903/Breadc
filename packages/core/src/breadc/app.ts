@@ -97,10 +97,10 @@ export class Breadc<GO extends Record<string, any> = {}> {
     return this;
   }
 
-  public addCommand<F extends string>(command: Command<F, GO>): Breadc<GO> {
+  public addCommand<F extends string>(command: Command<F, GO>): Command<F, GO> {
     const wrapped = makeCommand(command);
     this.#container.commands.push(wrapped);
-    return this;
+    return command;
   }
 
   public command<F extends string>(
