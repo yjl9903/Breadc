@@ -61,7 +61,9 @@ export function parse(context: Context): Context {
       for (const optional of context.command.optionals) {
         const token = args[it];
         const argument = new MatchedArgument(optional);
-        argument.accept(context, token ? token.toRaw() : undefined);
+        if (token !== undefined) {
+          argument.accept(context, token ? token.toRaw() : undefined);
+        }
         context.arguments.push(argument);
 
         if (token !== undefined) {
@@ -72,10 +74,12 @@ export function parse(context: Context): Context {
     if (context.command.spread) {
       const spread = new MatchedArgument(context.command.spread);
       const spreadArgs = args.slice(it);
-      spread.accept(
-        context,
-        spreadArgs.map((t) => t.toRaw())
-      );
+      if (spreadArgs.length > 0) {
+        spread.accept(
+          context,
+          spreadArgs.map((t) => t.toRaw())
+        );
+      }
       context.arguments.push(spread);
     } else {
       context.remaining.unshift(...args.slice(it));

@@ -100,15 +100,9 @@ export class Command<
     return this;
   }
 
-  public addArgument<AF extends string, AA extends Argument<AF>>(
-    argument: AA
-  ): Command<
-    F,
-    O,
-    A extends never
-      ? never
-      : [...A, InferArgumentType<AA['format'], AA['config']>]
-  > {
+  public addArgument<AF extends string, C extends ArgumentConfig<AF>>(
+    argument: Argument<AF, C>
+  ): Command<F, O, A extends never ? never : [...A, InferArgumentType<AF, C>]> {
     this.arguments.push(makeCustomArgument(argument));
     return this as any;
   }
@@ -193,14 +187,17 @@ export class Command<
   }
 }
 
-export class Argument<F extends string = string> {
+export class Argument<
+  F extends string,
+  C extends ArgumentConfig<F> = ArgumentConfig<F>
+> {
   readonly format: F;
 
-  readonly config: ArgumentConfig<F>;
+  readonly config: C;
 
-  constructor(format: F, config: ArgumentConfig<F> = {}) {
+  constructor(format: F, config?: C) {
     this.format = format;
-    this.config = config;
+    this.config = config ?? ({} as any);
   }
 }
 
@@ -259,7 +256,7 @@ export function makeCommand<F extends string = string>(
         }
       }
       if (i >= format.length) {
-        resolveState = 1;
+        resolveState = -1;
       }
     }
     return command;
@@ -494,6 +491,7 @@ export function makeCommand<F extends string = string>(
                 { format, position: i }
               );
             }
+            break;
           }
           case 'optional': {
             if (state <= 2) {
@@ -505,6 +503,7 @@ export function makeCommand<F extends string = string>(
                 { format, position: i }
               );
             }
+            break;
           }
           case 'spread': {
             if (command.spread) {
@@ -515,6 +514,7 @@ export function makeCommand<F extends string = string>(
             }
             state = 3;
             command.spread = argument;
+            break;
           }
         }
       }
@@ -544,7 +544,7 @@ function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
 }
 
 function makeCustomArgument<F extends string = string>(
-  argument: Argument<F>
+  argument: Argument<F, ArgumentConfig<F>>
 ): IArgument<F> {
   let type: ArgumentType | undefined = undefined;
   let name: string | undefined = undefined;
