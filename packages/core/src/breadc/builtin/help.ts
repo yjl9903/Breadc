@@ -108,7 +108,8 @@ export function makeHelpCommand(name: string, config: BreadcConfig) {
                   `  ${bold(context.container.help.aliases.join(', '))}`,
                   getI18n(context.container.help.config.description!)
                 ]
-              : undefined,
+              : /* c8 ignore next 1 */
+                undefined,
             context.container.version
               ? [
                   `  ${bold(context.container.version.aliases.join(', '))}`,
