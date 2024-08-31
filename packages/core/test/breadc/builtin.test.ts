@@ -760,4 +760,25 @@ describe('breadc builtin help comamnd', () => {
       ]
     `);
   });
+
+  it('should output nothing without builtin commands', () => {
+    const app = new Breadc('cli', {
+      builtin: { version: { enable: false } }
+    });
+    expect(app.runSync(['-h'])).toMatchInlineSnapshot(`
+      [
+        "cli/unknown",
+        "",
+        "Usage: cli [OPTIONS]",
+        "",
+        "Options:",
+        [
+          [
+            "  -h, --help",
+            "Print help",
+          ],
+        ],
+      ]
+    `);
+  });
 });

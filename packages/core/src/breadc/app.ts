@@ -141,9 +141,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the returned value from the corresponding action function
    */
   public async run<T = unknown>(args: string[]): Promise<T> {
-    if (this.config.i18n && this.config.i18n !== 'en') {
-      setI18nInstance(this.config.i18n);
-    }
+    setI18nInstance(this.config.i18n);
     const context = this.parse(args);
     return run(context);
   }
@@ -155,9 +153,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the returned value from the corresponding action function
    */
   public runSync<T = unknown>(args: string[]): T {
-    if (this.config.i18n && this.config.i18n !== 'en') {
-      setI18nInstance(this.config.i18n);
-    }
+    setI18nInstance(this.config.i18n);
     const context = this.parse(args);
     return run(context);
   }
