@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
-import { Command, makeCommand } from '../../src/breadc/command.ts';
+import { Breadc } from '../../src/breadc/app.ts';
+import { Argument, Command, makeCommand } from '../../src/breadc/command.ts';
 
 describe('command', () => {
   it('should register action function', () => {
@@ -212,6 +213,54 @@ describe('command', () => {
         "name": "rest",
         "type": "spread",
       }
+    `);
+  });
+
+  it('should receive manual arguments', () => {
+    const app = new Breadc('cli');
+    app
+      .command('')
+      .argument('<required>')
+      .argument('[optional]')
+      .argument('[...rest]')
+      .action((arg1, arg2, arg3) => {
+        return [arg1, arg2, arg3];
+      });
+
+    expect(app.runSync(['a1', 'a2', 'a3', 'a4'])).toMatchInlineSnapshot(`
+      [
+        "a1",
+        "a2",
+        [
+          "a3",
+          "a4",
+        ],
+      ]
+    `);
+  });
+
+  it('should receive manual added arguments', () => {
+    const app = new Breadc('cli');
+    app
+      .command('')
+      .argument('<required>')
+      .addArgument(
+        new Argument('[optional]', { initial: '1', cast: (t) => +t! })
+      )
+      .addArgument(new Argument('[...rest]', { initial: ['rest1', 'rest2'] }))
+      .action((arg1, arg2, arg3) => {
+        return [arg1, arg2, arg3];
+      });
+
+    expect(app.runSync(['a1'])).toMatchInlineSnapshot(`
+      [
+        "a1",
+        1,
+        [
+          "rest1",
+          "rest2",
+        ],
+      ]
     `);
   });
 
