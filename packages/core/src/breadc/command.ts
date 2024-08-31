@@ -122,7 +122,9 @@ export class Command<
     return this as any;
   }
 
-  public addOption<OF extends string>(option: Option<OF>): Command<OF, O, A> {
+  public addOption<OF extends string, C extends OptionConfig<OF>>(
+    option: Option<OF, C>
+  ): Command<OF, O & InferOption<OF, C>, A> {
     this.options.push(makeOption(option));
     return this as any;
   }
