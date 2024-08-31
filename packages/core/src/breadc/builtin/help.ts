@@ -91,38 +91,32 @@ export function makeHelpCommand(name: string, config: BreadcConfig) {
             )
           ]
         : []),
-      ...(allOptions.length > 0 ||
-      context.container.help ||
-      context.container.version
-        ? [
-            '',
-            bold(underline(getI18n('Options:'))),
-            allOptions
-              .map(
-                (option) =>
-                  [
-                    `  ${!option.short ? '    ' : ''}${bold(option.format)}`,
-                    option.config.description ?? ''
-                  ] as [string, string]
-              )
-              .concat(
-                [
-                  context.container.help
-                    ? [
-                        `  ${bold(context.container.help.aliases.join(', '))}`,
-                        getI18n(context.container.help.config.description!)
-                      ]
-                    : undefined,
-                  context.container.version
-                    ? [
-                        `  ${bold(context.container.version.aliases.join(', '))}`,
-                        getI18n(context.container.version.config.description!)
-                      ]
-                    : undefined
-                ].filter(Boolean) as [string, string][]
-              )
-          ]
-        : [])
+      '',
+      bold(underline(getI18n('Options:'))),
+      allOptions
+        .map(
+          (option) =>
+            [
+              `  ${!option.short ? '    ' : ''}${bold(option.format)}`,
+              option.config.description ?? ''
+            ] as [string, string]
+        )
+        .concat(
+          [
+            context.container.help
+              ? [
+                  `  ${bold(context.container.help.aliases.join(', '))}`,
+                  getI18n(context.container.help.config.description!)
+                ]
+              : undefined,
+            context.container.version
+              ? [
+                  `  ${bold(context.container.version.aliases.join(', '))}`,
+                  getI18n(context.container.version.config.description!)
+                ]
+              : undefined
+          ].filter(Boolean) as [string, string][]
+        )
     ];
 
     // Render help messages
