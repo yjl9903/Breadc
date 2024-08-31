@@ -277,7 +277,10 @@ export function makeCommand<F extends string = string>(
 
     for (; i < format.length; ) {
       if (format[i] === '<' || format[i] === '[') {
-        break;
+        throw new ResolveCommandError(
+          ResolveCommandError.INVALID_ALIAS_FORMAT,
+          { format, position: i }
+        );
       } else if (format[i] === ' ') {
         while (i < format.length && format[i] === ' ') {
           i++;

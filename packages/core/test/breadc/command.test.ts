@@ -174,6 +174,47 @@ describe('command', () => {
     `);
   });
 
+  it('should resolve alias command format', () => {
+    const cmd = makeCommand(
+      new Command('submodule add <abc> [def] [...rest]').alias('sub   add')
+    );
+    cmd.resolve();
+    expect(cmd.pieces).toMatchInlineSnapshot(`
+      [
+        "submodule",
+        "add",
+      ]
+    `);
+    expect(cmd.requireds).toMatchInlineSnapshot(`
+      [
+        {
+          "config": {},
+          "format": "<abc>",
+          "name": "abc",
+          "type": "required",
+        },
+      ]
+    `);
+    expect(cmd.optionals).toMatchInlineSnapshot(`
+      [
+        {
+          "config": {},
+          "format": "[def]",
+          "name": "def",
+          "type": "optional",
+        },
+      ]
+    `);
+    expect(cmd.spread).toMatchInlineSnapshot(`
+      {
+        "config": {},
+        "format": "[...rest]",
+        "name": "rest",
+        "type": "spread",
+      }
+    `);
+  });
+
   it('should find invalid required arguments', () => {
     expect(async () => {
       const cmd = makeCommand(new Command('submodule add <'));
@@ -236,6 +277,16 @@ describe('command', () => {
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid empty argument at the command "submodule add [...]", position 19]`
+    );
+
+    expect(async () => {
+      const cmd = makeCommand(
+        new Command('submodule add [...rest]').alias('add [...rest]')
+      );
+      cmd.resolve();
+      cmd.resolveAliasSubCommand(0).resolveAliasSubCommand(0);
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Alias command format should not have arguments at the command "add [...rest]", position 4]`
     );
   });
 
