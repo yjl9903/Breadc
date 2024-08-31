@@ -555,6 +555,54 @@ describe('breadc builtin help comamnd', () => {
         ],
       ]
     `);
+
+    expect(b.runSync(['test', '--help'])).toMatchInlineSnapshot(`
+      [
+        "cli/unknown",
+        "",
+        "Usage: cli group test [case] [OPTIONS]",
+        "",
+        "Options:",
+        [
+          [
+            "      --flag",
+            "",
+          ],
+          [
+            "  -h, --help",
+            "Print help",
+          ],
+          [
+            "  -v, --version",
+            "Print version",
+          ],
+        ],
+      ]
+    `);
+
+    expect(b.runSync(['run', '--help'])).toMatchInlineSnapshot(`
+      [
+        "cli/unknown",
+        "",
+        "Usage: cli group run [...args] [OPTIONS]",
+        "",
+        "Options:",
+        [
+          [
+            "      --name <name>",
+            "",
+          ],
+          [
+            "  -h, --help",
+            "Print help",
+          ],
+          [
+            "  -v, --version",
+            "Print version",
+          ],
+        ],
+      ]
+    `);
   });
 
   it('should output global options help', () => {
