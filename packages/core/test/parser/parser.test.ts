@@ -12,7 +12,10 @@ describe('parser', () => {
 
   it('should parse alias default command', async () => {
     const cli = new Breadc('cli');
-    cli.command('dev').alias('').action(() => true);
+    cli
+      .command('dev')
+      .alias('')
+      .action(() => true);
 
     expect(await cli.run([])).toMatchInlineSnapshot(`true`);
   });
