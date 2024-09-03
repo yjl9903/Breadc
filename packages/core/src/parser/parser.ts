@@ -1,8 +1,10 @@
 import type { IOption } from '../breadc/types.ts';
 
 import { BreadcAppError, RuntimeError } from '../error.ts';
+import { Option, makeOption } from '../breadc/option.ts';
 
-import type { Context } from './context.ts';
+import type { Token } from './lexer.ts';
+import type { Context, OnUnknownOptions } from './context.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
 
@@ -164,12 +166,7 @@ function addPendingOptions(context: Context, pendingOptions: IOption[]) {
 
 function doParse(context: Context, withDefaultCommand: boolean = false) {
   const { tokens } = context;
-  const {
-    commands,
-    arguments: args,
-    options,
-    unknownOptions
-  } = context.matching;
+  const { commands, arguments: args, options } = context.matching;
 
   // 1. Commit pending global options
   addPendingOptions(context, context.container.globalOptions);
@@ -356,7 +353,18 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
         }
 
         // 3.3.3. Handle unknown long options or short options
-        unknownOptions.push([key, value]);
+        const onUnknownOptions =
+          context.command?.onUnknownOptions ??
+          context.container.onUnknownOptions;
+        if (onUnknownOptions) {
+          const option = onUnknownOptions(context, token);
+          if (option) {
+            context.options.set(option.option.name, option);
+          }
+        } else {
+          // TODO: record error
+          return false;
+        }
       }
     } else {
       // 3.4. no matching
@@ -372,3 +380,28 @@ function doParse(context: Context, withDefaultCommand: boolean = false) {
 
   return true;
 }
+
+export const defaultOnUnknownOptions: OnUnknownOptions = (
+  context: Context,
+  token: Token
+) => {
+  const [key, value] = token.isLong ? token.toLong()! : token.toShort()!;
+  const option = makeOption(new Option(key));
+  const matched = new MatchedOption(option);
+
+  option.long = key;
+  if (key.startsWith('--no-')) {
+    option.name = key.slice('--no-'.length);
+    option.name = 'boolean';
+  } else {
+    option.name = key.replace(/^--?/, '');
+    if (value === undefined) {
+      option.type = 'boolean';
+    } else {
+      option.type = 'optional';
+    }
+  }
+
+  matched.accept(context, option.long, value);
+  return matched;
+};

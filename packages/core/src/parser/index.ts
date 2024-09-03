@@ -17,22 +17,6 @@ export function run<T>(context: Context): T {
       )
     );
 
-    // Handle unknown options
-    if (command.onUnknownOptions) {
-      const onUnknownOptions = command.onUnknownOptions;
-      if (onUnknownOptions === true) {
-        for (const [key, value] of context.matching.unknownOptions) {
-          // TODO: handle more cases
-          options[camelCase(key)] = value;
-        }
-      } else {
-        onUnknownOptions(options, context.matching.unknownOptions);
-      }
-    } else if (context.matching.unknownOptions.length > 0) {
-      // TODO: throw error here
-      throw new Error('');
-    }
-
     // Add rest arguments
     options['--'] = context.remaining.map((t) => t.toRaw());
 
