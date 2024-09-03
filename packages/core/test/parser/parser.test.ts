@@ -221,6 +221,47 @@ describe('parser', () => {
     `);
   });
 
+  it('should parse with unknown options', async () => {
+    const cli = new Breadc('cli').allowUnknownOptions();
+    cli.command('').action((options) => options);
+
+    expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "flag": true,
+      }
+    `);
+    expect(await cli.run(['--flag', '123', '--name=value']))
+      .toMatchInlineSnapshot(`
+        {
+          "--": [
+            "123",
+          ],
+          "flag": true,
+          "name": "value",
+        }
+      `);
+  });
+
+  it('should parse and skip all unknown options', async () => {
+    const cli = new Breadc('cli').allowUnknownOptions(() => {});
+    cli.command('').action((options) => options);
+
+    expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+      }
+    `);
+    expect(await cli.run(['--flag', '123', '--name=value']))
+      .toMatchInlineSnapshot(`
+        {
+          "--": [
+            "123",
+          ],
+        }
+      `);
+  });
+
   // --- Errors ---
   it('should not parse duplicated commands', async () => {
     const cli = new Breadc('cli');
@@ -238,5 +279,17 @@ describe('parser', () => {
     expect(() =>
       cli.runSync(['dev', '--name'])
     ).toThrowErrorMatchingInlineSnapshot(`[Error]`);
+  });
+
+  it('should not parse unknown options', () => {
+    // TODO: record errors
+    // const cli = new Breadc('cli');
+    // cli.command('').action((options) => options);
+    // expect(async () => await cli.run(['--flag'])).rejects.toMatchInlineSnapshot(
+    //   `[Error: on unknown options]`
+    // );
+    // expect(
+    //   async () => await cli.run(['--flag', '123', '--name=value'])
+    // ).rejects.toMatchInlineSnapshot(`[Error: on unknown options]`);
   });
 });
