@@ -222,17 +222,66 @@ describe('parser', () => {
   });
 
   it('should parse with unknown options', async () => {
-    const cli = new Breadc('cli').allowUnknownOptions();
-    cli.command('').action((options) => options);
+    {
+      const cli = new Breadc('cli').allowUnknownOptions();
+      cli.command('').action((options) => options);
 
-    expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+      expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": true,
+        }
+      `);
+      expect(await cli.run(['--flag', '123', '--name=value']))
+        .toMatchInlineSnapshot(`
+          {
+            "--": [
+              "123",
+            ],
+            "flag": true,
+            "name": "value",
+          }
+        `);
+    }
+    {
+      const cli = new Breadc('cli').allowUnknownOptions(true);
+      cli.command('').action((options) => options);
+
+      expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": true,
+        }
+      `);
+      expect(await cli.run(['--flag', '123', '--name=value']))
+        .toMatchInlineSnapshot(`
+          {
+            "--": [
+              "123",
+            ],
+            "flag": true,
+            "name": "value",
+          }
+        `);
+    }
+  });
+
+  it('should parse default command with unknown options', async () => {
+    {
+      const cli = new Breadc('cli');
+      cli
+        .command('')
+        .allowUnknownOptions()
+        .action((options) => options);
+
+      expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
       {
         "--": [],
         "flag": true,
       }
     `);
-    expect(await cli.run(['--flag', '123', '--name=value']))
-      .toMatchInlineSnapshot(`
+      expect(await cli.run(['--flag', '123', '--name=value']))
+        .toMatchInlineSnapshot(`
         {
           "--": [
             "123",
@@ -241,11 +290,58 @@ describe('parser', () => {
           "name": "value",
         }
       `);
+    }
+    {
+      const cli = new Breadc('cli');
+      cli
+        .command('')
+        .allowUnknownOptions(true)
+        .action((options) => options);
+
+      expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+        "flag": true,
+      }
+    `);
+      expect(await cli.run(['--flag', '123', '--name=value']))
+        .toMatchInlineSnapshot(`
+        {
+          "--": [
+            "123",
+          ],
+          "flag": true,
+          "name": "value",
+        }
+      `);
+    }
   });
 
   it('should parse and skip all unknown options', async () => {
     const cli = new Breadc('cli').allowUnknownOptions(() => {});
     cli.command('').action((options) => options);
+
+    expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
+      {
+        "--": [],
+      }
+    `);
+    expect(await cli.run(['--flag', '123', '--name=value']))
+      .toMatchInlineSnapshot(`
+        {
+          "--": [
+            "123",
+          ],
+        }
+      `);
+  });
+
+  it('should parse default command and skip all unknown options', async () => {
+    const cli = new Breadc('cli');
+    cli
+      .command('')
+      .allowUnknownOptions(() => {})
+      .action((options) => options);
 
     expect(await cli.run(['--flag'])).toMatchInlineSnapshot(`
       {
