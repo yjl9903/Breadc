@@ -1,3 +1,5 @@
+import type { OnUnknownOptions } from '../parser/context.ts';
+
 import type { OptionConfig } from './option.ts';
 import type { CommandConfig, CommandHooks, ArgumentConfig } from './command.ts';
 
@@ -46,13 +48,7 @@ export type ICommand<F extends string = string> = {
   /**
    * Callback on handling unknown options
    */
-  onUnknownOptions:
-    | undefined
-    | true
-    | ((
-        options: any,
-        unknownOptions: Array<[string, string | undefined]>
-      ) => void);
+  onUnknownOptions: OnUnknownOptions | undefined;
 
   // --- Internal ---
   /**

@@ -1,5 +1,6 @@
-import type { Context } from '../parser/context.ts';
+import type { Context, OnUnknownOptions } from '../parser/context.ts';
 
+import { defaultOnUnknownOptions } from '../parser/parser.ts';
 import { BreadcAppError, ResolveCommandError } from '../error.ts';
 
 import type {
@@ -77,13 +78,7 @@ export class Command<
   /**
    * Callback on handling unknown options
    */
-  onUnknownOptions:
-    | undefined
-    | true
-    | ((
-        options: any,
-        unknownOptions: Array<[string, string | undefined]>
-      ) => void);
+  onUnknownOptions: OnUnknownOptions | undefined;
 
   public constructor(format: F, config: CommandConfig = {}) {
     this.format = format;
@@ -137,8 +132,14 @@ export class Command<
     return this as any;
   }
 
-  public allowUnknownOptions(): this {
-    this.onUnknownOptions = true;
+  public allowUnknownOptions(fn?: boolean | OnUnknownOptions): this {
+    if (typeof fn === 'boolean') {
+      this.onUnknownOptions = fn ? defaultOnUnknownOptions : undefined;
+    } else if (typeof fn === 'function') {
+      this.onUnknownOptions = fn;
+    } else if (fn === undefined) {
+      this.onUnknownOptions = defaultOnUnknownOptions;
+    }
     return this;
   }
 
