@@ -1,8 +1,12 @@
 import { parse, run } from '../parser/index.ts';
-import { type Container, Context } from '../parser/context.ts';
+import {
+  type Container,
+  Context,
+  OnUnknownOptions
+} from '../parser/context.ts';
 
-import { BreadcAppError } from '../error.ts';
 import { I18nFn, setI18nInstance } from '../i18n.ts';
+import { defaultOnUnknownOptions } from '../parser/parser.ts';
 
 import type { InferOption } from './infer.ts';
 
@@ -21,6 +25,9 @@ export interface BreadcConfig {
    */
   i18n?: 'en' | 'zh' | I18nFn;
 
+  /**
+   * Builtin command configuration
+   */
   builtin?: {
     version?: {
       /**
@@ -70,7 +77,8 @@ export class Breadc<GO extends Record<string, any> = {}> {
       globalOptions: [],
       commands: [],
       version,
-      help
+      help,
+      onUnknownOptions: undefined
     };
   }
 
@@ -116,6 +124,19 @@ export class Breadc<GO extends Record<string, any> = {}> {
     const wrapped = makeCommand(command);
     this.#container.commands.push(wrapped);
     return command;
+  }
+
+  public allowUnknownOptions(fn?: boolean | OnUnknownOptions): this {
+    if (typeof fn === 'boolean') {
+      this.#container.onUnknownOptions = fn
+        ? defaultOnUnknownOptions
+        : undefined;
+    } else if (typeof fn === 'function') {
+      this.#container.onUnknownOptions = fn;
+    } else if (fn === undefined) {
+      this.#container.onUnknownOptions = defaultOnUnknownOptions;
+    }
+    return this;
   }
 
   // --- Parse / Run ---
