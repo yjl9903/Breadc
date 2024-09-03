@@ -686,11 +686,10 @@ describe('breadc builtin help comamnd', () => {
   it('should output chinese help', () => {
     const b = new Breadc('cli', { i18n: 'zh' })
       .option('--flag', 'Flag')
-      .option('--host <addr>', 'Host')
       .option('--local', 'Local')
       .option('--root <root>', 'Root');
     b.command('[op]');
-    b.command('dev');
+    b.command('dev').option('--host <addr>', 'Host');
     b.command('build <root>');
     b.command('preview');
     b.command('test [case]');
@@ -737,16 +736,16 @@ describe('breadc builtin help comamnd', () => {
             "Flag",
           ],
           [
-            "      --host <addr>",
-            "Host",
-          ],
-          [
             "      --local",
             "Local",
           ],
           [
             "      --root <root>",
             "Root",
+          ],
+          [
+            "      --host <addr>",
+            "Host",
           ],
           [
             "  -h, --help",
