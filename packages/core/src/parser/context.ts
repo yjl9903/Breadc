@@ -4,6 +4,11 @@ import type { MatchedArgument, MatchedOption } from './matched.ts';
 
 import { Lexer, Token } from './lexer.ts';
 
+export type OnUnknownOptions = (
+  context: Context,
+  token: Token
+) => MatchedOption | undefined | null | void;
+
 export interface Container {
   globalOptions: IOption[];
 
@@ -12,6 +17,8 @@ export interface Container {
   help: ICommand | undefined;
 
   version: ICommand | undefined;
+
+  onUnknownOptions: OnUnknownOptions | undefined;
 }
 
 export interface ContextMetadata {}
@@ -72,16 +79,11 @@ export class Context {
      * Pending options
      */
     readonly options: Map<string, IOption>;
-    /**
-     * Unknown options
-     */
-    readonly unknownOptions: Array<[string, string | undefined]>;
   } = {
     pieces: [],
     commands: new Map(),
     arguments: [],
-    options: new Map(),
-    unknownOptions: []
+    options: new Map()
   };
 
   public constructor(container: Container, args: string[]) {
@@ -97,8 +99,7 @@ export class Context {
       pieces: [],
       commands: new Map(),
       arguments: [],
-      options: new Map(),
-      unknownOptions: []
+      options: new Map()
     };
   }
 }
