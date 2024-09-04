@@ -126,7 +126,9 @@ export class Breadc<GO extends Record<string, any> = {}> {
     return command;
   }
 
-  public allowUnknownOptions(fn?: boolean | OnUnknownOptions): this {
+  public allowUnknownOptions(
+    fn?: boolean | OnUnknownOptions
+  ): Breadc<GO & { [key in string]: any }> {
     if (typeof fn === 'boolean') {
       this.#container.onUnknownOptions = fn
         ? defaultOnUnknownOptions

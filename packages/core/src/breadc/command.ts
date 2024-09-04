@@ -113,7 +113,7 @@ export class Command<
 
   public addOption<OF extends string, C extends OptionConfig<OF>>(
     option: Option<OF, C>
-  ): Command<OF, O & InferOption<OF, C>, A> {
+  ): Command<F, O & InferOption<OF, C>, A> {
     this.options.push(makeOption(option));
     return this as any;
   }
@@ -122,7 +122,7 @@ export class Command<
     format: OF,
     descriptionOrConfig?: string | C,
     config?: Omit<C, 'description'>
-  ): Command<OF, O & InferOption<OF, C>, A> {
+  ): Command<F, O & InferOption<OF, C>, A> {
     const resolvedConfig =
       typeof descriptionOrConfig === 'string'
         ? { ...config, description: descriptionOrConfig }
@@ -132,7 +132,9 @@ export class Command<
     return this as any;
   }
 
-  public allowUnknownOptions(fn?: boolean | OnUnknownOptions): this {
+  public allowUnknownOptions(
+    fn?: boolean | OnUnknownOptions
+  ): Command<F, O & { [key in string]: any }, A> {
     if (typeof fn === 'boolean') {
       this.onUnknownOptions = fn ? defaultOnUnknownOptions : undefined;
     } else if (typeof fn === 'function') {
