@@ -245,7 +245,7 @@ describe('command', () => {
       .command('')
       .argument('<required>')
       .addArgument(
-        new Argument('[optional]', { initial: '1', cast: (t) => +t! })
+        new Argument('[optional]', { initial: '1', cast: (t) => +t })
       )
       .addArgument(new Argument('[...rest]', { initial: ['rest1', 'rest2'] }))
       .action((arg1, arg2, arg3) => {

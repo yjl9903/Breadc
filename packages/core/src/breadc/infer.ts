@@ -108,7 +108,8 @@ export type InferArgumentRawType<F extends string> = F extends `<${string}>`
  */
 export type InferArgumentType<
   F extends string,
-  C extends ArgumentConfig<F>
+  I extends unknown,
+  C extends ArgumentConfig<F, I>
 > = C['default'] extends {}
   ? C['cast'] extends (...args: any[]) => infer R
     ? R
