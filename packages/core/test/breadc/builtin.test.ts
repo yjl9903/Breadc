@@ -760,6 +760,84 @@ describe('breadc builtin help comamnd', () => {
     `);
   });
 
+  it('should output help with custom i18n', () => {
+    const b = new Breadc('cli', { i18n: (word) => `"${word}"` });
+    b.command('[op]');
+    b.command('dev')
+      .option('--host <addr>', 'Host')
+      .option('--flag', 'Flag')
+      .option('--local', 'Local')
+      .option('--root <root>', 'Root');
+    b.command('build <root>');
+    b.command('preview');
+    b.command('test [case]');
+    b.command('run [...args]');
+
+    expect(b.runSync(['--help'])).toMatchInlineSnapshot(`
+      [
+        "cli/unknown",
+        "",
+        ""Usage:" cli "[COMMAND]" "[OPTIONS]"",
+        "",
+        ""Commands:"",
+        [
+          [
+            "  cli [op]",
+            "",
+          ],
+          [
+            "  cli dev",
+            "",
+          ],
+          [
+            "  cli build <root>",
+            "",
+          ],
+          [
+            "  cli preview",
+            "",
+          ],
+          [
+            "  cli test [case]",
+            "",
+          ],
+          [
+            "  cli run [...args]",
+            "",
+          ],
+        ],
+        "",
+        ""Options:"",
+        [
+          [
+            "      --host <addr>",
+            "Host",
+          ],
+          [
+            "      --flag",
+            "Flag",
+          ],
+          [
+            "      --local",
+            "Local",
+          ],
+          [
+            "      --root <root>",
+            "Root",
+          ],
+          [
+            "  -h, --help",
+            ""Print help"",
+          ],
+          [
+            "  -v, --version",
+            ""Print version"",
+          ],
+        ],
+      ]
+    `);
+  });
+
   it('should output nothing without builtin commands', () => {
     const app = new Breadc('cli', {
       builtin: { version: { enable: false } }
