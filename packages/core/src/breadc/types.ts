@@ -117,9 +117,12 @@ export type ICommand<F extends string = string> = {
 
 export type ArgumentType = 'required' | 'optional' | 'spread';
 
-export type IArgument<AF extends string = string> = {
+export type IArgument<
+  AF extends string = string,
+  I extends unknown = unknown
+> = {
   type: ArgumentType;
-  config: ArgumentConfig<AF>;
+  config: ArgumentConfig<AF, I>;
   name: string;
   format: string;
 };

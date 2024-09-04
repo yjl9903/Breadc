@@ -21,10 +21,10 @@ export interface CommandConfig {
   description?: string;
 }
 
-export interface ArgumentConfig<AF extends string = string, R = {}> {
-  initial?: InferArgumentRawType<AF>;
+export interface ArgumentConfig<AF extends string, I extends unknown, R = {}> {
+  initial?: I;
 
-  cast?: (value: InferArgumentRawType<AF>) => R;
+  cast?: (value: I extends {} ? I : InferArgumentRawType<AF>) => R;
 
   default?: R;
 }
@@ -95,19 +95,35 @@ export class Command<
     return this;
   }
 
-  public addArgument<AF extends string, C extends ArgumentConfig<AF>>(
-    argument: Argument<AF, C>
-  ): Command<F, O, A extends never ? never : [...A, InferArgumentType<AF, C>]> {
-    this.arguments.push(makeCustomArgument(argument));
+  public addArgument<
+    AF extends string,
+    I extends unknown,
+    C extends ArgumentConfig<AF, I>
+  >(
+    argument: Argument<AF, I>
+  ): Command<
+    F,
+    O,
+    A extends never ? never : [...A, InferArgumentType<AF, I, C>]
+  > {
+    this.arguments.push(makeCustomArgument(argument) as IArgument);
     return this as any;
   }
 
-  public argument<AF extends string, C extends ArgumentConfig<AF>>(
+  public argument<
+    AF extends string,
+    I extends unknown,
+    C extends ArgumentConfig<AF, I>
+  >(
     format: AF,
     config?: C
-  ): Command<F, O, A extends never ? never : [...A, InferArgumentType<AF, C>]> {
+  ): Command<
+    F,
+    O,
+    A extends never ? never : [...A, InferArgumentType<AF, I, C>]
+  > {
     const argument = new Argument(format, config);
-    this.arguments.push(makeCustomArgument(argument));
+    this.arguments.push(makeCustomArgument(argument) as IArgument);
     return this as any;
   }
 
@@ -190,15 +206,12 @@ export class Command<
   }
 }
 
-export class Argument<
-  F extends string,
-  C extends ArgumentConfig<F> = ArgumentConfig<F>
-> {
+export class Argument<F extends string, I extends unknown> {
   readonly format: F;
 
-  readonly config: C;
+  readonly config: ArgumentConfig<F, I>;
 
-  constructor(format: F, config?: C) {
+  constructor(format: F, config?: ArgumentConfig<F, I>) {
     this.format = format;
     this.config = config ?? ({} as any);
   }
@@ -546,9 +559,9 @@ function makeRawArgument(type: ArgumentType, name: string): IArgument<string> {
   };
 }
 
-function makeCustomArgument<F extends string = string>(
-  argument: Argument<F, ArgumentConfig<F>>
-): IArgument<F> {
+function makeCustomArgument<F extends string, I extends unknown>(
+  argument: Argument<F, I>
+): IArgument<F, I> {
   let type: ArgumentType | undefined = undefined;
   let name: string | undefined = undefined;
 
