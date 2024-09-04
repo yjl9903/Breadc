@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
+import { Breadc } from '../../src/breadc/app.ts';
 import { Option, makeOption } from '../../src/breadc/option.ts';
 
 describe('option', () => {
@@ -135,5 +136,71 @@ describe('option', () => {
         "type": "array",
       }
     `);
+  });
+
+  it('should cast boolean option value', async () => {
+    {
+      const app = new Breadc('cli');
+      app.command('').option('--flag', { cast: v => v ? 1 : -1 }).action((option) => option);
+      expect(await app.run(['--flag'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": 1,
+        }
+      `);
+      expect(await app.run(['--no-flag'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": -1,
+        }
+      `);
+      expect(await app.run([])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": -1,
+        }
+      `);
+    }
+    {
+      const app = new Breadc('cli');
+      app.command('').option('--flag', { initial: true, cast: v => v ? 1 : -1 }).action((option) => option);
+      expect(await app.run(['--flag'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": 1,
+        }
+      `);
+      expect(await app.run(['--no-flag'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": 1,
+        }
+      `);
+      expect(await app.run([])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "flag": 1,
+        }
+      `);
+    }
+  });
+
+  it('should cast string option value', async () => {
+    {
+      const app = new Breadc('cli');
+      app.command('').option('--age <age>', { initial: '0', cast: v => +v! }).action((option) => option);
+      expect(await app.run(['--age=10'])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "age": 10,
+        }
+      `);
+      expect(await app.run([])).toMatchInlineSnapshot(`
+        {
+          "--": [],
+          "age": 0,
+        }
+      `);
+    }
   });
 });
