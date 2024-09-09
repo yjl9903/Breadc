@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@size-limit/preset-small-lib':
-        specifier: ^11.1.4
-        version: 11.1.4(size-limit@11.1.4)
+        specifier: ^11.1.5
+        version: 11.1.5(size-limit@11.1.4)
       '@types/node':
         specifier: ^20.16.5
         version: 20.16.5
@@ -886,22 +886,22 @@ packages:
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
 
-  '@size-limit/esbuild@11.1.4':
-    resolution: {integrity: sha512-Nxh+Fw4Z7sFjRLeT7GDZIy297VXyJrMvG20UDSWP31QgglriEBDkW9U77T7W6js5FaEr89bYVrGzpHfmE1CLFw==}
+  '@size-limit/esbuild@11.1.5':
+    resolution: {integrity: sha512-AywMXRGzJmgAXb8bPAHjK+zxPwuPmIazL2BKDT3zp//8Fb3B/8ld1D4yXMYro4QgJEp47W2KZAZdM5RGrc6Z/A==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 11.1.4
+      size-limit: 11.1.5
 
-  '@size-limit/file@11.1.4':
-    resolution: {integrity: sha512-QxnGj9cxhCEuqMAV01gqonXIKcc+caZqFHZpV51oL2ZJNGSPP9Q/yyf+7HbVe00faOFd1dZZwMwzZmX7HQ9LbA==}
+  '@size-limit/file@11.1.5':
+    resolution: {integrity: sha512-oz/XBVUJh95GpzDb9/f4sEQD/ACJ9zEKSRgBtvMUTN0c+O/9uq+RzvFeXFN2Kjpx3Dmur1ta+oZsp3zQFxlb3Q==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      size-limit: 11.1.4
+      size-limit: 11.1.5
 
-  '@size-limit/preset-small-lib@11.1.4':
-    resolution: {integrity: sha512-wELW374esv+2Nlzf7g+qW4Af9L69duLoO9F52f0sGk/nzb6et7u8gLRvweWrBfm3itUrqHCpGSSVabTsIU8kNw==}
+  '@size-limit/preset-small-lib@11.1.5':
+    resolution: {integrity: sha512-++IMlbAQpCFQp8UN9XHrcZ3SHY+u/ZzxSUA8zIHXDjZJdkb9WIW12CJXwJADj8tMRgWHWC4ixbi1DdnHYJ3ZpA==}
     peerDependencies:
-      size-limit: 11.1.4
+      size-limit: 11.1.5
 
   '@trysound/sax@0.2.0':
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
@@ -2996,20 +2996,20 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@size-limit/esbuild@11.1.4(size-limit@11.1.4)':
+  '@size-limit/esbuild@11.1.5(size-limit@11.1.4)':
     dependencies:
-      esbuild: 0.21.5
+      esbuild: 0.23.1
       nanoid: 5.0.7
       size-limit: 11.1.4
 
-  '@size-limit/file@11.1.4(size-limit@11.1.4)':
+  '@size-limit/file@11.1.5(size-limit@11.1.4)':
     dependencies:
       size-limit: 11.1.4
 
-  '@size-limit/preset-small-lib@11.1.4(size-limit@11.1.4)':
+  '@size-limit/preset-small-lib@11.1.5(size-limit@11.1.4)':
     dependencies:
-      '@size-limit/esbuild': 11.1.4(size-limit@11.1.4)
-      '@size-limit/file': 11.1.4(size-limit@11.1.4)
+      '@size-limit/esbuild': 11.1.5(size-limit@11.1.4)
+      '@size-limit/file': 11.1.5(size-limit@11.1.4)
       size-limit: 11.1.4
 
   '@trysound/sax@0.2.0': {}
