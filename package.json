@@ -24,7 +24,7 @@
     "bumpp": "latest",
     "cac": "^6.7.14",
     "commander": "^12.1.0",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.0",
     "size-limit": "^11.1.6",
     "turbo": "^2.3.2",
     "typescript": "^5.7.2",
