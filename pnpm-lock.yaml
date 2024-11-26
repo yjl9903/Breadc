@@ -42,8 +42,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(typescript@5.7.2)
       vite:
-        specifier: ^5.4.11
-        version: 5.4.11(@types/node@22.10.0)
+        specifier: ^6.0.0
+        version: 6.0.0(@types/node@22.10.0)(jiti@2.4.0)
       vitepress:
         specifier: 1.5.0
         version: 1.5.0(@algolia/client-search@5.15.0)(@types/node@22.10.0)(postcss@8.4.49)(search-insights@2.17.3)(typescript@5.7.2)
@@ -2409,6 +2409,46 @@ packages:
       terser:
         optional: true
 
+  vite@6.0.0:
+    resolution: {integrity: sha512-Q2+5yQV79EdnpbNxjD3/QHVMCBaQ3Kpd4/uL51UGuh38bIIM+s4o3FqyCzRvTRwFb+cWIUeZvaWwS9y2LD2qeQ==}
+    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || ^20.0.0 || >=22.0.0
+      jiti: '>=1.21.0'
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      sass-embedded: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
+        optional: true
+
   vitepress@1.5.0:
     resolution: {integrity: sha512-q4Q/G2zjvynvizdB3/bupdYkCJe2umSAMv9Ju4d92E6/NXJ59z70xB0q5p/4lpRyAwflDsbwy1mLV9Q5+nlB+g==}
     hasBin: true
@@ -4737,6 +4777,16 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.10.0
       fsevents: 2.3.3
+
+  vite@6.0.0(@types/node@22.10.0)(jiti@2.4.0):
+    dependencies:
+      esbuild: 0.24.0
+      postcss: 8.4.49
+      rollup: 4.27.4
+    optionalDependencies:
+      '@types/node': 22.10.0
+      fsevents: 2.3.3
+      jiti: 2.4.0
 
   vitepress@1.5.0(@algolia/client-search@5.15.0)(@types/node@22.10.0)(postcss@8.4.49)(search-insights@2.17.3)(typescript@5.7.2):
     dependencies:
