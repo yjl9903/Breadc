@@ -36,9 +36,9 @@
     }
   },
   "exclude": [
+    "./examples/*.ts",
     "**/dist/**",
     "**/node_modules/**",
-    "./examples/*.ts",
     "**/mod.ts"
   ]
 }
