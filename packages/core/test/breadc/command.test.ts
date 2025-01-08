@@ -264,71 +264,71 @@ describe('command', () => {
     `);
   });
 
-  it('should find invalid required arguments', () => {
-    expect(async () => {
+  it('should find invalid required arguments', async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add <'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid required argument at the command "submodule add <", position 14]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add < [def]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid required argument at the command "submodule add < [def]", position 14]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add <abc [def]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid required argument at the command "submodule add <abc [def]", position 24]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add <abc>ghi [def]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid required argument at the command "submodule add <abc>ghi [def]", position 19]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule <def> add [abc]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Sub-command should be placed in the beginning at the command "submodule <def> add [abc]", position 16]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [abc] <def>'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Required argument should be placed before optional arguments at the command "submodule add [abc] <def>", position 21]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add <>'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid empty argument at the command "submodule add <>", position 16]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add []'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid empty argument at the command "submodule add []", position 16]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [...]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid empty argument at the command "submodule add [...]", position 19]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(
         new Command('submodule add [...rest]').alias('add [...rest]')
       );
@@ -339,29 +339,29 @@ describe('command', () => {
     );
   });
 
-  it('should find invalid optional arguments', () => {
-    expect(async () => {
+  it('should find invalid optional arguments', async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add ['));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid optional argument at the command "submodule add [", position 14]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [ [def]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid optional argument at the command "submodule add [ [def]", position 14]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [abc'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid optional argument at the command "submodule add [abc", position 18]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [abc]def'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -383,7 +383,7 @@ describe('command', () => {
       `);
     }
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule [def] add [...abc]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -391,43 +391,43 @@ describe('command', () => {
     );
   });
 
-  it('should find invalid spread arguments', () => {
-    expect(async () => {
+  it('should find invalid spread arguments', async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [...'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid spread argument at the command "submodule add [...", position 18]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [... <abc>'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid spread argument at the command "submodule add [... <abc>", position 24]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [...rest <abc>'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid spread argument at the command "submodule add [...rest <abc>", position 28]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [...rest]def <abc>'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid spread argument at the command "submodule add [...rest]def <abc>", position 23]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(new Command('submodule add [...rest] [abc]'));
       cmd.resolve().resolve();
     }).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Optional argument should be placed before spread arguments at the command "submodule add [...rest] [abc]", position 25]`
     );
 
-    expect(async () => {
+    await expect(async () => {
       const cmd = makeCommand(
         new Command('submodule add [...rest1] [...rest2]')
       );
