@@ -141,7 +141,10 @@ describe('option', () => {
   it('should cast boolean option value', async () => {
     {
       const app = new Breadc('cli');
-      app.command('').option('--flag', { cast: v => v ? 1 : -1 }).action((option) => option);
+      app
+        .command('')
+        .option('--flag', { cast: (v) => (v ? 1 : -1) })
+        .action((option) => option);
       expect(await app.run(['--flag'])).toMatchInlineSnapshot(`
         {
           "--": [],
@@ -163,7 +166,10 @@ describe('option', () => {
     }
     {
       const app = new Breadc('cli');
-      app.command('').option('--flag', { initial: true, cast: v => v ? 1 : -1 }).action((option) => option);
+      app
+        .command('')
+        .option('--flag', { initial: true, cast: (v) => (v ? 1 : -1) })
+        .action((option) => option);
       expect(await app.run(['--flag'])).toMatchInlineSnapshot(`
         {
           "--": [],
@@ -188,7 +194,10 @@ describe('option', () => {
   it('should cast string option value', async () => {
     {
       const app = new Breadc('cli');
-      app.command('').option('--age <age>', { initial: '0', cast: v => +v! }).action((option) => option);
+      app
+        .command('')
+        .option('--age <age>', { initial: '0', cast: (v) => +v! })
+        .action((option) => option);
       expect(await app.run(['--age=10'])).toMatchInlineSnapshot(`
         {
           "--": [],
