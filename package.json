@@ -18,7 +18,7 @@
     "preversion": "pnpm test:ci && pnpm build"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^11.1.6",
+    "@size-limit/preset-small-lib": "^11.2.0",
     "@types/node": "^22.13.4",
     "@vitest/coverage-v8": "3.0.6",
     "bumpp": "latest",
