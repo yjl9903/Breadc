@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@size-limit/preset-small-lib':
         specifier: ^11.2.0
-        version: 11.2.0(size-limit@11.1.6)
+        version: 11.2.0(size-limit@11.2.0)
       '@types/node':
         specifier: ^22.13.4
         version: 22.13.4
@@ -30,8 +30,8 @@ importers:
         specifier: ^3.5.1
         version: 3.5.1
       size-limit:
-        specifier: ^11.1.6
-        version: 11.1.6
+        specifier: ^11.2.0
+        version: 11.2.0
       turbo:
         specifier: ^2.4.2
         version: 2.4.2
@@ -2029,8 +2029,8 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
-  size-limit@11.1.6:
-    resolution: {integrity: sha512-S5ux2IB8rU26xwVgMskmknGMFkieaIAqDLuwgKiypk6oa4lFsie8yFPrzRFV+yrLDY2GddjXuCaVk5PveVOHiQ==}
+  size-limit@11.2.0:
+    resolution: {integrity: sha512-2kpQq2DD/pRpx3Tal/qRW1SYwcIeQ0iq8li5CJHQgOC+FtPn2BVmuDtzUCgNnpCrbgtfEHqh+iWzxK+Tq6C+RQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
@@ -2116,6 +2116,10 @@ packages:
 
   tinyglobby@0.2.10:
     resolution: {integrity: sha512-Zc+8eJlFMvgatPZTl6A9L/yht8QqdmUNtURHaKZLmKBE12hNPSrqNkUp2cs3M/UKmNVVAMFQYSjYIVHDjW5zew==}
+    engines: {node: '>=12.0.0'}
+
+  tinyglobby@0.2.11:
+    resolution: {integrity: sha512-32TmKeeKUahv0Go8WmQgiEp9Y21NuxjwjqiRC1nrUB51YacfSwuB44xgXD+HdIppmMRgjQNPdrHyA6vIybYZ+g==}
     engines: {node: '>=12.0.0'}
 
   tinypool@1.0.2:
@@ -3010,21 +3014,21 @@ snapshots:
 
   '@shikijs/vscode-textmate@10.0.2': {}
 
-  '@size-limit/esbuild@11.2.0(size-limit@11.1.6)':
+  '@size-limit/esbuild@11.2.0(size-limit@11.2.0)':
     dependencies:
       esbuild: 0.25.0
       nanoid: 5.1.0
-      size-limit: 11.1.6
+      size-limit: 11.2.0
 
-  '@size-limit/file@11.2.0(size-limit@11.1.6)':
+  '@size-limit/file@11.2.0(size-limit@11.2.0)':
     dependencies:
-      size-limit: 11.1.6
+      size-limit: 11.2.0
 
-  '@size-limit/preset-small-lib@11.2.0(size-limit@11.1.6)':
+  '@size-limit/preset-small-lib@11.2.0(size-limit@11.2.0)':
     dependencies:
-      '@size-limit/esbuild': 11.2.0(size-limit@11.1.6)
-      '@size-limit/file': 11.2.0(size-limit@11.1.6)
-      size-limit: 11.1.6
+      '@size-limit/esbuild': 11.2.0(size-limit@11.2.0)
+      '@size-limit/file': 11.2.0(size-limit@11.2.0)
+      size-limit: 11.2.0
 
   '@trysound/sax@0.2.0': {}
 
@@ -4207,7 +4211,7 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  size-limit@11.1.6:
+  size-limit@11.2.0:
     dependencies:
       bytes-iec: 3.1.1
       chokidar: 4.0.3
@@ -4215,7 +4219,7 @@ snapshots:
       lilconfig: 3.1.3
       nanospinner: 1.2.2
       picocolors: 1.1.1
-      tinyglobby: 0.2.10
+      tinyglobby: 0.2.11
 
   source-map-js@1.2.1: {}
 
@@ -4306,6 +4310,11 @@ snapshots:
   tinyexec@0.3.2: {}
 
   tinyglobby@0.2.10:
+    dependencies:
+      fdir: 6.4.3(picomatch@4.0.2)
+      picomatch: 4.0.2
+
+  tinyglobby@0.2.11:
     dependencies:
       fdir: 6.4.3(picomatch@4.0.2)
       picomatch: 4.0.2
