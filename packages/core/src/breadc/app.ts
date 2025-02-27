@@ -2,6 +2,7 @@ import { parse, run } from '../parser/index.ts';
 import {
   type Container,
   Context,
+  OnUnknownCommand,
   OnUnknownOptions
 } from '../parser/context.ts';
 
@@ -78,6 +79,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
       commands: [],
       version,
       help,
+      onUnknownCommand: undefined,
       onUnknownOptions: undefined
     };
   }
@@ -137,6 +139,13 @@ export class Breadc<GO extends Record<string, any> = {}> {
       this.#container.onUnknownOptions = fn;
     } else if (fn === undefined) {
       this.#container.onUnknownOptions = defaultOnUnknownOptions;
+    }
+    return this;
+  }
+
+  public onUnknownCommand(fn: OnUnknownCommand) {
+    if (typeof fn === 'function') {
+      this.#container.onUnknownCommand = fn;
     }
     return this;
   }
