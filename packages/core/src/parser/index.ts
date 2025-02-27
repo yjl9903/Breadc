@@ -46,5 +46,9 @@ export function run<T>(context: Context): T {
     return ret;
   }
 
-  throw new RuntimeError('There is no matched command');
+  if (context.container.onUnknownCommand) {
+    return context.container.onUnknownCommand(context);
+  } else {
+    throw new RuntimeError('There is no matched command');
+  }
 }

@@ -9,6 +9,8 @@ export type OnUnknownOptions = (
   token: Token
 ) => MatchedOption | undefined | null | void;
 
+export type OnUnknownCommand = (context: Context) => any;
+
 export interface Container {
   globalOptions: IOption[];
 
@@ -17,6 +19,8 @@ export interface Container {
   help: ICommand | undefined;
 
   version: ICommand | undefined;
+
+  onUnknownCommand: OnUnknownCommand | undefined;
 
   onUnknownOptions: OnUnknownOptions | undefined;
 }
