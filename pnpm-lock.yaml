@@ -60,6 +60,15 @@ importers:
         specifier: workspace:*
         version: link:../color
 
+  packages/breadcpack:
+    dependencies:
+      '@breadc/color':
+        specifier: workspace:*
+        version: link:../color
+      '@breadc/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/color: {}
 
   packages/complete:
