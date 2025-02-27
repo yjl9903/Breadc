@@ -81,6 +81,15 @@ importers:
         specifier: workspace:*
         version: link:../color
 
+  packages/create-breadc:
+    dependencies:
+      '@breadc/color':
+        specifier: workspace:*
+        version: link:../color
+      '@breadc/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/death: {}
 
   packages/logger:
