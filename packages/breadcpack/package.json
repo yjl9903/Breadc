@@ -1,0 +1,48 @@
+{
+  "name": "breadcpack",
+  "version": "0.9.7",
+  "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
+  "keywords": [
+    "breadc",
+    "cli",
+    "framework",
+    "command-line",
+    "typescript"
+  ],
+  "homepage": "https://github.com/yjl9903/Breadc#readme",
+  "bugs": {
+    "url": "https://github.com/yjl9903/Breadc/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yjl9903/Breadc.git"
+  },
+  "license": "MIT",
+  "author": "XLor",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "breadcpack": "breadcpack.mjs"
+  },
+  "files": [
+    "dist",
+    "*.mjs"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "format": "prettier --write src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@breadc/color": "workspace:*",
+    "@breadc/core": "workspace:*"
+  }
+}
