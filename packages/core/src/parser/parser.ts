@@ -19,7 +19,7 @@ export function parse(context: Context): Context {
 
   const defaultCommand = defaultCommands[0];
   const onlyDefaultCommand =
-    defaultCommand !== undefined && context.container.commands.length === 0;
+    defaultCommand !== undefined && context.container.commands.length === 1;
   if (onlyDefaultCommand) {
     context.command = defaultCommand;
   }
