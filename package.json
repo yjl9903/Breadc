@@ -26,6 +26,7 @@
     "commander": "^13.1.0",
     "prettier": "^3.5.2",
     "size-limit": "^11.2.0",
+    "tsup": "^8.3.5",
     "turbo": "^2.4.4",
     "typescript": "^5.8.2",
     "unbuild": "^3.5.0",
