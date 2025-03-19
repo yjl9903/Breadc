@@ -15,20 +15,28 @@ export interface OptionConfig<F extends string = string, R = {}> {
   negated?: InferOptionRawType<F> extends boolean ? boolean : never;
 
   /**
-   * Overwrite the initial value of the corresponding matched option
+   * Overwrite the initial value of the corresponding matched option.
    * - &lt;required&gt;: undefined
-   * - [optional]: false
-   * - [...remaining]: []
+   * - \[optional\]: false
+   * - \[...remaining\]: \[\]
    */
   initial?: InferOptionRawType<F>;
 
+  /**
+   * Cast initial value to the result
+   */
   cast?: (value: InferOptionRawType<F>) => R;
 
+  /**
+   * Default option value if it is not provided
+   */
   default?: R;
 }
 
 /**
- * Option definition syntax:
+ * Option.
+ *
+ * Support option definition syntax:
  *
  * - --long
  * - --s, --long
@@ -36,9 +44,10 @@ export interface OptionConfig<F extends string = string, R = {}> {
  * - -s, --long &lt;name&gt;
  *
  * Support argument syntax:
- * - &lt;required&gt;
- * - [optional]
- * - [...remaining] (multiple options)
+ *
+ * - &lt;required&gt; : required arguments
+ * - \[optional\] : optional arguments
+ * - \[...remaining\] : multiple option arguments
  */
 export class Option<
   F extends string,
