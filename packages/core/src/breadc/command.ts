@@ -22,10 +22,22 @@ export interface CommandConfig {
 }
 
 export interface ArgumentConfig<AF extends string, I extends unknown, R = {}> {
+  /**
+   * Overwrite the initial value of the corresponding matched option.
+   * - &lt;required&gt; : undefined
+   * - \[optional\] : undefined
+   * - \[...remaining\] : \[\]
+   */
   initial?: I;
 
+  /**
+   * Cast initial value to the result
+   */
   cast?: (value: I extends {} ? I : InferArgumentRawType<AF>) => R;
 
+  /**
+   * Default argument value if it is not provided
+   */
   default?: R;
 }
 
@@ -36,13 +48,13 @@ export interface CommandHooks {
 }
 
 /**
- * Command abstraction.
+ * Command.
  *
  * Support argument:
  * - sub-command
- * - <required>
- * - [optional]
- * - [...remaining]
+ * - &lt;required&gt;
+ * - \[optional\]
+ * - \[...remaining\]
  */
 export class Command<
   F extends string,

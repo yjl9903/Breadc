@@ -128,6 +128,8 @@ export class Breadc<GO extends Record<string, any> = {}> {
     return command;
   }
 
+  // --- Hooks ---
+
   public allowUnknownOptions(
     fn?: boolean | OnUnknownOptions
   ): Breadc<GO & { [key in string]: any }> {
