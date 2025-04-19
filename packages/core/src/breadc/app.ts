@@ -1,3 +1,6 @@
+import { type LoggerInit } from '../logger.ts';
+import { type I18nFn, setI18nInstance } from '../i18n.ts';
+
 import { parse, run } from '../parser/index.ts';
 import {
   type Container,
@@ -5,8 +8,6 @@ import {
   OnUnknownCommand,
   OnUnknownOptions
 } from '../parser/context.ts';
-
-import { I18nFn, setI18nInstance } from '../i18n.ts';
 import { defaultOnUnknownOptions } from '../parser/parser.ts';
 
 import type { InferOption } from './infer.ts';
@@ -16,15 +17,28 @@ import { makeVersionCommand } from './builtin/version.ts';
 import { type OptionConfig, makeOption, Option } from './option.ts';
 import { type CommandConfig, Command, makeCommand } from './command.ts';
 
-export interface BreadcConfig {
+export interface BreadcInit {
+  /**
+   * CLI app version
+   */
   version?: string;
 
+  /**
+   * CLI app description
+   */
   description?: string;
 
   /**
+   * I18n language or custom i18n function
+   * 
    * @default 'en'
    */
   i18n?: 'en' | 'zh' | I18nFn;
+
+  /**
+   * Logger
+   */
+  logger?: LoggerInit;
 
   /**
    * Builtin command configuration
@@ -59,28 +73,34 @@ export interface BreadcConfig {
 export class Breadc<GO extends Record<string, any> = {}> {
   name: string;
 
-  config: BreadcConfig;
+  version: string | undefined;
+
+  #init: BreadcInit;
 
   #container: Container;
 
-  public constructor(name: string, config: BreadcConfig = {}) {
+  public constructor(name: string, init: BreadcInit = {}) {
     this.name = name;
-    this.config = config;
+    this.version = init.version;
+    this.#init = init;
 
     let version, help;
-    if (config.builtin?.version?.enable !== false) {
-      version = makeVersionCommand(name, config);
+    if (init.builtin?.version?.enable !== false) {
+      version = makeVersionCommand(name, init);
     }
-    if (config.builtin?.help?.enable !== false) {
-      help = makeHelpCommand(name, config);
+    if (init.builtin?.help?.enable !== false) {
+      help = makeHelpCommand(name, init);
     }
+
     this.#container = {
       globalOptions: [],
       commands: [],
       version,
       help,
       onUnknownCommand: undefined,
-      onUnknownOptions: undefined
+      onUnknownOptions: undefined,
+      // @todo
+      logger: console
     };
   }
 
@@ -161,8 +181,8 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the parsed context
    */
   public parse(args: string[]) {
-    if (this.config.i18n && this.config.i18n !== 'en') {
-      setI18nInstance(this.config.i18n);
+    if (this.#init.i18n && this.#init.i18n !== 'en') {
+      setI18nInstance(this.#init.i18n);
     }
     const context = new Context(this.#container, args);
     return parse(context);
@@ -175,7 +195,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the returned value from the corresponding action function
    */
   public async run<T = unknown>(args: string[]): Promise<T> {
-    setI18nInstance(this.config.i18n);
+    setI18nInstance(this.#init.i18n);
     const context = this.parse(args);
     return run(context);
   }
@@ -187,7 +207,7 @@ export class Breadc<GO extends Record<string, any> = {}> {
    * @returns the returned value from the corresponding action function
    */
   public runSync<T = unknown>(args: string[]): T {
-    setI18nInstance(this.config.i18n);
+    setI18nInstance(this.#init.i18n);
     const context = this.parse(args);
     return run(context);
   }
