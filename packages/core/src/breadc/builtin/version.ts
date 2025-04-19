@@ -1,8 +1,8 @@
-import type { BreadcConfig } from '../app.ts';
+import type { BreadcInit } from '../app.ts';
 
 import { Command, makeCommand } from '../command.ts';
 
-export function makeVersionCommand(name: string, config: BreadcConfig) {
+export function makeVersionCommand(name: string, config: BreadcInit) {
   const raw = config.builtin?.version?.format;
 
   const command = new Command('', { description: 'Print version' });

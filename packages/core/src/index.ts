@@ -1,4 +1,4 @@
-export { Breadc, type BreadcConfig } from './breadc/app.ts';
+export { Breadc, type BreadcInit } from './breadc/app.ts';
 export { Option, type OptionConfig } from './breadc/option.ts';
 export {
   Command,

@@ -1,6 +1,6 @@
 import { bold, underline } from '@breadc/color';
 
-import type { BreadcConfig } from '../app.ts';
+import type { BreadcInit } from '../app.ts';
 
 import { Command, makeCommand } from '../command.ts';
 
@@ -9,7 +9,7 @@ import { getI18n } from '../../i18n.ts';
 
 type Block = string | Array<[string, string]>;
 
-export function makeHelpCommand(name: string, config: BreadcConfig) {
+export function makeHelpCommand(name: string, config: BreadcInit) {
   const raw = config.builtin?.help?.format;
 
   const command = new Command('', { description: 'Print help' });
