@@ -1,3 +1,5 @@
+import type { Logger } from '../logger.ts';
+
 import type { ICommand, IOption } from '../breadc/types.ts';
 
 import type { MatchedArgument, MatchedOption } from './matched.ts';
@@ -23,6 +25,8 @@ export interface Container {
   onUnknownCommand: OnUnknownCommand | undefined;
 
   onUnknownOptions: OnUnknownOptions | undefined;
+
+  logger: Logger;
 }
 
 export interface ContextMetadata {}
