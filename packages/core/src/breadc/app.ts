@@ -30,7 +30,7 @@ export interface BreadcInit {
 
   /**
    * I18n language or custom i18n function
-   * 
+   *
    * @default 'en'
    */
   i18n?: 'en' | 'zh' | I18nFn;
