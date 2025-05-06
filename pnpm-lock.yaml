@@ -86,7 +86,7 @@ importers:
         specifier: workspace:*
         version: link:../color
       std-env:
-        specifier: ^3.8.1
+        specifier: ^3.9.0
         version: 3.9.0
 
   packages/progress:
