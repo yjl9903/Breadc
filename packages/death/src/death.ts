@@ -4,7 +4,7 @@ export type DeathSignals = 'SIGINT' | 'SIGTERM' | 'SIGQUIT';
 
 export interface OnDeathContext {
   // Whether the event is being triggered, make sure that there is only one listener is running
-  triggered: boolean;
+  triggered: Date | undefined;
 
   // Terminate process by which method or does nothing when callbacks are done
   terminate: 'exit' | 'kill' | false;
@@ -30,7 +30,7 @@ export interface OnDeathOptions {
 const emitter = new EventEmitter();
 
 const context: OnDeathContext = {
-  triggered: false,
+  triggered: undefined,
   terminate: 'kill',
   exit: undefined,
   kill: undefined
@@ -41,6 +41,8 @@ const handlers: Record<DeathSignals, Handler> = {
   SIGTERM: makeHandler('SIGTERM'),
   SIGQUIT: makeHandler('SIGQUIT')
 };
+
+const FORCE_KILL_TIMEOUT = 3 * 1000;
 
 export function onDeath(
   callback: OnDeathCallback,
@@ -117,11 +119,15 @@ function makeHandler(signal: DeathSignals): Handler {
     },
     async listener(signal: NodeJS.Signals) {
       if (context.triggered) {
+        if (new Date().getTime() - context.triggered.getTime() >= FORCE_KILL_TIMEOUT) {
+          process.exit(130);
+        }
         return;
       }
 
-      context.triggered = true;
+      context.terminate = 'kill';
       context.kill = signal;
+      context.triggered = new Date();
 
       const listeners = [...emitter.listeners(signal)];
 
@@ -140,10 +146,11 @@ function makeHandler(signal: DeathSignals): Handler {
         } else {
           process.exit(context.exit);
         }
+        return;
       }
 
-      context.triggered = false;
       context.kill = undefined;
+      context.triggered = undefined;
     }
   };
 }
