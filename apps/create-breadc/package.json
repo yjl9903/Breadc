@@ -1,5 +1,5 @@
 {
-  "name": "@breadc/core",
+  "name": "create-breadc",
   "version": "0.9.7",
   "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
   "keywords": [
@@ -21,31 +21,28 @@
   "author": "XLor",
   "sideEffects": false,
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "bin": {
+    "create-breadc": "create-breadc.mjs"
+  },
   "files": [
-    "dist"
+    "dist",
+    "*.mjs"
   ],
   "scripts": {
-    "build": "tsup",
-    "coverage": "vitest run --coverage",
-    "format": "prettier --write src/**/*.ts test/**/*.ts",
-    "size": "size-limit",
-    "test": "vitest --typecheck",
-    "test:bench": "vitest bench",
-    "test:ci": "vitest --run",
-    "test:coverage": "vitest run --coverage --typecheck"
+    "build": "unbuild",
+    "format": "prettier --write src/**/*.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@breadc/color": "workspace:*"
-  },
-  "size-limit": [
-    {
-      "path": "./dist/index.mjs"
-    },
-    {
-      "path": "./dist/index.cjs"
-    }
-  ]
+    "@breadc/color": "workspace:*",
+    "@breadc/core": "workspace:*"
+  }
 }

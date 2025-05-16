@@ -49,31 +49,10 @@ If you are using IDEs that support TypeScript (like [Visual Studio Code](https:/
 
 ![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/images/vscode.png)
 
-### Limitation
-
-For the limitation of TypeScript, in the command format string, you can only write up to **5** pieces. That is to say, you can only write format string like `<p1> <p2> <p3> <p4> [p5]`, but `<p1> <p2> <p3> <p4> <p5> [p6]` does not work.
-
-You should always use method chaining when registering options and commands. The example below will fail to infer the option `--host`.
-
-```ts
-import { breadc } from 'breadc'
-
-const cli = breadc('cli')
-
-cli
-  .option('--host')
-
-cli
-  .option('--port')
-  .command('')
-  .action((option) => {
-    // The type of option is only { port: boolean }
-  })
-```
-
 ## Inspiration
 
 + [cac](https://github.com/cacjs/cac): Simple yet powerful framework for building command-line apps.
++ [Commander.js](https://github.com/tj/commander.js): Node.js command-line interfaces made easy.
 + [TypeScript: Documentation - Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
 
 ## License
