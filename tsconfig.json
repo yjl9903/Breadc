@@ -14,6 +14,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "allowImportingTsExtensions": true,
+    "types": [
+      "vitest/importMeta"
+    ],
     "paths": {
       "breadc": [
         "./packages/breadc/src/index.ts"
@@ -33,9 +36,9 @@
     }
   },
   "exclude": [
+    "./examples/*.ts",
     "**/dist/**",
     "**/node_modules/**",
-    "./examples/*.ts",
     "**/mod.ts"
   ]
 }
