@@ -62,6 +62,9 @@ importers:
       '@breadc/core':
         specifier: workspace:*
         version: link:../../packages/core
+      breadc:
+        specifier: workspace:*
+        version: link:../../packages/breadc
 
   apps/create-breadc:
     dependencies:
@@ -71,6 +74,9 @@ importers:
       '@breadc/core':
         specifier: workspace:*
         version: link:../../packages/core
+      breadc:
+        specifier: workspace:*
+        version: link:../../packages/breadc
 
   packages/breadc:
     dependencies:
