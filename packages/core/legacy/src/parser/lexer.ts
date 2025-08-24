@@ -1,4 +1,4 @@
-import { splitOnce } from '../utils/string.ts';
+import { splitOnce, stripPrefix } from '../utils/index.ts';
 
 export class Lexer {
   private readonly args: string[];

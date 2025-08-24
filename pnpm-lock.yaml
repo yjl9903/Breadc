@@ -54,20 +54,29 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@22.17.2)(jiti@2.5.1)(yaml@2.8.1)
 
+  apps/breadcpack:
+    dependencies:
+      '@breadc/color':
+        specifier: workspace:*
+        version: link:../../packages/color
+      '@breadc/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
+  apps/create-breadc:
+    dependencies:
+      '@breadc/color':
+        specifier: workspace:*
+        version: link:../../packages/color
+      '@breadc/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+
   packages/breadc:
     dependencies:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
-
-  packages/breadcpack:
-    dependencies:
-      '@breadc/color':
-        specifier: workspace:*
-        version: link:../color
-      '@breadc/core':
-        specifier: workspace:*
-        version: link:../core
 
   packages/color: {}
 
@@ -89,15 +98,6 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
-
-  packages/create-breadc:
-    dependencies:
-      '@breadc/color':
-        specifier: workspace:*
-        version: link:../color
-      '@breadc/core':
-        specifier: workspace:*
-        version: link:../core
 
   packages/death: {}
 
