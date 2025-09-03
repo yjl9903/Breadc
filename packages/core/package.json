@@ -34,7 +34,7 @@
     "size": "size-limit",
     "test": "vitest --typecheck",
     "test:bench": "vitest bench",
-    "test:ci": "vitest --run",
+    "test:ci": "vitest --run --typecheck",
     "test:coverage": "vitest run --coverage --typecheck"
   },
   "dependencies": {

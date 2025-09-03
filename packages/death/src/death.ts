@@ -119,7 +119,10 @@ function makeHandler(signal: DeathSignals): Handler {
     },
     async listener(signal: NodeJS.Signals) {
       if (context.triggered) {
-        if (new Date().getTime() - context.triggered.getTime() >= FORCE_KILL_TIMEOUT) {
+        if (
+          new Date().getTime() - context.triggered.getTime() >=
+          FORCE_KILL_TIMEOUT
+        ) {
           process.exit(130);
         }
         return;

@@ -3,7 +3,24 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     includeSource: ['src/**/*.{js,ts}'],
-    exclude: ['legacy/**/*.{js,ts}'],
+    exclude: [
+      '**\/node_modules/**',
+      '**\/dist/**',
+      '**\/cypress/**',
+      '**\/.{idea,git,cache,output,temp}/**',
+      '**\/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*',
+      '**\/legacy/**'
+    ],
+    typecheck: {
+      exclude: [
+        '**\/node_modules/**',
+        '**\/dist/**',
+        '**\/cypress/**',
+        '**\/.{idea,git,cache,output,temp}/**',
+        '**\/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*',
+        '**\/legacy/**'
+      ]
+    },
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage',
@@ -12,6 +29,7 @@ export default defineConfig({
         '**/mod.ts',
         'coverage/**',
         'dist/**',
+        'legacy/**',
         '**/[.]**',
         'packages/*/test?(s)/**',
         '**/*.d.ts',
