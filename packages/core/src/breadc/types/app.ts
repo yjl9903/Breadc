@@ -52,7 +52,9 @@ export type Breadc<
   /**
    * Execute middleware
    */
-  use<R extends unknown>(middleware: Middleware<R>): Breadc<Data, Options>;
+  use<MR extends Record<never, never>>(
+    middleware: Middleware<Data, MR>
+  ): Breadc<MR, Options>;
 
   /**
    * Allow unknown options middleware
@@ -104,7 +106,9 @@ export type Group<
   /**
    * Execute middleware
    */
-  use<R extends unknown>(middleware: Middleware<R>): Group<Spec, Init, Options>;
+  use<MR extends Record<never, never>>(
+    middleware: Middleware<Data, MR>
+  ): Group<Spec, Init, MR, Options>;
 
   /**
    * Allow unknown options middleware
@@ -188,9 +192,9 @@ export type Command<
   /**
    * Execute middleware
    */
-  use<R extends unknown>(
-    middleware: Middleware<R>
-  ): Command<Spec, Init, Data, Options, Arguments, Return>;
+  use<MR extends Record<never, never>>(
+    middleware: Middleware<Data, MR>
+  ): Command<Spec, Init, MR, Options, Arguments, Return>;
 
   /**
    * Allow unknown options middleware
@@ -237,4 +241,6 @@ export type Argument<
 
 export type AllowUnknownOptions = () => void;
 
-export type Middleware<Return> = () => Promise<Return> | Return;
+export type Middleware<Data extends Record<never, never>, Return> = (
+  context: Context<Data>
+) => Promise<Return> | Return;
