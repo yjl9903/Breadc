@@ -28,7 +28,10 @@ export type GroupInstance = {
 /**
  * @internal
  */
-export type InternalBreadc<GO extends Record<never, never>> = Breadc<GO> & {
+export type InternalBreadc<GO extends Record<never, never>> = Breadc<
+  Record<never, never>,
+  GO
+> & {
   /**
    * @internal
    */

@@ -15,7 +15,7 @@ import { group as makeGroup } from './group.ts';
 import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
 
-export function breadc(name: string, init: BreadcInit = {}): Breadc<{}> {
+export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
   const instance: BreadcInstance = {
     name,
     init,

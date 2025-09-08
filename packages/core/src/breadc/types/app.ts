@@ -16,49 +16,56 @@ import type {
 /**
  * @public
  */
-export type Breadc<Options extends Record<never, never>> = {
+export type Breadc<
+  Data extends Record<never, never> = {},
+  Options extends Record<never, never> = {}
+> = {
   name: string;
 
   version: string | undefined;
 
-  group<S extends string>(spec: S): Group<S, Options>;
-  group<S extends string>(group: Group<S>): Group<S, Options>;
+  group<GS extends string, GI extends GroupInit<GS>>(
+    spec: GS,
+    description?: string,
+    init?: GI
+  ): Group<GS, GI, Data, Options>;
+  group<GS extends string, G extends Group<GS>>(group: G): G;
 
   option<S extends string, I extends OptionInit<S>>(
     spec: S,
     description?: string,
     init?: OptionInit<S>
-  ): Breadc<Options & InferOption<S, I>>;
+  ): Breadc<Data, Options & InferOption<S, I>>;
   option<S extends string, O extends Option<S>>(
     option: O
-  ): Breadc<Options & InferOption<S, O['init'] & {}>>;
+  ): Breadc<Data, Options & InferOption<S, O['init'] & {}>>;
 
   command<S extends string, I extends CommandInit<S>>(
     spec: S,
     description?: string,
     init?: I
-  ): Command<S, I, Options, InferArgumentsType<S>, unknown>;
+  ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
   command<S extends string, I extends CommandInit<S>>(
-    command: Command<S, I, Options>
-  ): Command<S, I, Options, InferArgumentsType<S>, unknown>;
+    command: Command<S, I, Data, Options>
+  ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
 
   /**
    * Execute middleware
    */
-  use<R extends unknown>(middleware: Middleware<R>): Breadc<Options>;
+  use<R extends unknown>(middleware: Middleware<R>): Breadc<Data, Options>;
 
   /**
    * Allow unknown options middleware
    */
   allowUnknownOptions(
     middleware?: boolean | AllowUnknownOptions
-  ): Breadc<Options>;
+  ): Breadc<Data, Options>;
 
   /**
    *
    * @param args
    */
-  parse(args: string[]): Context;
+  parse(args: string[]): Context<Data>;
 
   /**
    *
@@ -70,6 +77,7 @@ export type Breadc<Options extends Record<never, never>> = {
 export type Group<
   Spec extends string = string,
   Init extends GroupInit<Spec> = GroupInit<Spec>,
+  Data extends Record<never, never> = {},
   Options extends Record<never, never> = Record<never, never>
 > = {
   spec: Spec;
@@ -88,10 +96,10 @@ export type Group<
     spec: S,
     description?: string,
     init?: I
-  ): Command<S, I, Options, InferArgumentsType<S>, unknown>;
+  ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
   command<S extends string, I extends CommandInit<S>>(
     command: Command<S, I, Options>
-  ): Command<S, I, Options, InferArgumentsType<S>, unknown>;
+  ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
 
   /**
    * Execute middleware
@@ -109,6 +117,7 @@ export type Group<
 export type Command<
   Spec extends string = string,
   Init extends CommandInit<Spec> = CommandInit<Spec>,
+  Data extends Record<never, never> = {},
   Options extends Record<never, never> = {},
   Arguments extends unknown[] = InferArgumentsType<Spec>,
   Return extends unknown = unknown
@@ -122,7 +131,7 @@ export type Command<
    *
    * @param spec
    */
-  alias(spec: string): Command<Spec, Init, Options, Arguments, Return>;
+  alias(spec: string): Command<Spec, Init, Data, Options, Arguments, Return>;
 
   /**
    * Add option
@@ -133,12 +142,20 @@ export type Command<
   option<OS extends string, OI extends OptionInit<OS>>(
     spec: OS,
     init?: OptionInit<OS>
-  ): Command<Spec, Init, Options & InferOption<OS, OI>, Arguments, Return>;
+  ): Command<
+    Spec,
+    Init,
+    Data,
+    Options & InferOption<OS, OI>,
+    Arguments,
+    Return
+  >;
   option<OS extends string, Opt extends Option<OS>>(
     option: Opt
   ): Command<
     Spec,
     Init,
+    Data,
     Options & InferOption<OS, Opt['init'] & {}>,
     Arguments,
     Return
@@ -151,7 +168,7 @@ export type Command<
     Arg extends Argument<AS, AI>
   >(
     argument: Arg
-  ): Command<Spec, Init, Options, [...Arguments, Arg], Return>;
+  ): Command<Spec, Init, Data, Options, [...Arguments, Arg], Return>;
   argument<
     AS extends string,
     Initial extends unknown,
@@ -162,6 +179,7 @@ export type Command<
   ): Command<
     Spec,
     Init,
+    Data,
     Options,
     [...Arguments, InferArgumentType<AS, Initial, AI>],
     Return
@@ -172,14 +190,14 @@ export type Command<
    */
   use<R extends unknown>(
     middleware: Middleware<R>
-  ): Command<Spec, Init, Options, Arguments, Return>;
+  ): Command<Spec, Init, Data, Options, Arguments, Return>;
 
   /**
    * Allow unknown options middleware
    */
   allowUnknownOptions(
     middleware?: boolean | AllowUnknownOptions
-  ): Command<Spec, Init, Options, Arguments, Return>;
+  ): Command<Spec, Init, Data, Options, Arguments, Return>;
 
   /**
    * Bind action function
@@ -188,7 +206,7 @@ export type Command<
     fn: (
       ...args: [...Arguments, Prettify<Options & { '--': string[] }>]
     ) => Promise<R> | R
-  ): Command<Spec, Init, Options, Arguments, R>;
+  ): Command<Spec, Init, Data, Options, Arguments, R>;
 
   /**
    * Run command directly
