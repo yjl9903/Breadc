@@ -1,5 +1,13 @@
-import type { BreadcInit, GroupInit } from './init.ts';
-import type { Breadc, Command, Option, Argument, Group } from './app.ts';
+import type { BreadcInit, CommandInit, GroupInit } from './init.ts';
+import type {
+  Breadc,
+  Command,
+  Option,
+  Argument,
+  Group,
+  ActionMiddleware,
+  UnknownOptionMiddleware
+} from './app.ts';
 
 /**
  * @internal
@@ -12,17 +20,10 @@ export type BreadcInstance = {
   commands: (InternalCommand | InternalGroup)[];
 
   options: InternalOption[];
-};
 
-/**
- * @internal
- */
-export type GroupInstance = {
-  init: GroupInit<string>;
+  actionMiddlewares: ActionMiddleware<any, any>[];
 
-  commands: InternalCommand[];
-
-  options: InternalOption[];
+  unknownOptionMiddlewares: UnknownOptionMiddleware<any>[];
 };
 
 /**
@@ -38,14 +39,59 @@ export type InternalBreadc<GO extends Record<never, never>> = Breadc<
   instance: BreadcInstance;
 };
 
-export type InternalGroup = Group & {
+export type InternalGroup = Group<string, GroupInit<string>, {}, {}> & {
   /**
    * @internal
    */
-  instance: GroupInstance;
+  init: GroupInit<string>;
+
+  /**
+   * @internal
+   */
+  commands: InternalCommand[];
+
+  /**
+   * @internal
+   */
+  options: InternalOption[];
+
+  /**
+   * @internal
+   */
+  actionMiddlewares: ActionMiddleware<any, any>[];
+
+  /**
+   * @internal
+   */
+  unknownOptionMiddlewares: UnknownOptionMiddleware<any>[];
 };
 
-export type InternalCommand = Command & {};
+export type InternalCommand = Command & {
+  /**
+   * @internal
+   */
+  init: CommandInit<string>;
+
+  /**
+   * @internal
+   */
+  options?: InternalOption[];
+
+  /**
+   * @internal
+   */
+  actionMiddlewares?: ActionMiddleware<any, any>[];
+
+  /**
+   * @internal
+   */
+  unknownOptionMiddlewares?: UnknownOptionMiddleware<any>[];
+
+  /**
+   * @internal
+   */
+  actionFn?: Function;
+};
 
 export type InternalOption = Option & {};
 

@@ -1,8 +1,8 @@
 export { breadc } from './app.ts';
 
-export { option } from './option.ts';
-
 export { group } from './group.ts';
+
+export { option } from './option.ts';
 
 export { command, argument } from './command.ts';
 
@@ -13,7 +13,6 @@ export type {
   InternalBreadc,
   Group,
   GroupInit,
-  GroupInstance,
   InternalGroup,
   Command,
   CommandInit,

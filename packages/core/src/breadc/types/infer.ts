@@ -1,6 +1,10 @@
-import type { Letter } from '../../utils/types.ts';
+import type { IsEqual, Letter } from '../../utils/types.ts';
 
-import type { ArgumentInit, OptionInit } from './init.ts';
+import type {
+  ArgumentInit,
+  OptionInit,
+  NonNullableArgumentInit
+} from './init.ts';
 
 /**
  * Infer the raw option type: boolean or string or string[]
@@ -106,15 +110,25 @@ export type InferArgumentRawType<F extends string> = F extends `<${string}>`
  */
 export type InferArgumentType<
   F extends string,
-  I extends unknown,
-  C extends ArgumentInit<F, I>
+  I extends InferArgumentRawType<F>,
+  C extends
+    | ArgumentInit<F, I, unknown>
+    | NonNullableArgumentInit<F, NonNullable<I>, unknown>
 > = C['default'] extends {}
   ? C['cast'] extends (...args: any[]) => infer R
-    ? R
-    : C['default'] | NonNullable<InferArgumentRawType<F>>
+    ? IsEqual<R, C['default']> extends true
+      ? R
+      : never
+    :
+        | C['default']
+        | (C['initial'] extends {}
+            ? C['initial'] | NonNullable<InferArgumentRawType<F>>
+            : NonNullable<InferArgumentRawType<F>>)
   : C['cast'] extends (...args: any[]) => infer R
     ? R
-    : InferArgumentRawType<F>;
+    : C['initial'] extends {}
+      ? C['initial'] | NonNullable<InferArgumentRawType<F>>
+      : InferArgumentRawType<F>;
 
 /**
  * Infer the arguments type

@@ -2,16 +2,18 @@ import type { Context } from '../../parser/context.ts';
 import type { Prettify } from '../../utils/types.ts';
 
 import type {
-  InferOption,
-  InferArgumentType,
-  InferArgumentsType
-} from './infer.ts';
-import type {
   GroupInit,
   OptionInit,
   CommandInit,
-  ArgumentInit
+  ArgumentInit,
+  NonNullableArgumentInit
 } from './init.ts';
+import type {
+  InferOption,
+  InferArgumentType,
+  InferArgumentsType,
+  InferArgumentRawType
+} from './infer.ts';
 
 /**
  * @public
@@ -50,17 +52,17 @@ export type Breadc<
   ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
 
   /**
-   * Execute middleware
+   * Action middleware
    */
   use<MR extends Record<never, never>>(
-    middleware: Middleware<Data, MR>
+    middleware: ActionMiddleware<Data, MR>
   ): Breadc<MR, Options>;
 
   /**
    * Allow unknown options middleware
    */
   allowUnknownOptions(
-    middleware?: boolean | AllowUnknownOptions
+    middleware?: boolean | UnknownOptionMiddleware<Data>
   ): Breadc<Data, Options>;
 
   /**
@@ -89,10 +91,10 @@ export type Group<
   option<S extends string, I extends OptionInit<S>>(
     spec: S,
     init?: OptionInit<S>
-  ): Group<Spec, Init, Options & InferOption<S, I>>;
+  ): Group<Spec, Init, Data, Options & InferOption<S, I>>;
   option<S extends string, O extends Option<S>>(
     option: O
-  ): Group<Spec, Init, Options & InferOption<S, O['init'] & {}>>;
+  ): Group<Spec, Init, Data, Options & InferOption<S, O['init'] & {}>>;
 
   command<S extends string, I extends CommandInit<S>>(
     spec: S,
@@ -104,18 +106,18 @@ export type Group<
   ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
 
   /**
-   * Execute middleware
+   * Action middleware
    */
   use<MR extends Record<never, never>>(
-    middleware: Middleware<Data, MR>
+    middleware: ActionMiddleware<Data, MR>
   ): Group<Spec, Init, MR, Options>;
 
   /**
    * Allow unknown options middleware
    */
   allowUnknownOptions(
-    middleware?: boolean | AllowUnknownOptions
-  ): Group<Spec, Init, Options>;
+    middleware?: boolean | UnknownOptionMiddleware<Data>
+  ): Group<Spec, Init, Data, Options>;
 };
 
 export type Command<
@@ -145,7 +147,7 @@ export type Command<
    */
   option<OS extends string, OI extends OptionInit<OS>>(
     spec: OS,
-    init?: OptionInit<OS>
+    init?: OI
   ): Command<
     Spec,
     Init,
@@ -165,18 +167,45 @@ export type Command<
     Return
   >;
 
+  /**
+   * Add argument
+   */
   argument<
     AS extends string,
-    Initial extends unknown,
-    AI extends ArgumentInit<AS, Initial>,
-    Arg extends Argument<AS, AI>
+    Initial extends InferArgumentRawType<AS>,
+    Cast extends unknown,
+    AI extends ArgumentInit<AS, Initial, Cast>
   >(
-    argument: Arg
-  ): Command<Spec, Init, Data, Options, [...Arguments, Arg], Return>;
+    argument: Argument<AS, Initial, Cast, AI>
+  ): Command<
+    Spec,
+    Init,
+    Data,
+    Options,
+    [...Arguments, InferArgumentType<AS, Initial, AI>],
+    Return
+  >;
   argument<
     AS extends string,
-    Initial extends unknown,
-    AI extends ArgumentInit<AS, Initial>
+    Initial extends NonNullable<InferArgumentRawType<AS>>,
+    Cast extends unknown,
+    AI extends NonNullableArgumentInit<AS, Initial, Cast>
+  >(
+    spec: AS,
+    init: AI
+  ): Command<
+    Spec,
+    Init,
+    Data,
+    Options,
+    [...Arguments, InferArgumentType<AS, Initial, AI>],
+    Return
+  >;
+  argument<
+    AS extends string,
+    Initial extends InferArgumentRawType<AS>,
+    Cast extends unknown,
+    AI extends ArgumentInit<AS, Initial, Cast>
   >(
     spec: AS,
     init?: AI
@@ -190,17 +219,17 @@ export type Command<
   >;
 
   /**
-   * Execute middleware
+   * Action middleware
    */
   use<MR extends Record<never, never>>(
-    middleware: Middleware<Data, MR>
+    middleware: ActionMiddleware<Data, MR>
   ): Command<Spec, Init, MR, Options, Arguments, Return>;
 
   /**
    * Allow unknown options middleware
    */
   allowUnknownOptions(
-    middleware?: boolean | AllowUnknownOptions
+    middleware?: boolean | UnknownOptionMiddleware<Data>
   ): Command<Spec, Init, Data, Options, Arguments, Return>;
 
   /**
@@ -231,16 +260,33 @@ export type Option<
 
 export type Argument<
   Spec extends string = string,
-  Input extends unknown = unknown,
-  Init extends ArgumentInit<Spec, Input> = ArgumentInit<Spec, Input>
+  Initial extends InferArgumentRawType<Spec> = InferArgumentRawType<Spec>,
+  Cast extends unknown = unknown,
+  Init extends ArgumentInit<Spec, Initial, Cast> = ArgumentInit<
+    Spec,
+    Initial,
+    Cast
+  >
 > = {
   spec: Spec;
 
   init: Init | undefined;
 };
 
-export type AllowUnknownOptions = () => void;
+/**
+ * Unknown option middleware
+ *
+ * @public
+ */
+export type UnknownOptionMiddleware<Data extends Record<never, never>> = (
+  context: Context<Data>
+) => boolean | void | undefined | null;
 
-export type Middleware<Data extends Record<never, never>, Return> = (
+/**
+ * Command action middleware
+ *
+ * @public
+ */
+export type ActionMiddleware<Data extends Record<never, never>, Return> = (
   context: Context<Data>
 ) => Promise<Return> | Return;

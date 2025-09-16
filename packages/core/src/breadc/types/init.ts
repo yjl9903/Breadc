@@ -83,26 +83,58 @@ export type OptionInit<S extends string = string, R = unknown> = {
   default?: R;
 };
 
-export type GroupInit<S extends string> = {};
+export type GroupInit<Spec extends string> = {};
 
-export type CommandInit<S extends string> = {};
+export type CommandInit<Spec extends string> = {};
 
-export type ArgumentInit<S extends string, I extends unknown, R = unknown> = {
+export type ArgumentInit<
+  Spec extends string,
+  Initial extends InferArgumentRawType<Spec>,
+  Cast extends unknown = unknown
+> = {
   /**
    * Overwrite the initial value of the corresponding matched option.
    * - &lt;required&gt; : undefined
    * - \[optional\] : undefined
    * - \[...remaining\] : \[\]
    */
-  initial?: I;
+  initial?: Initial;
 
   /**
    * Cast initial value to the result
    */
-  cast?: (value: I extends {} ? I : InferArgumentRawType<S>) => R;
+  cast?: (
+    value: Initial extends {} ? Initial : InferArgumentRawType<Spec>
+  ) => Cast;
 
   /**
    * Default argument value if it is not provided
    */
-  default?: R;
+  default?: Cast;
+};
+
+export type NonNullableArgumentInit<
+  Spec extends string,
+  Initial extends NonNullable<InferArgumentRawType<Spec>>,
+  Cast extends unknown = unknown
+> = {
+  /**
+   * Overwrite the initial value of the corresponding matched option.
+   * - &lt;required&gt; : undefined
+   * - \[optional\] : undefined
+   * - \[...remaining\] : \[\]
+   */
+  initial: Initial;
+
+  /**
+   * Cast initial value to the result
+   */
+  cast?: (
+    value: Initial extends {} ? Initial : InferArgumentRawType<Spec>
+  ) => Cast;
+
+  /**
+   * Default argument value if it is not provided
+   */
+  default?: Cast;
 };

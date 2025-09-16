@@ -2,28 +2,36 @@ import type {
   Breadc,
   BreadcInit,
   BreadcInstance,
+  InternalBreadc,
+  ActionMiddleware,
+  UnknownOptionMiddleware,
+  GroupInit,
+  InternalGroup,
+  Option,
+  OptionInit,
   Command,
   CommandInit,
-  GroupInit,
-  InternalBreadc,
-  InternalCommand,
-  Option,
-  OptionInit
+  InternalCommand
 } from './types/index.ts';
 
 import { group as makeGroup } from './group.ts';
 import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
 
-export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
+export function breadc<Data extends Record<never, never>>(
+  name: string,
+  init: BreadcInit = {}
+): Breadc<Data, {}> {
   const instance: BreadcInstance = {
     name,
     init,
     commands: [],
-    options: []
+    options: [],
+    actionMiddlewares: [],
+    unknownOptionMiddlewares: []
   };
 
-  return <InternalBreadc<{}>>{
+  return (<InternalBreadc<{}>>{
     name,
     version: init.version,
     instance,
@@ -46,6 +54,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
 
     group<S extends string, I extends GroupInit<S>>(spec: S, init?: I) {
       const group = typeof spec === 'string' ? makeGroup(spec, init) : spec;
+      instance.commands.push(group as unknown as InternalGroup);
       return group;
     },
 
@@ -65,11 +74,20 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
       return command;
     },
 
-    use() {
+    use<MR extends Record<never, never>>(
+      middleware: ActionMiddleware<any, MR>
+    ) {
+      instance.actionMiddlewares.push(middleware);
       return this;
     },
 
-    allowUnknownOptions() {
+    allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<any>) {
+      if (typeof middleware === 'function') {
+        instance.unknownOptionMiddlewares.push(middleware);
+      } else if (middleware) {
+        // TODO: handle
+        instance.unknownOptionMiddlewares.push(() => true);
+      }
       return this;
     },
 
@@ -80,5 +98,5 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
     async run<T>(args: string[]) {
       return undefined as T;
     }
-  };
+  }) as any;
 }
