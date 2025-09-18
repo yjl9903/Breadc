@@ -5,10 +5,12 @@ import type {
   InternalBreadc,
   ActionMiddleware,
   UnknownOptionMiddleware,
-  GroupInit,
-  InternalGroup,
   Option,
   OptionInit,
+  InternalOption,
+  InferOptionInitialType,
+  GroupInit,
+  InternalGroup,
   Command,
   CommandInit,
   InternalCommand
@@ -18,10 +20,7 @@ import { group as makeGroup } from './group.ts';
 import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
 
-export function breadc<Data extends Record<never, never>>(
-  name: string,
-  init: BreadcInit = {}
-): Breadc<Data, {}> {
+export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
   const instance: BreadcInstance = {
     name,
     init,
@@ -36,19 +35,24 @@ export function breadc<Data extends Record<never, never>>(
     version: init.version,
     instance,
 
-    option<S extends string, I extends OptionInit<S>>(
-      spec: S | Option<S>,
-      description?: string,
-      init?: I
-    ) {
+    option<
+      Spec extends string,
+      Initial extends InferOptionInitialType<Spec>,
+      Init extends OptionInit<Spec, Initial, unknown>
+    >(spec: Spec | Option<Spec>, description?: string, init?: Init) {
       const option =
         typeof spec === 'string'
           ? makeOption(
               spec,
-              description || init ? { description, ...init } : undefined
+              description,
+              init as unknown as OptionInit<
+                Spec,
+                InferOptionInitialType<Spec>,
+                unknown
+              >
             )
           : spec;
-      instance.options.push(option);
+      instance.options.push(option as unknown as InternalOption);
       return this;
     },
 
@@ -74,14 +78,14 @@ export function breadc<Data extends Record<never, never>>(
       return command;
     },
 
-    use<MR extends Record<never, never>>(
-      middleware: ActionMiddleware<any, MR>
+    use<Return, Middleware extends ActionMiddleware<{}, Return>>(
+      middleware: Middleware
     ) {
       instance.actionMiddlewares.push(middleware);
       return this;
     },
 
-    allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<any>) {
+    allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<{}>) {
       if (typeof middleware === 'function') {
         instance.unknownOptionMiddlewares.push(middleware);
       } else if (middleware) {
@@ -98,5 +102,5 @@ export function breadc<Data extends Record<never, never>>(
     async run<T>(args: string[]) {
       return undefined as T;
     }
-  }) as any;
+  }) as unknown as Breadc<{}, {}>;
 }

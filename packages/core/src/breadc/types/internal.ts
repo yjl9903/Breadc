@@ -1,13 +1,9 @@
 import type { BreadcInit, CommandInit, GroupInit } from './init.ts';
+import type { Breadc, Option, Group, Command, Argument } from './app.ts';
 import type {
-  Breadc,
-  Command,
-  Option,
-  Argument,
-  Group,
   ActionMiddleware,
   UnknownOptionMiddleware
-} from './app.ts';
+} from './middleware.ts';
 
 /**
  * @internal

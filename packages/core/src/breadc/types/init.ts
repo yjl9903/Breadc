@@ -1,4 +1,9 @@
-import type { InferArgumentRawType, InferOptionRawType } from './infer.ts';
+import type {
+  NonTrueNullable,
+  InferOptionRawType,
+  InferOptionInitialType,
+  InferArgumentRawType
+} from './infer.ts';
 
 export type BreadcInit = {
   /**
@@ -53,7 +58,11 @@ export type BreadcInit = {
   };
 };
 
-export type OptionInit<S extends string = string, R = unknown> = {
+export type OptionInit<
+  Spec extends string,
+  Initial extends InferOptionInitialType<Spec>,
+  Cast extends unknown = unknown
+> = {
   /**
    * Option description
    */
@@ -62,7 +71,7 @@ export type OptionInit<S extends string = string, R = unknown> = {
   /**
    * Generate negated option
    */
-  negated?: InferOptionRawType<S> extends boolean ? boolean : never;
+  negated?: InferOptionRawType<Spec> extends boolean ? boolean : never;
 
   /**
    * Overwrite the initial value of the corresponding matched option.
@@ -70,17 +79,58 @@ export type OptionInit<S extends string = string, R = unknown> = {
    * - \[optional\]: false
    * - \[...remaining\]: \[\]
    */
-  initial?: InferOptionRawType<S>;
+  initial?: Initial;
 
   /**
    * Cast initial value to the result
    */
-  cast?: (value: InferOptionRawType<S>) => R;
+  cast?: (
+    value: Initial extends {} ? Initial : InferOptionRawType<Spec>
+  ) => Cast;
 
   /**
    * Default option value if it is not provided
    */
-  default?: R;
+  default?: Cast;
+};
+
+export type NonNullableOptionInit<
+  Spec extends string,
+  Initial extends NonTrueNullable<InferOptionInitialType<Spec>>,
+  Cast extends unknown = unknown
+> = {
+  /**
+   * Option description
+   */
+  description?: string;
+
+  /**
+   * Generate corresponding negated option
+   *
+   * @default false
+   */
+  negated?: InferOptionRawType<Spec> extends boolean ? boolean : never;
+
+  /**
+   * Overwrite the initial value of the corresponding matched option.
+   * - `--option`: `false`
+   * - `--option [optional]`: `false`
+   * - `--option <required>`: `undefined`
+   * - `--option [...spread]`: `[]`
+   */
+  initial: Initial;
+
+  /**
+   * Cast initial value to the result
+   */
+  cast?: (
+    value: Initial extends {} ? Initial : InferOptionRawType<Spec>
+  ) => Cast;
+
+  /**
+   * Default option value when its value or initial value is not provided
+   */
+  default?: Cast;
 };
 
 export type GroupInit<Spec extends string> = {};

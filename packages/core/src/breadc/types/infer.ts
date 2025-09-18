@@ -1,46 +1,10 @@
 import type { IsEqual, Letter } from '../../utils/types.ts';
 
 import type {
-  ArgumentInit,
   OptionInit,
+  ArgumentInit,
   NonNullableArgumentInit
 } from './init.ts';
-
-/**
- * Infer the raw option type: boolean or string or string[]
- */
-export type InferOptionRawType<F extends string> =
-  F extends `-${Letter}, --${string} <${string}>`
-    ? undefined | string
-    : F extends `-${Letter}, --${string} [...${string}]`
-      ? string[]
-      : F extends `-${Letter}, --${string} [${string}]`
-        ? boolean | string
-        : F extends `-${Letter}, --${string}`
-          ? boolean
-          : F extends `--${string} <${string}>`
-            ? undefined | string
-            : F extends `--${string} [...${string}]`
-              ? string[]
-              : F extends `--${string} [${string}]`
-                ? boolean | string
-                : F extends `--${string}`
-                  ? boolean
-                  : boolean | string | string[];
-
-/**
- * Infer the option type with config
- */
-export type InferOptionType<
-  F extends string,
-  C extends OptionInit<F>
-> = C['default'] extends {}
-  ? C['cast'] extends () => infer R
-    ? R
-    : C['default'] | NonNullable<InferOptionRawType<F>>
-  : C['cast'] extends () => infer R
-    ? R
-    : InferOptionRawType<F>;
 
 /**
  * Infer option raw name
@@ -50,30 +14,30 @@ export type InferOptionType<
  * + const t2: InferOptionRawName<'-r, --root'> = 'root'
  * + const t3: InferOptionRawName<'--page-index'> = 'page-index'
  */
-export type InferOptionRawName<F extends string> =
-  F extends `-${Letter}, --no-${infer R} <${string}>`
+export type InferOptionRawName<S extends string> =
+  S extends `-${Letter}, --no-${infer R} <${string}>`
     ? R
-    : F extends `-${Letter}, --no-${infer R} [${string}]`
+    : S extends `-${Letter}, --no-${infer R} [${string}]`
       ? R
-      : F extends `-${Letter}, --no-${infer R}`
+      : S extends `-${Letter}, --no-${infer R}`
         ? R
-        : F extends `-${Letter}, --${infer R} <${string}>`
+        : S extends `-${Letter}, --${infer R} <${string}>`
           ? R
-          : F extends `-${Letter}, --${infer R} [${string}]`
+          : S extends `-${Letter}, --${infer R} [${string}]`
             ? R
-            : F extends `-${Letter}, --${infer R}`
+            : S extends `-${Letter}, --${infer R}`
               ? R
-              : F extends `--no-${string} <${string}>`
+              : S extends `--no-${string} <${string}>`
                 ? never
-                : F extends `--no-${string} [${string}]`
+                : S extends `--no-${string} [${string}]`
                   ? never
-                  : F extends `--no-${infer R}`
+                  : S extends `--no-${infer R}`
                     ? R
-                    : F extends `--${infer R} <${string}>`
+                    : S extends `--${infer R} <${string}>`
                       ? R
-                      : F extends `--${infer R} [${string}]`
+                      : S extends `--${infer R} [${string}]`
                         ? R
-                        : F extends `--${infer R}`
+                        : S extends `--${infer R}`
                           ? R
                           : string;
 
@@ -88,32 +52,59 @@ export type InferOptionName<T extends string> =
       : InferOptionRawName<T>;
 
 /**
- * Infer option information
+ * Infer the raw option type: boolean or string or string[]
  */
-export type InferOption<S extends string, C extends OptionInit<S>> = {
-  [k in InferOptionName<S>]: InferOptionType<S, C>;
-};
+export type InferOptionRawType<S extends string> =
+  S extends `-${Letter}, --${string} <${string}>`
+    ? undefined | string
+    : S extends `-${Letter}, --${string} [...${string}]`
+      ? string[]
+      : S extends `-${Letter}, --${string} [${string}]`
+        ? false | true | string
+        : S extends `-${Letter}, --${string}`
+          ? boolean
+          : S extends `--${string} <${string}>`
+            ? undefined | string
+            : S extends `--${string} [...${string}]`
+              ? string[]
+              : S extends `--${string} [${string}]`
+                ? false | true | string
+                : S extends `--${string}`
+                  ? boolean
+                  : undefined | boolean | string | string[];
 
 /**
- * Infer the raw argument type: required or optional or spread
+ * Infer the raw option type: boolean or string or string[]
  */
-export type InferArgumentRawType<F extends string> = F extends `<${string}>`
-  ? string
-  : F extends `[...${string}]`
-    ? string[]
-    : F extends `[${string}]`
-      ? undefined | string
-      : undefined | string | string[];
+export type InferOptionInitialType<S extends string> =
+  S extends `-${Letter}, --${string} <${string}>`
+    ? undefined | string
+    : S extends `-${Letter}, --${string} [...${string}]`
+      ? string[]
+      : S extends `-${Letter}, --${string} [${string}]`
+        ? string
+        : S extends `-${Letter}, --${string}`
+          ? boolean
+          : S extends `--${string} <${string}>`
+            ? undefined | string
+            : S extends `--${string} [...${string}]`
+              ? string[]
+              : S extends `--${string} [${string}]`
+                ? undefined | string
+                : S extends `--${string}`
+                  ? boolean
+                  : boolean | string | string[];
+
+export type NonTrueNullable<T> =
+  IsEqual<T, false | true | string> extends true ? T & string & {} : T & {};
 
 /**
- * Infer the argument type with config
+ * Infer the option type with config
  */
-export type InferArgumentType<
-  F extends string,
-  I extends InferArgumentRawType<F>,
-  C extends
-    | ArgumentInit<F, I, unknown>
-    | NonNullableArgumentInit<F, NonNullable<I>, unknown>
+export type InferOptionType<
+  S extends string,
+  I extends InferOptionInitialType<S>,
+  C extends OptionInit<S, I>
 > = C['default'] extends {}
   ? C['cast'] extends (...args: any[]) => infer R
     ? IsEqual<R, C['default']> extends true
@@ -122,66 +113,113 @@ export type InferArgumentType<
     :
         | C['default']
         | (C['initial'] extends {}
-            ? C['initial'] | NonNullable<InferArgumentRawType<F>>
-            : NonNullable<InferArgumentRawType<F>>)
+            ? C['initial'] | NonTrueNullable<InferOptionRawType<S>>
+            : NonTrueNullable<InferOptionRawType<S>>)
   : C['cast'] extends (...args: any[]) => infer R
     ? R
     : C['initial'] extends {}
-      ? C['initial'] | NonNullable<InferArgumentRawType<F>>
-      : InferArgumentRawType<F>;
+      ? C['initial'] | NonTrueNullable<InferOptionRawType<S>>
+      : InferOptionRawType<S>;
+
+/**
+ * Infer option information
+ */
+export type InferOption<
+  S extends string,
+  I extends InferOptionInitialType<S>,
+  C extends OptionInit<S, I, unknown>
+> = {
+  [k in InferOptionName<S>]: InferOptionType<S, I, C>;
+};
+
+/**
+ * Infer the raw argument type: required or optional or spread
+ */
+export type InferArgumentRawType<S extends string> = S extends `<${string}>`
+  ? string
+  : S extends `[...${string}]`
+    ? string[]
+    : S extends `[${string}]`
+      ? undefined | string
+      : undefined | string | string[];
+
+/**
+ * Infer the argument type with config
+ */
+export type InferArgumentType<
+  S extends string,
+  I extends InferArgumentRawType<S>,
+  C extends
+    | ArgumentInit<S, I, unknown>
+    | NonNullableArgumentInit<S, NonNullable<I>, unknown>
+> = C['default'] extends {}
+  ? C['cast'] extends (...args: any[]) => infer R
+    ? IsEqual<R, C['default']> extends true
+      ? R
+      : never
+    :
+        | C['default']
+        | (C['initial'] extends {}
+            ? C['initial'] | NonNullable<InferArgumentRawType<S>>
+            : NonNullable<InferArgumentRawType<S>>)
+  : C['cast'] extends (...args: any[]) => infer R
+    ? R
+    : C['initial'] extends {}
+      ? C['initial'] | NonNullable<InferArgumentRawType<S>>
+      : InferArgumentRawType<S>;
 
 /**
  * Infer the arguments type
  */
-export type InferArgumentsType<F extends string> =
-  F extends `<${string}> ${infer U}`
+export type InferArgumentsType<S extends string> =
+  S extends `<${string}> ${infer U}`
     ? [string, ...InferArgumentsType1<U>]
-    : F extends `[...${string}] ${string}`
+    : S extends `[...${string}] ${string}`
       ? never
-      : F extends `[${string}] ${infer U}`
+      : S extends `[${string}] ${infer U}`
         ? [undefined | string, ...InferArgumentsType2<U>]
-        : F extends `${string} ${infer U}`
+        : S extends `${string} ${infer U}`
           ? InferArgumentsType<U>
-          : F extends `<${string}>`
+          : S extends `<${string}>`
             ? [string]
-            : F extends `[...${string}]`
+            : S extends `[...${string}]`
               ? [string[]]
-              : F extends `[${string}]`
+              : S extends `[${string}]`
                 ? [undefined | string]
                 : [];
 
-type InferArgumentsType1<F extends string> = F extends `<${string}> ${infer U}`
+type InferArgumentsType1<S extends string> = S extends `<${string}> ${infer U}`
   ? [string, ...InferArgumentsType<U>]
-  : F extends `[...${string}] ${string}`
+  : S extends `[...${string}] ${string}`
     ? never
-    : F extends `[${string}] ${infer U}`
+    : S extends `[${string}] ${infer U}`
       ? [undefined | string, ...InferArgumentsType2<U>]
-      : F extends `${string} ${string}`
+      : S extends `${string} ${string}`
         ? never
-        : F extends `<${string}>`
+        : S extends `<${string}>`
           ? [string]
-          : F extends `[...${string}]`
+          : S extends `[...${string}]`
             ? [string[]]
-            : F extends `[${string}]`
+            : S extends `[${string}]`
               ? [undefined | string]
-              : F extends `${string}`
+              : S extends `${string}`
                 ? never
                 : [];
 
-type InferArgumentsType2<F extends string> = F extends `<${string}> ${string}`
+type InferArgumentsType2<S extends string> = S extends `<${string}> ${string}`
   ? never
-  : F extends `[...${string}] ${string}`
+  : S extends `[...${string}] ${string}`
     ? never
-    : F extends `[${string}] ${infer U}`
+    : S extends `[${string}] ${infer U}`
       ? [undefined | string, ...InferArgumentsType2<U>]
-      : F extends `${string} ${string}`
+      : S extends `${string} ${string}`
         ? never
-        : F extends `<${string}>`
+        : S extends `<${string}>`
           ? never
-          : F extends `[...${string}]`
+          : S extends `[...${string}]`
             ? [string[]]
-            : F extends `[${string}]`
+            : S extends `[${string}]`
               ? [undefined | string]
-              : F extends `${string}`
+              : S extends `${string}`
                 ? never
                 : [];

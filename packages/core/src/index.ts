@@ -9,6 +9,6 @@ export type {
   CommandInit,
   Argument,
   ArgumentInit
-} from './breadc';
+} from './breadc/index.ts';
 
-export { breadc, group, option, command, argument } from './breadc';
+export { breadc, group, option, command, argument } from './breadc/index.ts';

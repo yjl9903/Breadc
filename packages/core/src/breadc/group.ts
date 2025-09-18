@@ -1,16 +1,18 @@
 import type {
-  GroupInit,
-  OptionInit,
-  CommandInit,
-  Group,
-  Option,
-  Command,
-  InternalGroup,
-  InternalOption,
-  InternalCommand,
   ActionMiddleware,
-  UnknownOptionMiddleware
+  UnknownOptionMiddleware,
+  Option,
+  OptionInit,
+  InternalOption,
+  InferOptionInitialType,
+  Group,
+  GroupInit,
+  InternalGroup,
+  Command,
+  CommandInit,
+  InternalCommand
 } from './types/index.ts';
+
 import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
 
@@ -30,12 +32,24 @@ export function group<S extends string, I extends GroupInit<S>>(
     options,
     actionMiddlewares,
     unknownOptionMiddlewares,
-    option<S extends string, I extends OptionInit<S>>(
-      spec: S | Option<S>,
-      init?: I
-    ) {
-      const option = typeof spec === 'string' ? makeOption(spec, init) : spec;
-      options.push(option);
+    option<
+      Spec extends string,
+      Initial extends InferOptionInitialType<Spec>,
+      I extends OptionInit<Spec, Initial>
+    >(spec: Spec | Option<Spec>, description?: string, init?: I) {
+      const option =
+        typeof spec === 'string'
+          ? makeOption(
+              spec,
+              description,
+              init as unknown as OptionInit<
+                Spec,
+                InferOptionInitialType<Spec>,
+                unknown
+              >
+            )
+          : spec;
+      options.push(option as unknown as InternalOption);
       return this;
     },
     command<S extends string, I extends CommandInit<S>>(
@@ -55,5 +69,5 @@ export function group<S extends string, I extends GroupInit<S>>(
     allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<any>) {
       return this;
     }
-  }) as any;
+  }) as unknown as Group<S, I, {}, {}>;
 }

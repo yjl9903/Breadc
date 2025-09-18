@@ -1,9 +1,14 @@
-import type { OptionInit, Option } from './types/index.ts';
+import type {
+  Option,
+  OptionInit,
+  InferOptionInitialType
+} from './types/index.ts';
 
-export function option<S extends string, I extends OptionInit<S>>(
-  spec: S,
-  init?: I
-): Option<S, I> {
+export function option<
+  Spec extends string,
+  Initial extends InferOptionInitialType<Spec>,
+  Init extends OptionInit<Spec, Initial, unknown>
+>(spec: Spec, description?: string, init?: Init): Option<Spec, Initial, Init> {
   return {
     spec,
     init

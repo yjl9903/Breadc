@@ -1,6 +1,17 @@
 import { describe, it, expectTypeOf } from 'vitest';
 
-import { breadc, group, option, command, argument } from '../src';
+import {
+  type Breadc,
+  type Group,
+  type GroupInit,
+  type Command,
+  type CommandInit,
+  breadc,
+  group,
+  option,
+  command,
+  argument
+} from '../src';
 
 describe('command types', () => {
   it('should infer default command with no arguments', () => {
@@ -207,17 +218,93 @@ describe('option types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  it('should infer array option type from command', () => {
+  it('should infer spread option type from command', () => {
     const cmd = command('').option('--flag [...arg]');
     expectTypeOf<
       (options: { flag: string[]; '--': string[] }) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  it('should infer string option type with default from command', () => {
-    const cmd = command('').option('--flag <arg>', { default: 'default' });
+  it('should infer string option type with transform from command', () => {
+    const cmd = command('')
+      .option('--flag1 <arg>', '')
+      .option('--flag2 <arg>', '', { default: 'default' })
+      .option('--flag3 <arg>', '', {
+        cast: (t) => (t ? +t : 0)
+      })
+      .option('--flag4 <arg>', '', {
+        default: 0,
+        cast: (t) => (t ? +t : 0)
+      })
+      .option('--flag5 <arg>', '', {
+        initial: '0',
+        cast: (t) => +t
+      })
+      .action((options) => options);
     expectTypeOf<
-      (options: { flag: string; '--': string[] }) => unknown
+      (options: {
+        flag1: string | undefined;
+        flag2: string;
+        flag3: number;
+        flag4: number;
+        flag5: number;
+        '--': string[];
+      }) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
+  });
+
+  it('should infer boolean option type with transform from command', () => {
+    const cmd = command('')
+      .option('--flag1 [arg]', '')
+      .option('--flag2 [arg]', '', { default: 'test' })
+      .option('--flag3 [arg]', '', {
+        cast: (t) => +t
+      })
+      .option('--flag4 [arg]', '', {
+        default: 0,
+        cast: (t) => +t
+      })
+      .option('--flag5 [arg]', '', {
+        initial: '0',
+        cast: (t) => +t
+      })
+      .action((options) => options);
+    expectTypeOf<
+      (options: {
+        flag1: boolean | string;
+        flag2: string;
+        flag3: number;
+        flag4: number;
+        flag5: number;
+        '--': string[];
+      }) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
+  });
+
+  it('should infer spread option type with transform from command', () => {
+    const cmd = command('')
+      .option('--flag1 [...arg]', '')
+      .option('--flag2 [...arg]', '', { default: ['default'] })
+      .option('--flag3 [...arg]', '', {
+        cast: (t) => t.join(',')
+      })
+      .option('--flag4 [...arg]', '', {
+        default: '',
+        cast: (t) => t.join(',')
+      })
+      .option('--flag5 [...arg]', '', {
+        initial: ['default'],
+        cast: (t) => t.join(',')
+      });
+    expectTypeOf<
+      (options: {
+        flag1: string[];
+        flag2: string[];
+        flag3: string;
+        flag4: string;
+        flag5: string;
+        '--': string[];
+      }) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
@@ -270,12 +357,53 @@ describe('option types', () => {
   // });
 
   // it('should infer options inherited from breadc and group and command', () => {});
+
+  it('should infer camel case option type', () => {
+    const cmd = breadc('cli')
+      .option('--flag-breadc-top')
+      .group('group')
+      .option('--flag-group-medium')
+      .command('')
+      .option('--flag-command-bottom');
+    expectTypeOf<
+      (options: {
+        flagBreadcTop: boolean;
+        flagGroupMedium: boolean;
+        flagCommandBottom: boolean;
+        '--': string[];
+      }) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
+  });
 });
 
-describe('breadc types', () => {
-  it('should infer command', () => {});
+describe('middleware types', () => {
+  it('should infer middleware chain', () => {
+    const app = breadc('cli').use(({ next }) => next({ data: { count: 1 } }));
+    const grp = app
+      .group('group')
+      .use(({ context, next }) =>
+        next({ data: { ...context.data, group: 'world' } })
+      );
+    const cmd = grp.command('').use(async ({ context, next }) => {
+      const result = await next({
+        data: { ...context.data, command: 'command' }
+      });
+      return result;
+    });
 
-  it('should infer options', () => {});
-
-  it('should infer arguments', () => {});
+    expectTypeOf<Breadc<{ count: number }, {}>>().toEqualTypeOf<typeof app>();
+    expectTypeOf<
+      Group<'group', GroupInit<'group'>, { count: number; group: string }, {}>
+    >().toEqualTypeOf<typeof grp>();
+    expectTypeOf<
+      Command<
+        '',
+        CommandInit<''>,
+        { count: number; group: string; command: string },
+        {},
+        [],
+        unknown
+      >
+    >().toEqualTypeOf<typeof cmd>();
+  });
 });

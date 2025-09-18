@@ -1,7 +1,9 @@
-export * from './init';
+export * from './init.ts';
 
-export * from './app';
+export * from './app.ts';
 
-export * from './infer';
+export * from './infer.ts';
 
-export * from './internal';
+export * from './internal.ts';
+
+export * from './middleware.ts';
