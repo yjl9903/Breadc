@@ -200,6 +200,141 @@ describe('command', () => {
     `);
   });
 
+  it('should resolve default command', () => {
+    const cmd = command('<abc> [def]') as unknown as InternalCommand;
+    cmd._resolve();
+
+    expect(cmd._default).toBe(true);
+    expect(cmd._pieces).toMatchInlineSnapshot(`
+      [
+        [],
+      ]
+    `);
+    expect(cmd._arguments).toMatchInlineSnapshot(`
+      [
+        {
+          "init": {},
+          "name": "abc",
+          "spec": "",
+          "type": "required",
+        },
+        {
+          "init": {},
+          "name": "def",
+          "spec": "",
+          "type": "optional",
+        },
+      ]
+    `);
+  });
+
+  it('should resolve multi-level sub-commands', () => {
+    const cmd = command('dev run <target>') as unknown as InternalCommand;
+    cmd._resolve();
+
+    expect(cmd._pieces).toMatchInlineSnapshot(`
+      [
+        [
+          "dev",
+          "run",
+        ],
+      ]
+    `);
+    expect(cmd._arguments).toMatchInlineSnapshot(`
+      [
+        {
+          "init": {},
+          "name": "target",
+          "spec": "",
+          "type": "required",
+        },
+      ]
+    `);
+  });
+
+  it('should resolve valid aliases without arguments', () => {
+    const cmd = command('dev run')
+      .alias('d r')
+      .alias('dr') as unknown as InternalCommand;
+    cmd._resolve();
+
+    expect(cmd._pieces).toMatchInlineSnapshot(`
+      [
+        [
+          "dev",
+          "run",
+        ],
+        [
+          "d",
+          "r",
+        ],
+        [
+          "dr",
+        ],
+      ]
+    `);
+  });
+
+  it('should resolve custom arguments', () => {
+    const cmd = command('dev')
+      .argument(argument('<arg>'))
+      .argument(argument('[opt]'))
+      .argument(argument('[...rest]')) as unknown as InternalCommand;
+    cmd._resolve();
+
+    expect(cmd._arguments).toMatchInlineSnapshot(`
+      [
+        {
+          "init": undefined,
+          "name": "arg",
+          "spec": "<arg>",
+          "type": "required",
+        },
+        {
+          "init": undefined,
+          "name": "opt",
+          "spec": "[opt]",
+          "type": "optional",
+        },
+        {
+          "init": undefined,
+          "name": "rest",
+          "spec": "[...rest]",
+          "type": "spread",
+        },
+      ]
+    `);
+  });
+
+  it('should reject invalid custom argument ordering', async () => {
+    await expect(async () => {
+      const cmd = command('dev [opt]').argument(
+        '<req>'
+      ) as unknown as InternalCommand;
+      cmd._resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Required argument should be placed before optional arguments at the command "dev [opt]", position 9]`
+    );
+
+    await expect(async () => {
+      const cmd = command('dev [...rest]').argument(
+        '[opt]'
+      ) as unknown as InternalCommand;
+      cmd._resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Optional argument should be placed before spread arguments at the command "dev [...rest]", position 13]`
+    );
+
+    await expect(async () => {
+      const cmd = command('dev')
+        .argument('[...rest1]')
+        .argument('[...rest2]') as unknown as InternalCommand;
+      cmd._resolve();
+    }).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Spread argument can only appear once at the command "dev", position 3]`
+    );
+  });
+
   it('should find invalid required arguments', async () => {
     await expect(async () => {
       const cmd = command('submodule add <') as unknown as InternalCommand;
