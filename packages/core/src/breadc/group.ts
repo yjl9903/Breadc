@@ -1,3 +1,5 @@
+import { ResolveGroupError } from '../error.ts';
+
 import type {
   ActionMiddleware,
   UnknownOptionMiddleware,
@@ -20,18 +22,52 @@ export function group<S extends string, I extends GroupInit<S>>(
   spec: S,
   init?: I
 ): Group<S, I, {}, {}> {
+  if (!spec) {
+    throw new ResolveGroupError(ResolveGroupError.EMPTY, { spec, position: 0 });
+  }
+
   const commands: InternalCommand[] = [];
   const options: InternalOption[] = [];
   const actionMiddlewares: ActionMiddleware<any, any>[] = [];
   const unknownOptionMiddlewares: UnknownOptionMiddleware<any>[] = [];
 
-  return (<InternalGroup>{
+  const group: InternalGroup = {
     spec,
     init,
-    commands,
-    options,
-    actionMiddlewares,
-    unknownOptionMiddlewares,
+
+    _pieces: undefined!,
+    _commands: commands,
+    _options: options,
+    _actionMiddlewares: actionMiddlewares,
+    _unknownOptionMiddlewares: unknownOptionMiddlewares,
+
+    _resolve: () => {
+      if (group._pieces) return;
+
+      const pieces: string[] = [];
+      for (let i = 0; i < spec.length; ) {
+        if (spec[i] === '<' || spec[i] === '[') {
+          throw new ResolveGroupError(ResolveGroupError.INVALID_ARG_IN_GROUP, {
+            spec,
+            position: i
+          });
+        } else if (spec[i] === ' ') {
+          while (i < spec.length && spec[i] === ' ') {
+            i++;
+          }
+        } else {
+          let j = i;
+          while (j < spec.length && spec[j] !== ' ') {
+            j++;
+          }
+          pieces.push(spec.slice(i, j));
+          i = j;
+        }
+      }
+
+      group._pieces = [pieces];
+    },
+
     option<
       Spec extends string,
       Initial extends InferOptionInitialType<Spec>,
@@ -50,8 +86,9 @@ export function group<S extends string, I extends GroupInit<S>>(
             )
           : spec;
       options.push(option as unknown as InternalOption);
-      return this;
+      return group;
     },
+
     command<S extends string, I extends CommandInit<S>>(
       spec: S | Command<S>,
       init?: I
@@ -60,14 +97,21 @@ export function group<S extends string, I extends GroupInit<S>>(
       commands.push(command as unknown as InternalCommand);
       return command;
     },
-    use<MR extends Record<never, never>>(
-      middleware: ActionMiddleware<any, MR>
-    ) {
+
+    use<Middleware extends ActionMiddleware<any, any>>(middleware: Middleware) {
       actionMiddlewares.push(middleware);
-      return this as any;
+      return group;
     },
+
     allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<any>) {
-      return this;
+      if (typeof middleware === 'function') {
+        unknownOptionMiddlewares.push(middleware);
+      } else if (middleware) {
+        unknownOptionMiddlewares.push(() => true);
+      }
+      return group;
     }
-  }) as unknown as Group<S, I, {}, {}>;
+  };
+
+  return group as unknown as Group<S, I, {}, {}>;
 }

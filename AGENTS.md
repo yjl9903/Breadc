@@ -2,7 +2,15 @@
 
 ## Project Structure & Module Organization
 
-Breadc is a pnpm/turbo monorepo. Core libraries live under `packages/*`; for example, `packages/breadc/src` contains the CLI runtime while supporting utilities sit in sibling packages like `core`, `logger`, and `spinner`. CLI entry points reside in `apps/*`. Documentation is maintained in `docs/` (VitePress), demos in `examples/`, and static assets in `images/`. Shared configuration stays at the root (`tsconfig.json`, `turbo.json`, `pnpm-workspace.yaml`) with package-specific overrides inside each workspace.
+Breadc is a command-line application framework with fully strong TypeScript support.
+
+Breadc is a pnpm/turbo monorepo. Core libraries live under `packages/*`. `packages/core` is the working-in-progress framework runtime code, while `packages/breadc` is the legacy framework code which is planned to be deprecated. Other CLI utilities sit in sibling packages like `logger`, and `spinner`.
+
+Related CLI toolchains reside in `apps/*`, which is also working-in-progess.
+
+Documentation is maintained in `docs/` (VitePress), demos in `examples/`, and static assets in `images/`.
+
+Shared configuration stays at the root (`tsconfig.json`, `turbo.json`, `pnpm-workspace.yaml`) with package-specific overrides inside each workspace.
 
 ## Build, Test, and Development Commands
 
@@ -10,9 +18,11 @@ Install dependencies with `pnpm install`.
 
 Run `pnpm build` to execute every package’s `build` task through Turbo (tsup/unbuild under the hood).
 
-Launch docs locally with `pnpm docs:dev`, or build them via `pnpm docs:build`.
+Unit test is powered by Vitest. Execute unit tests for the full monorepo using `pnpm test:ci`. Run per-package non-iteractive unit tests should use `pnpm -C packages/xxx test:ci`.
 
-Execute unit tests for the flagship package using `pnpm test`; `pnpm test:ci` runs the full Turbo test graph, and `pnpm test:coverage` collects Vitest instrumentation. Keep TypeScript sound with `pnpm typecheck`, and tidy formatting through `pnpm format`.
+Keep TypeScript sound with `pnpm typecheck`, and tidy formatting through `pnpm format`.
+
+Launch docs locally with `pnpm docs:dev`, or build them via `pnpm docs:build`.
 
 ## Coding Style & Naming Conventions
 
@@ -20,7 +30,7 @@ TypeScript ESM is the default. Prefer named exports and colocate CLI handlers in
 
 ## Testing Guidelines
 
-Vitest powers the test suite. Store spec files in `test/` with `.test.ts` suffixes that reflect their target (`command.test.ts`). Type assertion tests belong in `.test-d.ts`, while opt-in benchmarks use `.bench.ts`. Maintain or improve the existing coverage in `coverage/` and run `pnpm -C packages/breadc test` when iterating locally. Snapshot tests are acceptable only when deterministic and stable across platforms.
+Vitest powers the test suite. Store spec files in `test/` with `.test.ts` suffixes that reflect their target (`command.test.ts`). Type assertion tests belong in `.test-d.ts`, while opt-in benchmarks use `.bench.ts`. Maintain or improve the existing coverage in `coverage/` and run `pnpm -C packages/core test` when iterating locally. Snapshot tests are acceptable only when deterministic and stable across platforms.
 
 ## Commit & Pull Request Guidelines
 

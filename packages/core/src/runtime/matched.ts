@@ -1,22 +1,24 @@
-import type { IOption } from '../breadc/types';
-import type { IArgument } from '../breadc/types';
+import type {
+  InternalOption,
+  InternalArgument
+} from '../breadc/types/internal.ts';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
 
 export class MatchedArgument {
-  readonly argument: IArgument;
+  public readonly argument: InternalArgument;
 
-  readonly token: Token | undefined;
+  public readonly token: Token | undefined;
 
-  dirty = false;
+  public dirty = false;
 
-  raw: any;
+  public raw: string | string[] | undefined;
 
-  public constructor(argument: IArgument) {
+  public constructor(argument: InternalArgument) {
     this.argument = argument;
-    if (argument.config.initial !== undefined) {
-      this.raw = argument.config.initial;
+    if (argument.init?.initial !== undefined) {
+      this.raw = argument.init.initial;
     } else {
       switch (argument.type) {
         case 'required':
@@ -30,35 +32,35 @@ export class MatchedArgument {
     }
   }
 
-  public get value() {
-    if (this.dirty || this.argument.config.default === undefined) {
-      const cast = this.argument.config.cast;
-      return cast ? cast(this.raw) : this.raw;
+  public value<T = any>(): T {
+    if (this.dirty || this.argument.init?.default === undefined) {
+      const cast = this.argument.init?.cast;
+      return cast ? (cast(this.raw) as T) : (this.raw as T);
     } else {
-      return this.argument.config.default;
+      return this.argument.init.default as T;
     }
   }
 
-  public accept(_context: Context, text: undefined | string | string[]) {
+  public accept(_context: Context, value: string | string[] | undefined) {
     this.dirty = true;
-    this.raw = text;
+    this.raw = value;
     return this;
   }
 }
 
+const FALSE_OPTION = ['false', 'f', 'no', 'n', 'off'];
+
 export class MatchedOption {
-  static FALSE_OPTION = ['false', 'f', 'no', 'n', 'off'];
+  public readonly option: InternalOption;
 
-  readonly option: IOption;
+  public dirty = false;
 
-  dirty = false;
+  public raw: any;
 
-  raw: any;
-
-  public constructor(option: IOption) {
+  public constructor(option: InternalOption) {
     this.option = option;
-    if (option.config.initial !== undefined) {
-      this.raw = option.config.initial;
+    if (option.init.initial !== undefined) {
+      this.raw = option.init.initial;
     } else {
       switch (option.type) {
         case 'boolean':
@@ -68,35 +70,32 @@ export class MatchedOption {
         case 'required':
           this.raw = undefined;
           break;
-        case 'array':
+        case 'spread':
           this.raw = [];
           break;
       }
     }
   }
 
-  public get value() {
-    if (this.dirty || this.option.config.default === undefined) {
-      const cast = this.option.config.cast;
-      return cast ? cast(this.raw) : this.raw;
+  public value<T = any>(): T {
+    if (this.dirty || this.option.init.default === undefined) {
+      const cast = this.option.init.cast;
+      return cast ? (cast(this.raw) as T) : this.raw;
     } else {
-      return this.option.config.default;
+      return this.option.init.default as T;
     }
   }
 
-  public accept(context: Context, long: string, text: undefined | string) {
+  public accept(context: Context, long: string, text: string | undefined) {
+    this.dirty = true;
     switch (this.option.type) {
       case 'boolean': {
         if (text !== undefined) {
           const value = text.toLowerCase();
           if (!long.startsWith('--no-')) {
-            this.raw = MatchedOption.FALSE_OPTION.includes(value)
-              ? false
-              : true;
+            this.raw = FALSE_OPTION.includes(value) ? false : true;
           } else {
-            this.raw = MatchedOption.FALSE_OPTION.includes(value)
-              ? true
-              : false;
+            this.raw = FALSE_OPTION.includes(value) ? true : false;
           }
         } else {
           if (!long.startsWith('--no-')) {
@@ -136,7 +135,7 @@ export class MatchedOption {
         break;
       }
       case 'required':
-      case 'array': {
+      case 'spread': {
         // Handle required / array options
         let value = text;
         if (value === undefined) {
@@ -159,12 +158,8 @@ export class MatchedOption {
           }
           this.raw = value;
         } else {
-          if (!this.raw) {
-            this.raw = [];
-          }
           this.raw.push(value);
         }
-        this.dirty = true;
 
         break;
       }

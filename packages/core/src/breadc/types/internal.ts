@@ -1,4 +1,4 @@
-import type { BreadcInit, CommandInit, GroupInit } from './init.ts';
+import type { BreadcInit, GroupInit } from './init.ts';
 import type { Breadc, Option, Group, Command, Argument } from './app.ts';
 import type {
   ActionMiddleware,
@@ -8,87 +8,159 @@ import type {
 /**
  * @internal
  */
-export type BreadcInstance = {
-  name: string;
+export type InternalBreadc = Breadc<any, any> & {
+  /**
+   * @internal
+   */
+  _init: BreadcInit;
 
-  init: BreadcInit;
+  /**
+   * @internal
+   */
+  _commands: (InternalCommand | InternalGroup)[];
 
-  commands: (InternalCommand | InternalGroup)[];
+  /**
+   * @internal
+   */
+  _version?: InternalOption;
 
-  options: InternalOption[];
+  /**
+   * @internal
+   */
+  _help?: InternalOption;
 
-  actionMiddlewares: ActionMiddleware<any, any>[];
+  /**
+   * @internal
+   */
+  _options: InternalOption[];
 
-  unknownOptionMiddlewares: UnknownOptionMiddleware<any>[];
+  /**
+   * @internal
+   */
+  _actionMiddlewares: ActionMiddleware[];
+
+  /**
+   * @internal
+   */
+  _unknownOptionMiddlewares: UnknownOptionMiddleware<any>[];
 };
 
-/**
- * @internal
- */
-export type InternalBreadc<GO extends Record<never, never>> = Breadc<
-  Record<never, never>,
-  GO
-> & {
+export type InternalGroup = Group<string, GroupInit<string>, any, any> & {
   /**
+   * Lazy resolve the command:
+   * - Split command and alias pieces
+   * - Merge arguments config
+   *
    * @internal
    */
-  instance: BreadcInstance;
-};
-
-export type InternalGroup = Group<string, GroupInit<string>, {}, {}> & {
-  /**
-   * @internal
-   */
-  init: GroupInit<string>;
+  _resolve(): void;
 
   /**
+   * Mark whether it is a default command
+   *
    * @internal
    */
-  commands: InternalCommand[];
+  _default?: false;
 
   /**
+   * It is lazy built when running
+   *
    * @internal
    */
-  options: InternalOption[];
+  _pieces: [string[]];
 
   /**
    * @internal
    */
-  actionMiddlewares: ActionMiddleware<any, any>[];
+  _commands: InternalCommand[];
 
   /**
    * @internal
    */
-  unknownOptionMiddlewares: UnknownOptionMiddleware<any>[];
+  _options: InternalOption[];
+
+  /**
+   * @internal
+   */
+  _actionMiddlewares?: ActionMiddleware[];
+
+  /**
+   * @internal
+   */
+  _unknownOptionMiddlewares?: UnknownOptionMiddleware<any>[];
 };
 
 export type InternalCommand = Command & {
   /**
+   * Lazy resolve the command:
+   * - Split command and alias pieces
+   * - Merge arguments config
+   *
    * @internal
    */
-  init: CommandInit<string>;
+  _resolve(group?: InternalGroup): void;
+
+  /**
+   * Mark whether it is a default command
+   *
+   * @internal
+   */
+  _default?: boolean;
 
   /**
    * @internal
    */
-  options?: InternalOption[];
+  _pieces: string[][];
+
+  /**
+   * It is lazy built when running
+   *
+   * @internal
+   */
+  _arguments: InternalArgument[];
 
   /**
    * @internal
    */
-  actionMiddlewares?: ActionMiddleware<any, any>[];
+  _options: InternalOption[];
 
   /**
    * @internal
    */
-  unknownOptionMiddlewares?: UnknownOptionMiddleware<any>[];
+  _actionMiddlewares?: ActionMiddleware<any, any>[];
 
   /**
    * @internal
    */
-  actionFn?: Function;
+  _unknownOptionMiddlewares?: UnknownOptionMiddleware<any>[];
+
+  /**
+   * @internal
+   */
+  _actionFn?: Function;
 };
 
-export type InternalOption = Option & {};
+export type OptionType = 'boolean' | 'required' | 'optional' | 'spread';
 
-export type InternalArgument = Argument & {};
+export type InternalOption = Option & {
+  type: OptionType;
+
+  long: string;
+
+  short?: string | undefined;
+
+  argument?: string | undefined;
+
+  /**
+   * Lazy resolve the option
+   *
+   * @internal
+   */
+  _resolve(): void;
+};
+
+export type ArgumentType = 'required' | 'optional' | 'spread';
+
+export type InternalArgument = Argument & {
+  type: ArgumentType;
+};

@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 
-import { Lexer } from '../src/parser/lexer.ts';
+import { TokenStream } from '../src/runtime/lexer.ts';
 
-describe('lexer', () => {
+describe('token stream', () => {
   it('should list all arguments', () => {
-    const lexer = new Lexer(['a', 'b', 'c']);
+    const lexer = new TokenStream(['a', 'b', 'c']);
     expect([...lexer]).toMatchInlineSnapshot(`
       [
         Token {
@@ -21,7 +21,7 @@ describe('lexer', () => {
   });
 
   it('support mixed using for and next', () => {
-    const lexer = new Lexer(['a', 'b', 'c']);
+    const lexer = new TokenStream(['a', 'b', 'c']);
     for (const token of lexer) {
       if (token.toRaw() === 'a') {
         // Skip 'b'
@@ -34,7 +34,7 @@ describe('lexer', () => {
   });
 
   it('can get remaining args', () => {
-    const lexer = new Lexer(['a', 'b', 'c']);
+    const lexer = new TokenStream(['a', 'b', 'c']);
     expect(lexer.next()).toMatchInlineSnapshot(`
       Token {
         "text": "a",
@@ -55,7 +55,7 @@ describe('lexer', () => {
   });
 
   it('can receive empty string', () => {
-    const lexer = new Lexer(['', 'a', '']);
+    const lexer = new TokenStream(['', 'a', '']);
     expect([...lexer]).toMatchInlineSnapshot(`
       [
         Token {
@@ -72,7 +72,7 @@ describe('lexer', () => {
   });
 
   it('should treat token as string', () => {
-    const lexer = new Lexer(['abc', 'bc', 'c']);
+    const lexer = new TokenStream(['abc', 'bc', 'c']);
     const token = lexer.next()!;
     expect(token.length).toMatchInlineSnapshot(`3`);
     expect(token.toString()).toMatchInlineSnapshot(`"abc"`);
@@ -86,7 +86,7 @@ describe('lexer', () => {
   });
 
   it('can parse arg type', () => {
-    const lexer = new Lexer([
+    const lexer = new TokenStream([
       '-',
       '123',
       'abc',
@@ -357,7 +357,7 @@ describe('lexer', () => {
   });
 
   it('can reset parser state', () => {
-    const lexer = new Lexer([
+    const lexer = new TokenStream([
       '-',
       '123',
       'abc',

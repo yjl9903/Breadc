@@ -378,13 +378,13 @@ describe('option types', () => {
 
 describe('middleware types', () => {
   it('should infer middleware chain', () => {
-    const app = breadc('cli').use(({ next }) => next({ data: { count: 1 } }));
+    const app = breadc('cli').use((_ctx, next) => next({ data: { count: 1 } }));
     const grp = app
       .group('group')
-      .use(({ context, next }) =>
+      .use((context, next) =>
         next({ data: { ...context.data, group: 'world' } })
       );
-    const cmd = grp.command('').use(async ({ context, next }) => {
+    const cmd = grp.command('').use(async (context, next) => {
       const result = await next({
         data: { ...context.data, command: 'command' }
       });

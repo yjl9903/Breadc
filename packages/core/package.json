@@ -21,7 +21,6 @@
   "author": "XLor",
   "sideEffects": false,
   "type": "module",
-  "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -30,7 +29,7 @@
   "scripts": {
     "build": "tsup",
     "coverage": "vitest run --coverage",
-    "format": "prettier --write src/**/*.ts test/**/*.ts",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "size": "size-limit",
     "test": "vitest --typecheck",
     "test:bench": "vitest bench",
@@ -42,10 +41,7 @@
   },
   "size-limit": [
     {
-      "path": "./dist/index.mjs"
-    },
-    {
-      "path": "./dist/index.cjs"
+      "path": "./dist/index.js"
     }
   ]
 }

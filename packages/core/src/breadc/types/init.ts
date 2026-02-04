@@ -32,29 +32,33 @@ export type BreadcInit = {
    * Builtin command configuration
    */
   builtin?: {
-    version?: {
-      /**
-       * @default true
-       */
-      enable?: boolean;
+    version?:
+      | boolean
+      | {
+          /**
+           * @default '-v, --version'
+           */
+          spec?: string;
 
-      /**
-       * @default '-v, --version'
-       */
-      format?: string | string[];
-    };
+          /**
+           *
+           */
+          description?: string;
+        };
 
-    help?: {
-      /**
-       * @default true
-       */
-      enable?: boolean;
+    help?:
+      | boolean
+      | {
+          /**
+           * @default '-h, --help'
+           */
+          spec?: string;
 
-      /**
-       * @default '-h, --help'
-       */
-      format?: string | string[];
-    };
+          /**
+           *
+           */
+          description?: string;
+        };
   };
 };
 

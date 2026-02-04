@@ -1,10 +1,11 @@
-import type { ICommand } from './breadc/types.ts';
-
-import { getI18n } from './i18n.ts';
+import type {
+  InternalCommand,
+  InternalGroup
+} from './breadc/types/internal.ts';
 
 export abstract class BreadcError extends Error {}
 
-export class RuntimeError extends Error {}
+export class RuntimeError extends BreadcError {}
 
 export class BreadcAppError extends BreadcError {
   static DUPLICATED_DEFAULT_COMMAND = `Find duplicated default commands`;
@@ -13,10 +14,28 @@ export class BreadcAppError extends BreadcError {
 
   static NO_ACTION_BOUND = `There is no action function bound in this command`;
 
-  public cause: { command?: ICommand; commands?: ICommand[] };
+  public cause: {
+    command?: InternalCommand;
+    commands?: (InternalCommand | InternalGroup)[];
+  };
 
   public constructor(message: string, cause: BreadcAppError['cause']) {
-    super(getI18n(message));
+    super(message);
+    this.cause = cause;
+  }
+}
+
+export class ResolveGroupError extends BreadcError {
+  static EMPTY = 'Group spec should not be empty';
+
+  static INVALID_ARG_IN_GROUP = 'Resolving argument in group spec';
+
+  public cause: { spec: string; position: number };
+
+  public constructor(message: string, cause: ResolveGroupError['cause']) {
+    super(
+      `${message} at the command "${cause.spec}", position ${cause.position}`
+    );
     this.cause = cause;
   }
 }
@@ -46,11 +65,11 @@ export class ResolveCommandError extends BreadcError {
 
   static SPREAD_ONLY_ONCE = 'Spread argument can only appear once';
 
-  public cause: { format: string; position: number };
+  public cause: { spec: string; position: number };
 
   public constructor(message: string, cause: ResolveCommandError['cause']) {
     super(
-      `${message} at the command "${cause.format}", position ${cause.position}`
+      `${message} at the command "${cause.spec}", position ${cause.position}`
     );
     this.cause = cause;
   }
@@ -59,10 +78,10 @@ export class ResolveCommandError extends BreadcError {
 export class ResolveOptionError extends BreadcError {
   static INVALID_OPTION = 'Resolving invalid option';
 
-  public cause: { format: string };
+  public cause: { spec: string };
 
   public constructor(message: string, cause: ResolveOptionError['cause']) {
-    super(`${message} at the option "${cause.format}"`);
+    super(`${message} at the option "${cause.spec}"`);
     this.cause = cause;
   }
 }

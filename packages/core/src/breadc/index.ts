@@ -9,7 +9,6 @@ export { command, argument } from './command.ts';
 export type {
   Breadc,
   BreadcInit,
-  BreadcInstance,
   InternalBreadc,
   Group,
   GroupInit,

@@ -1,7 +1,9 @@
+import { run as doRun } from '../runtime/run.ts';
+import { parse as doParse } from '../runtime/parser.ts';
+
 import type {
   Breadc,
   BreadcInit,
-  BreadcInstance,
   InternalBreadc,
   ActionMiddleware,
   UnknownOptionMiddleware,
@@ -20,20 +22,22 @@ import { group as makeGroup } from './group.ts';
 import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
 
-export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
-  const instance: BreadcInstance = {
-    name,
-    init,
-    commands: [],
-    options: [],
-    actionMiddlewares: [],
-    unknownOptionMiddlewares: []
-  };
+export function breadc(name: string, init: BreadcInit = {}): Breadc {
+  const commands: (InternalGroup | InternalCommand)[] = [];
+  const options: InternalOption[] = [];
+  const actionMiddlewares: ActionMiddleware<any, any>[] = [];
+  const unknownOptionMiddlewares: UnknownOptionMiddleware<any>[] = [];
 
-  return (<InternalBreadc<{}>>{
+  const app = <InternalBreadc>{
     name,
     version: init.version,
-    instance,
+
+    // internal
+    _init: init,
+    _commands: commands,
+    _options: options,
+    _actionMiddlewares: actionMiddlewares,
+    _unknownOptionMiddlewares: unknownOptionMiddlewares,
 
     option<
       Spec extends string,
@@ -52,13 +56,13 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
               >
             )
           : spec;
-      instance.options.push(option as unknown as InternalOption);
-      return this;
+      options.push(option as unknown as InternalOption);
+      return app;
     },
 
     group<S extends string, I extends GroupInit<S>>(spec: S, init?: I) {
       const group = typeof spec === 'string' ? makeGroup(spec, init) : spec;
-      instance.commands.push(group as unknown as InternalGroup);
+      commands.push(group as unknown as InternalGroup);
       return group;
     },
 
@@ -74,33 +78,34 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc<{}, {}> {
               description || init ? { description, ...init } : undefined
             )
           : spec;
-      instance.commands.push(command as unknown as InternalCommand);
+      commands.push(command as unknown as InternalCommand);
       return command;
     },
 
     use<Return, Middleware extends ActionMiddleware<{}, Return>>(
       middleware: Middleware
     ) {
-      instance.actionMiddlewares.push(middleware);
-      return this;
+      actionMiddlewares.push(middleware);
+      return app;
     },
 
     allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<{}>) {
       if (typeof middleware === 'function') {
-        instance.unknownOptionMiddlewares.push(middleware);
+        unknownOptionMiddlewares.push(middleware);
       } else if (middleware) {
-        // TODO: handle
-        instance.unknownOptionMiddlewares.push(() => true);
+        unknownOptionMiddlewares.push(() => true);
       }
-      return this;
+      return app;
     },
 
     parse(args: string[]) {
-      return undefined as any;
+      return doParse(app, args);
     },
 
-    async run<T>(args: string[]) {
-      return undefined as T;
+    async run(args: string[]) {
+      return doRun(app, args);
     }
-  }) as unknown as Breadc<{}, {}>;
+  };
+
+  return app as unknown as Breadc<{}, {}>;
 }

@@ -1,6 +1,6 @@
-import { splitOnce, stripPrefix } from '../utils/index.ts';
+import { splitOnce } from '../utils/string.ts';
 
-export class Lexer {
+export class TokenStream {
   private readonly args: string[];
 
   private readonly tokens: Token[] = [];
@@ -13,6 +13,7 @@ export class Lexer {
 
   public reset() {
     this.cursor = 0;
+    return this;
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { Context } from '../../parser/context.ts';
+import type { Context } from '../../runtime/context.ts';
 import type { Prettify } from '../../utils/types.ts';
 
 import type {
@@ -22,12 +22,13 @@ import type {
   InferMiddlewareData,
   UnknownOptionMiddleware
 } from './middleware.ts';
+import type { ArgumentType } from './internal.ts';
 
 /**
  * @public
  */
 export type Breadc<
-  Data extends unknown = {},
+  Data extends {} = {},
   Options extends Record<never, never> = {}
 > = {
   name: string;
@@ -112,7 +113,7 @@ export type Breadc<
 export type Group<
   Spec extends string = string,
   Init extends GroupInit<Spec> = GroupInit<Spec>,
-  Data extends unknown = {},
+  Data extends {} = {},
   Options extends Record<never, never> = Record<never, never>
 > = {
   spec: Spec;
@@ -183,7 +184,7 @@ export type Group<
 export type Command<
   Spec extends string = string,
   Init extends CommandInit<Spec> = CommandInit<Spec>,
-  Data extends unknown = {},
+  Data extends {} = {},
   Options extends Record<never, never> = {},
   Arguments extends unknown[] = InferArgumentsType<Spec>,
   Return extends unknown = unknown
@@ -348,7 +349,7 @@ export type Option<
 > = {
   spec: Spec;
 
-  init: Init | undefined;
+  init: Init;
 };
 
 export type Argument<
@@ -362,6 +363,10 @@ export type Argument<
   >
 > = {
   spec: Spec;
+
+  type: ArgumentType;
+
+  name: string;
 
   init: Init | undefined;
 };

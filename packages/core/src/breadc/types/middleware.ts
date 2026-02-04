@@ -1,26 +1,22 @@
-import type { Context } from '../../parser/context.ts';
+import type { Context } from '../../runtime/context.ts';
 
 /**
  * Unknown option middleware
  *
  * @public
  */
-export type UnknownOptionMiddleware<Data> = (payload: {
-  context: Context<Data, unknown>;
-}) => boolean | void | undefined | null;
+export type UnknownOptionMiddleware<Data extends {} = {}> = (
+  context: Context<Data, unknown>
+) => boolean | void | undefined | null;
 
-export interface MiddlewareNextFn<Return> {
-  <Data>(nextContext: { data: Data }): Promise<Context<Data, Return>>;
+export interface ActionMiddlewareNextFn<Return extends any = any> {
+  <NextData extends {} = {}>(nextContextData?: {
+    data?: NextData;
+  }): Promise<Context<NextData, Return>>;
 }
 
-export type ActionMiddlewarePayload<Data, Return> = {
-  context: Context<Data, Return>;
-  next: MiddlewareNextFn<Return>;
-};
-
-export type InferMiddlewarePayloadData<
-  Payload extends ActionMiddlewarePayload<any, any>
-> = Awaited<ReturnType<Payload['next']>>['data'];
+export type InferMiddlewareNextFn<Fn extends ActionMiddlewareNextFn<any>> =
+  Awaited<ReturnType<Fn>>['data'];
 
 /**
  * Command action middleware
@@ -28,16 +24,14 @@ export type InferMiddlewarePayloadData<
  * @public
  */
 export type ActionMiddleware<
-  Data,
-  Return,
-  Payload extends ActionMiddlewarePayload<
-    Data,
-    Return
-  > = ActionMiddlewarePayload<Data, Return>
+  Data extends {} = {},
+  Return extends any = any,
+  NextFn extends ActionMiddlewareNextFn<any> = ActionMiddlewareNextFn<any>
 > = (
-  payload: Payload
-) => Promise<Context<InferMiddlewarePayloadData<Payload>, Return>>;
+  context: Context<Data, Return>,
+  next: NextFn
+) => Promise<Context<InferMiddlewareNextFn<NextFn>, Return>>;
 
-export type InferMiddlewareData<
-  Middleware extends ActionMiddleware<any, any, any>
-> = Awaited<ReturnType<Middleware>>['data'];
+export type InferMiddlewareData<Middleware extends ActionMiddleware> = Awaited<
+  ReturnType<Middleware>
+>['data'];
