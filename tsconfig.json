@@ -24,19 +24,24 @@
       "@breadc/color": [
         "./packages/color/src/index.ts"
       ],
-      "@breadc/logger": [
-        "./packages/logger/src/index.ts"
-      ],
       "@breadc/complete": [
         "./packages/complete/src/index.ts"
       ],
-      "@breadc/progress": [
-        "./packages/progress/src/index.ts"
-      ]
+      "@breadc/core": [
+        "./packages/core/src/index.ts"
+      ],
+      "@breadc/death": [
+        "./packages/death/src/index.ts"
+      ],
+      "@breadc/logger": [
+        "./packages/logger/src/index.ts"
+      ],
+      "@breadc/tui": [
+        "./packages/tui/src/index.ts"
+      ],
     }
   },
   "exclude": [
-    "./examples/*.ts",
     "**/dist/**",
     "**/node_modules/**",
     "**/mod.ts"

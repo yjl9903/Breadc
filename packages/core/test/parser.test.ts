@@ -129,8 +129,7 @@ describe('options behavior', () => {
     const app = breadc('cli');
     app.option('-f, --flag');
 
-    const read = (arg: string) =>
-      app.parse([arg]).options.get('flag')?.value();
+    const read = (arg: string) => app.parse([arg]).options.get('flag')?.value();
 
     expect(read('-f=YES')).toBe(true);
     expect(read('-f=T')).toBe(true);

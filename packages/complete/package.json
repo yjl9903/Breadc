@@ -37,17 +37,12 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "format": "prettier --write src/**/*.ts test/*.ts",
     "test": "vitest",
     "test:ci": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "omelette": "^0.4.17"
-  },
-  "devDependencies": {
-    "@breadc/color": "workspace:*",
-    "breadc": "workspace:*"
   },
   "peerDependencies": {
     "@breadc/color": "workspace:*",

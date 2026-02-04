@@ -1,10 +1,9 @@
 {
-  "name": "@breadc/progress",
+  "name": "@breadc/tui",
   "version": "0.9.7",
-  "description": "CLI progress bar for Breadc",
+  "description": "TUI for Breadc",
   "keywords": [
     "breadc",
-    "progress",
     "cli",
     "command-line"
   ],
@@ -15,7 +14,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yjl9903/Breadc.git",
-    "directory": "packages/progress"
+    "directory": "packages/tui"
   },
   "license": "MIT",
   "author": "XLor",
@@ -36,12 +35,13 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "format": "prettier --write src/**/*.ts test/*.ts",
     "test": "vitest",
     "test:ci": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "string-width": "^7.2.0"
+    "@breadc/color": "workspace:*",
+    "std-env": "^3.10.0",
+    "string-width": "^8.1.1"
   }
 }

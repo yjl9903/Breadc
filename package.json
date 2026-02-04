@@ -8,29 +8,30 @@
     "docs:build": "vitepress build docs",
     "docs:dev": "vitepress dev docs",
     "docs:preview": "vitepress preview docs",
-    "format": "turbo run format",
+    "format": "prettier --write '**/*.{ts,tsx,js,mjs}'",
     "release": "bumpp package.json packages/*/package.json apps/*/package.json --commit --push --tag && pnpm -r publish --access public",
     "test:ci": "turbo run test:ci",
     "test:coverage": "turbo run test:coverage",
     "typecheck": "turbo run typecheck",
-    "preversion": "pnpm test:ci && pnpm build"
+    "preversion": "turbo run test:ci",
+    "postversion": "turbo run build"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^11.2.0",
-    "@types/node": "^22.17.2",
-    "@vitest/coverage-v8": "3.2.4",
+    "@size-limit/preset-small-lib": "^12.0.0",
+    "@types/node": "^22.19.8",
+    "@vitest/coverage-v8": "^4.0.18",
     "bumpp": "latest",
     "cac": "^6.7.14",
-    "commander": "^14.0.0",
-    "prettier": "^3.6.2",
-    "size-limit": "^11.2.0",
-    "tsup": "^8.3.5",
-    "turbo": "^2.5.6",
-    "typescript": "^5.9.2",
+    "commander": "^14.0.3",
+    "prettier": "^3.8.1",
+    "size-limit": "^12.0.0",
+    "tsup": "^8.5.1",
+    "turbo": "^2.8.3",
+    "typescript": "^5.9.3",
     "unbuild": "^3.6.1",
-    "vite": "^7.1.3",
-    "vitepress": "1.6.4",
-    "vitest": "3.2.4"
+    "vite": "^7.3.1",
+    "vitepress": "^1.6.4",
+    "vitest": "^4.0.18"
   },
-  "packageManager": "pnpm@10.15.0"
+  "packageManager": "pnpm@10.28.2"
 }

@@ -36,13 +36,12 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "format": "prettier --write src/**/*.ts test/*.ts",
     "test": "vitest",
     "test:ci": "vitest --run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@breadc/color": "workspace:*",
-    "std-env": "^3.8.1"
+    "std-env": "^3.10.0"
   }
 }

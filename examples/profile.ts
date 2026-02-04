@@ -1,7 +1,7 @@
-import { Breadc } from '../packages/core/src';
+import { breadc } from '../packages/core/src/index.ts';
 
 for (let i = 0; i < 10000; i++) {
-  const b = new Breadc('cli');
+  const b = breadc('cli');
   const action = () => {};
   b.command('[op]').action(action);
   b.command('dev').action(action);
