@@ -37,6 +37,5 @@ jobs:
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          verbose: true
           files: ./packages/core/coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
