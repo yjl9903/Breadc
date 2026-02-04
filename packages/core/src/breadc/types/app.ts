@@ -19,6 +19,7 @@ import type {
 } from './infer.ts';
 import type {
   ActionMiddleware,
+  ActionMiddlewareNextFn,
   InferMiddlewareData,
   UnknownOptionMiddleware
 } from './middleware.ts';
@@ -86,7 +87,14 @@ export type Breadc<
   /**
    * Action middleware
    */
-  use<Return, Middleware extends ActionMiddleware<Data, Return>>(
+  use<
+    Return,
+    Middleware extends ActionMiddleware<
+      Data,
+      Return,
+      ActionMiddlewareNextFn<any>
+    >
+  >(
     middleware: Middleware
   ): Breadc<InferMiddlewareData<Middleware>, Options>;
 

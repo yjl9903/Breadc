@@ -32,6 +32,6 @@ export type ActionMiddleware<
   next: NextFn
 ) => Promise<Context<InferMiddlewareNextFn<NextFn>, Return>>;
 
-export type InferMiddlewareData<Middleware extends ActionMiddleware> = Awaited<
-  ReturnType<Middleware>
->['data'];
+export type InferMiddlewareData<
+  Middleware extends ActionMiddleware<any, any, ActionMiddlewareNextFn<any>>
+> = Awaited<ReturnType<Middleware>>['data'];
