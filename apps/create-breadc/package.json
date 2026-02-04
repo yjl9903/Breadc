@@ -23,12 +23,12 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     }
   },
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "bin": {
     "create-breadc": "create-breadc.mjs"
   },
@@ -37,8 +37,7 @@
     "*.mjs"
   ],
   "scripts": {
-    "build": "unbuild",
-    "format": "prettier --write src/**/*.ts",
+    "build": "tsdown",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

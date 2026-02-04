@@ -1,10 +1,11 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: {
+    index: 'src/index.ts'
+  },
   clean: true,
   dts: true,
-  splitting: true,
   sourcemap: false,
   treeshake: true,
   target: 'es2022',
