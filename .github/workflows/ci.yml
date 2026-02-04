@@ -35,7 +35,7 @@ jobs:
           pnpm test:coverage
 
       - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           verbose: true
           files: ./packages/breadc/coverage/lcov.info,./packages/core/coverage/lcov.info
