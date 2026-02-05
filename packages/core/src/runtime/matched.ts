@@ -85,7 +85,6 @@ export class MatchedOption {
   }
 
   public accept(context: Context, long: string, text: string | undefined) {
-    this.dirty = true;
     switch (this.option.type) {
       case 'boolean': {
         if (text !== undefined) {
@@ -102,6 +101,9 @@ export class MatchedOption {
             this.raw = false;
           }
         }
+
+        this.dirty = true;
+
         break;
       }
       case 'optional': {
@@ -123,6 +125,7 @@ export class MatchedOption {
         } else {
           this.raw = true;
         }
+
         this.dirty = true;
 
         break;
@@ -153,6 +156,8 @@ export class MatchedOption {
         } else {
           this.raw.push(value);
         }
+
+        this.dirty = true;
 
         break;
       }

@@ -85,8 +85,6 @@ export function rawOption(
     init,
     type,
     long,
-    short,
-
-    _resolve: () => {}
-  };
+    short
+  } as InternalOption;
 }

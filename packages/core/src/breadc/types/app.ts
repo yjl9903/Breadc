@@ -277,9 +277,8 @@ export type Option<
   init: Init;
 };
 
-type InferOptionFromInstance<Opt extends Option<any, any, any>> = Opt extends Option<infer OS, infer Initial, infer OI>
-  ? InferOption<OS, Initial, OI & {}>
-  : never;
+type InferOptionFromInstance<Opt extends Option<any, any, any>> =
+  Opt extends Option<infer OS, infer Initial, infer OI> ? InferOption<OS, Initial, OI & {}> : never;
 
 export type Argument<
   Spec extends string = string,

@@ -47,14 +47,15 @@ describe('matched option', () => {
     expect(() => matched.accept(ctx, '-n', undefined)).toThrowError();
   });
 
-  it('throws when required option is accepted (current behavior)', () => {
+  it('accepts required option value when provided', () => {
     const app = breadc('cli');
     const opt = option('-n, --number <value>') as unknown as InternalOption;
     opt._resolve();
 
     const ctx = makeContext(app as any, []);
     const matched = new MatchedOption(opt);
-    expect(() => matched.accept(ctx, '-n', '1')).toThrowError();
+    matched.accept(ctx, '-n', '1');
+    expect(matched.value()).toMatchInlineSnapshot(`"1"`);
   });
 
   it('accumulates spread option values', () => {
