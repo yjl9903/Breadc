@@ -40,7 +40,8 @@
     "test": "vitest --typecheck",
     "test:bench": "vitest bench",
     "test:ci": "vitest --run --typecheck",
-    "test:coverage": "vitest run --coverage --typecheck"
+    "test:coverage": "vitest run --coverage --typecheck",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@breadc/color": "workspace:*"

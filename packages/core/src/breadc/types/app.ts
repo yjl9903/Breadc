@@ -47,9 +47,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
    * @param spec
    * @param init
    */
-  option<OS extends string, Initial extends InferOptionInitialType<OS>, Opt extends Option<OS, Initial>>(
-    option: Opt
-  ): Breadc<Data, Options & InferOption<OS, Initial, Opt['init'] & {}>>;
+  option<Opt extends Option<any, any, any>>(option: Opt): Breadc<Data, Options & InferOptionFromInstance<Opt>>;
   option<
     OS extends string,
     Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
@@ -129,9 +127,9 @@ export type Group<
    * @param spec
    * @param init
    */
-  option<OS extends string, Initial extends InferOptionInitialType<OS>, Opt extends Option<OS, Initial>>(
+  option<Opt extends Option<any, any, any>>(
     option: Opt
-  ): Group<Spec, Init, Data, Options & InferOption<OS, Initial, Opt['init'] & {}>>;
+  ): Group<Spec, Init, Data, Options & InferOptionFromInstance<Opt>>;
   option<
     OS extends string,
     Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
@@ -194,9 +192,9 @@ export type Command<
    * @param spec
    * @param init
    */
-  option<OS extends string, Initial extends InferOptionInitialType<OS>, Opt extends Option<OS, Initial>>(
+  option<Opt extends Option<any, any, any>>(
     option: Opt
-  ): Command<Spec, Init, Data, Options & InferOption<OS, Initial, Opt['init'] & {}>, Arguments, Return>;
+  ): Command<Spec, Init, Data, Options & InferOptionFromInstance<Opt>, Arguments, Return>;
   option<
     OS extends string,
     Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
@@ -278,6 +276,10 @@ export type Option<
 
   init: Init;
 };
+
+type InferOptionFromInstance<Opt extends Option<any, any, any>> = Opt extends Option<infer OS, infer Initial, infer OI>
+  ? InferOption<OS, Initial, OI & {}>
+  : never;
 
 export type Argument<
   Spec extends string = string,

@@ -1,3 +1,4 @@
+import type { Option } from '../breadc/index.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
 import type { Token } from './lexer.ts';
@@ -54,12 +55,12 @@ export class MatchedOption {
 
   public raw: any;
 
-  public constructor(option: InternalOption) {
-    this.option = option;
+  public constructor(option: Option | InternalOption) {
+    this.option = option as InternalOption;
     if (option.init.initial !== undefined) {
       this.raw = option.init.initial;
     } else {
-      switch (option.type) {
+      switch ((option as InternalOption).type) {
         case 'boolean':
         case 'optional':
           this.raw = false;

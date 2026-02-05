@@ -70,7 +70,7 @@ export type OptionInit<
   /**
    * Generate negated option
    */
-  negated?: InferOptionRawType<Spec> extends boolean ? boolean : never;
+  negated?: boolean;
 
   /**
    * Overwrite the initial value of the corresponding matched option.

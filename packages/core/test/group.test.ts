@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { type InternalGroup, breadc, group, command } from '../src/breadc/index.ts';
+import { type InternalGroup, breadc, group, command, option } from '../src/breadc/index.ts';
 
 describe('group', () => {
   it('should resolve pieces', () => {
@@ -40,5 +40,18 @@ describe('group', () => {
 
     expect(Object.is(registeredGroup, grp as unknown)).toMatchInlineSnapshot(`true`);
     expect(Object.is(registeredCommand, cmd as unknown)).toMatchInlineSnapshot(`true`);
+  });
+
+  it('should accept option and command instances', () => {
+    const grp = group('store') as unknown as InternalGroup;
+    const opt = option('--flag');
+    const cmd = command('echo');
+
+    grp.option(opt);
+    grp.command(cmd);
+    grp._resolve();
+
+    expect(Object.is(grp._options[0], opt)).toMatchInlineSnapshot(`true`);
+    expect(Object.is(grp._commands[0], cmd)).toMatchInlineSnapshot(`true`);
   });
 });

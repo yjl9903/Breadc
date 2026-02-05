@@ -288,7 +288,22 @@ describe('options behavior', () => {
     expect(matched2.value()).toMatchInlineSnapshot(`"seed"`);
   });
 
-  it.todo('parses long options (--flag/--flag=value/--flag value)');
+  it('should parse long options', () => {
+    const app = breadc('cli').option('--flag').option('--mode [value]');
+    app.command('echo');
+
+    const result1 = app.parse<unknown[], { flag: boolean }>(['echo', '--flag']);
+    expect(result1.options).toMatchInlineSnapshot(`{}`);
+
+    const result2 = app.parse<unknown[], { flag: boolean }>(['echo', '--flag=NO']);
+    expect(result2.options).toMatchInlineSnapshot(`{}`);
+
+    const result3 = app.parse<unknown[], { mode: boolean | string }>(['echo', '--mode=fast']);
+    expect(result3.options).toMatchInlineSnapshot(`{}`);
+
+    const result4 = app.parse<unknown[], { mode: boolean | string }>(['echo', '--mode', 'fast']);
+    expect(result4.options).toMatchInlineSnapshot(`{}`);
+  });
   it('supports -- escape and options["--"]', () => {
     const app = breadc('cli');
     app.command('echo [message]');
@@ -306,7 +321,14 @@ describe('options behavior', () => {
       ]
     `);
   });
-  it.todo('maps option keys to camelCase');
+  it('maps option keys to camelCase', () => {
+    const app = breadc('cli');
+    app.option('--allow-page');
+    app.command('echo');
+
+    const result = app.parse<unknown[], { allowPage: boolean }>(['echo', '--allow-page']);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
+  });
 });
 
 describe('unknown options', () => {
@@ -314,7 +336,11 @@ describe('unknown options', () => {
     const app = breadc('cli').allowUnknownOption(true);
 
     const result = app.parse(['-x', 'foo']);
-    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 
   it('allows unknown options at app level with custom middleware', () => {
@@ -324,7 +350,11 @@ describe('unknown options', () => {
     }));
 
     const result = app.parse(['-x', 'foo']);
-    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 
   it('allows unknown options at group level', () => {
@@ -336,7 +366,11 @@ describe('unknown options', () => {
     group.command('run');
 
     const result = app.parse(['tool', 'run', '-x', 'foo']);
-    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 
   it('allows unknown options at group level with boolean', () => {
@@ -345,7 +379,11 @@ describe('unknown options', () => {
     group.command('run');
 
     const result = app.parse(['tool', 'run', '-x', 'foo']);
-    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 
   it('allows unknown options at command level', () => {
@@ -356,7 +394,11 @@ describe('unknown options', () => {
     }));
 
     const result = app.parse(['echo', '-x', 'foo']);
-    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 
   it('allows unknown options at command level with boolean', () => {
@@ -364,7 +406,11 @@ describe('unknown options', () => {
     app.command('echo').allowUnknownOptions(true);
 
     const result = app.parse(['echo', '-x', 'foo']);
-    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 });
 
@@ -405,7 +451,30 @@ describe('option layering', () => {
     `);
   });
 
-  it.todo('supports options["--"] alongside layered options');
+  it('supports options["--"] alongside layered options', () => {
+    const app = breadc('cli');
+    app.option('--root');
+    const group = app.group('tool');
+    const cmd = group.command('run');
+    cmd.option('--flag');
+
+    const result = app.parse<unknown[], { root: boolean; flag: boolean }>([
+      'tool',
+      'run',
+      '--root',
+      '--flag',
+      '--',
+      'a',
+      'b'
+    ]);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result['--']).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+      ]
+    `);
+  });
 });
 
 describe('other parsing rules', () => {

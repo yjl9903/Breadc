@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { type InternalCommand, command, argument } from '../src/breadc/index.ts';
+import { type InternalCommand, breadc, command, argument, option } from '../src/breadc/index.ts';
 
 describe('command', () => {
   it('should resolve const pieces', () => {
@@ -309,6 +309,26 @@ describe('command', () => {
     expect(() => argument('arg')).toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid argument at the command "arg", position -1]`
     );
+  });
+
+  it('should accept option instances', () => {
+    const app = breadc('cli');
+    app.command('echo').option(option('--flag'));
+
+    const result = app.parse<unknown[], { flag: boolean }>(['echo', '--flag']);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
+  });
+
+  it('should allow unknown options with default handler', () => {
+    const app = breadc('cli');
+    app.command('echo').allowUnknownOptions();
+
+    const result = app.parse(['echo', '-x', 'foo']);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
   });
 
   it('should reject invalid custom argument ordering', async () => {

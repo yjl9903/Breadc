@@ -166,5 +166,17 @@ describe('runtime', () => {
     await expect(app.run(['noop'])).rejects.toBeInstanceOf(RuntimeError);
   });
 
-  it.todo('forwards options["--"] to action');
+  it('forwards options["--"] to action', async () => {
+    const app = breadc('cli');
+    app.command('echo').action((options) => options['--']);
+
+    await expect(app.run(['echo', '--', 'a', 'b'])).resolves.toMatchInlineSnapshot(
+      `
+      [
+        "a",
+        "b",
+      ]
+    `
+    );
+  });
 });
