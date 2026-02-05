@@ -6,10 +6,7 @@ export function stripPrefix(text: string, prefix: string): string | undefined {
   }
 }
 
-export function splitOnce(
-  text: string,
-  separator: string
-): [string, string | undefined] {
+export function splitOnce(text: string, separator: string): [string, string | undefined] {
   const found = text.indexOf(separator);
   if (found === -1) {
     return [text, undefined];

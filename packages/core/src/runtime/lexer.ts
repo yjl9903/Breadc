@@ -24,8 +24,7 @@ export class TokenStream {
   public next(): Token | undefined {
     const arg = this.args[this.cursor];
     if (arg === undefined) return undefined;
-    const token =
-      this.tokens[this.cursor] ?? (this.tokens[this.cursor] = new Token(arg));
+    const token = this.tokens[this.cursor] ?? (this.tokens[this.cursor] = new Token(arg));
     this.cursor++;
     return token;
   }
@@ -118,9 +117,7 @@ export class Token {
    * @returns whether arg looks like a negative number (`-123`)
    */
   public get isNegativeNumber(): boolean {
-    return (
-      this.text.startsWith('-') && !Number.isNaN(Number.parseFloat(this.text))
-    );
+    return this.text.startsWith('-') && !Number.isNaN(Number.parseFloat(this.text));
   }
 
   /**

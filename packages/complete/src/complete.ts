@@ -1,28 +1,16 @@
-import {
-  type Plugin,
-  type Breadc,
-  type Option,
-  type Command,
-  makeTreeNode
-} from 'breadc';
+import { type Plugin, type Breadc, type Option, type Command, makeTreeNode } from 'breadc';
 
 import { generate, ShellType } from './shell';
 
 export function complete(): Plugin {
   return {
     onInit(breadc, allCommands, globalOptions) {
-      globalOptions.push(
-        makeCompleteOption(breadc, allCommands, globalOptions)
-      );
+      globalOptions.push(makeCompleteOption(breadc, allCommands, globalOptions));
     }
   };
 }
 
-function makeCompleteOption(
-  breadc: Breadc,
-  allCommands: Command[],
-  globalOptions: Option[]
-): Option {
+function makeCompleteOption(breadc: Breadc, allCommands: Command[], globalOptions: Option[]): Option {
   const node = makeTreeNode({
     next() {
       return false;

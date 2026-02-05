@@ -56,26 +56,14 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run as any;
   };
 
-  run.option = <
-    Spec extends string,
-    Initial extends InferOptionInitialType<Spec>,
-    I extends OptionInit<Spec, Initial>
-  >(
+  run.option = <Spec extends string, Initial extends InferOptionInitialType<Spec>, I extends OptionInit<Spec, Initial>>(
     spec: Spec | Option<Spec>,
     description?: string,
     init?: I
   ) => {
     const option =
       typeof spec === 'string'
-        ? makeOption(
-            spec,
-            description,
-            init as unknown as OptionInit<
-              Spec,
-              InferOptionInitialType<Spec>,
-              unknown
-            >
-          )
+        ? makeOption(spec, description, init as unknown as OptionInit<Spec, InferOptionInitialType<Spec>, unknown>)
         : spec;
     options.push(option as unknown as InternalOption);
     return run;
@@ -89,9 +77,7 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run as any;
   };
 
-  run.allowUnknownOptions = (
-    middleware?: boolean | UnknownOptionMiddleware<{}>
-  ) => {
+  run.allowUnknownOptions = (middleware?: boolean | UnknownOptionMiddleware<{}>) => {
     if (!run._unknownOptionMiddlewares) {
       run._unknownOptionMiddlewares = [];
     }
@@ -154,19 +140,13 @@ export function command<S extends string, I extends CommandInit<S>>(
     for (; i < spec.length; ) {
       if (spec[i] === '<') {
         if (i + 1 >= spec.length || spec[i + 1] === ' ') {
-          throw new ResolveCommandError(
-            ResolveCommandError.INVALID_REQUIRED_ARG,
-            { spec, position: i }
-          );
+          throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec, position: i });
         } else {
           i++;
         }
 
         if (state >= 2) {
-          throw new ResolveCommandError(
-            ResolveCommandError.REQUIRED_BEFORE_OPTIONAL,
-            { spec, position: i }
-          );
+          throw new ResolveCommandError(ResolveCommandError.REQUIRED_BEFORE_OPTIONAL, { spec, position: i });
         }
 
         // Parse argument name
@@ -177,20 +157,14 @@ export function command<S extends string, I extends CommandInit<S>>(
 
         // Check the close bracket
         if (i === spec.length || spec[i] !== '>') {
-          throw new ResolveCommandError(
-            ResolveCommandError.INVALID_REQUIRED_ARG,
-            { spec: spec, position: i }
-          );
+          throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec: spec, position: i });
         } else {
           i++;
         }
 
         // Check the space separator
         if (i < spec.length && spec[i] !== ' ') {
-          throw new ResolveCommandError(
-            ResolveCommandError.INVALID_REQUIRED_ARG,
-            { spec, position: i }
-          );
+          throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec, position: i });
         }
 
         // Check empty argument name
@@ -206,20 +180,14 @@ export function command<S extends string, I extends CommandInit<S>>(
         resolvedArguments.push(rawArgument('required', piece));
       } else if (spec[i] === '[') {
         if (i + 1 >= spec.length || spec[i + 1] === ' ') {
-          throw new ResolveCommandError(
-            ResolveCommandError.INVALID_OPTIONAL_ARG,
-            { spec, position: i }
-          );
+          throw new ResolveCommandError(ResolveCommandError.INVALID_OPTIONAL_ARG, { spec, position: i });
         } else {
           i++;
         }
 
         if (spec[i] === '.') {
           if (state >= 3) {
-            throw new ResolveCommandError(
-              ResolveCommandError.SPREAD_ONLY_ONCE,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.SPREAD_ONLY_ONCE, { spec, position: i });
           }
 
           // Skip all the dots [...
@@ -235,28 +203,19 @@ export function command<S extends string, I extends CommandInit<S>>(
 
           // Check the close bracket
           if (i === spec.length || spec[i] !== ']') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_SPREAD_ARG,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_SPREAD_ARG, { spec, position: i });
           } else {
             i++;
           }
 
           // Check the next space separator
           if (i < spec.length && spec[i] !== ' ') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_SPREAD_ARG,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_SPREAD_ARG, { spec, position: i });
           }
 
           // Check empty argument name
           if (piece === '') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_EMPTY_ARG,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_EMPTY_ARG, { spec, position: i });
           }
 
           // State -> 3
@@ -265,10 +224,7 @@ export function command<S extends string, I extends CommandInit<S>>(
           resolvedArguments.push(spread);
         } else {
           if (state >= 3) {
-            throw new ResolveCommandError(
-              ResolveCommandError.OPTIONAL_BEFORE_SPREAD,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.OPTIONAL_BEFORE_SPREAD, { spec, position: i });
           }
 
           // Parse argument name
@@ -279,28 +235,19 @@ export function command<S extends string, I extends CommandInit<S>>(
 
           // Check the close bracket
           if (i === spec.length || spec[i] !== ']') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_OPTIONAL_ARG,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_OPTIONAL_ARG, { spec, position: i });
           } else {
             i++;
           }
 
           // Check the next space separator
           if (i < spec.length && spec[i] !== ' ') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_OPTIONAL_ARG,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_OPTIONAL_ARG, { spec, position: i });
           }
 
           // Check empty argument name
           if (piece === '') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_EMPTY_ARG,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_EMPTY_ARG, { spec, position: i });
           }
 
           // State -> 2
@@ -313,10 +260,7 @@ export function command<S extends string, I extends CommandInit<S>>(
           i++;
         }
       } else {
-        throw new ResolveCommandError(
-          ResolveCommandError.PIECE_BEFORE_REQUIRED,
-          { spec, position: i }
-        );
+        throw new ResolveCommandError(ResolveCommandError.PIECE_BEFORE_REQUIRED, { spec, position: i });
       }
     }
 
@@ -327,10 +271,7 @@ export function command<S extends string, I extends CommandInit<S>>(
           if (state === 1) {
             resolvedArguments.push(argument);
           } else {
-            throw new ResolveCommandError(
-              ResolveCommandError.REQUIRED_BEFORE_OPTIONAL,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.REQUIRED_BEFORE_OPTIONAL, { spec, position: i });
           }
           break;
         }
@@ -339,19 +280,13 @@ export function command<S extends string, I extends CommandInit<S>>(
             state = 2;
             resolvedArguments.push(argument);
           } else {
-            throw new ResolveCommandError(
-              ResolveCommandError.OPTIONAL_BEFORE_SPREAD,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.OPTIONAL_BEFORE_SPREAD, { spec, position: i });
           }
           break;
         }
         case 'spread': {
           if (spread) {
-            throw new ResolveCommandError(
-              ResolveCommandError.SPREAD_ONLY_ONCE,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.SPREAD_ONLY_ONCE, { spec, position: i });
           }
           state = 3;
           spread = argument;
@@ -374,10 +309,7 @@ export function command<S extends string, I extends CommandInit<S>>(
         const aliasPieces: string[] = [...parent];
         for (let i = 0; i < spec.length; ) {
           if (spec[i] === '<' || spec[i] === '[') {
-            throw new ResolveCommandError(
-              ResolveCommandError.INVALID_ALIAS_FORMAT,
-              { spec, position: i }
-            );
+            throw new ResolveCommandError(ResolveCommandError.INVALID_ALIAS_FORMAT, { spec, position: i });
           } else if (spec[i] === ' ') {
             while (i < spec.length && spec[i] === ' ') {
               i++;
@@ -405,20 +337,10 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run;
   };
 
-  return run as unknown as Command<
-    S,
-    I,
-    {},
-    {},
-    InferArgumentsType<S>,
-    unknown
-  >;
+  return run as unknown as Command<S, I, {}, {}, InferArgumentsType<S>, unknown>;
 }
 
-export function rawArgument(
-  type: ArgumentType,
-  name: string
-): InternalArgument {
+export function rawArgument(type: ArgumentType, name: string): InternalArgument {
   return {
     spec: '',
     type,

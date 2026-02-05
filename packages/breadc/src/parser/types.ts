@@ -60,11 +60,7 @@ export interface Context {
     allowUnknownOption: 'error' | 'skip' | 'rest';
   };
 
-  parseOption(
-    cursor: TreeNode,
-    token: Token,
-    context: Context
-  ): TreeNode | false;
+  parseOption(cursor: TreeNode, token: Token, context: Context): TreeNode | false;
 }
 
 export interface TreeNode<F extends CallbackFn = CallbackFn> {

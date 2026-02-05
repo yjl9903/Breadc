@@ -1,8 +1,5 @@
 import type { Breadc } from '../breadc/types/app.ts';
-import type {
-  ActionMiddleware,
-  ActionMiddlewareNextFn
-} from '../breadc/types/middleware.ts';
+import type { ActionMiddleware, ActionMiddlewareNextFn } from '../breadc/types/middleware.ts';
 
 import { printHelp } from '../breadc/builtin/help.ts';
 import { printVersion } from '../breadc/builtin/version.ts';

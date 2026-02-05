@@ -47,11 +47,7 @@ export const Logger = (
       (type) =>
         [
           type,
-          function (
-            this: BreadcLogger<{}>,
-            input: InputLogItem,
-            ...args: any[]
-          ) {
+          function (this: BreadcLogger<{}>, input: InputLogItem, ...args: any[]) {
             const level = LogLevels[type];
             const defaults: InputLogObject = { type, level };
             this.print(defaults, this.resolveInput(input, args));

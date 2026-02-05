@@ -1,19 +1,8 @@
 /* c8 ignore start */
 
-import type {
-  Token,
-  Context,
-  TreeNode,
-  ParseResult,
-  BreadcParseResult
-} from '../parser/index.ts';
+import type { Token, Context, TreeNode, ParseResult, BreadcParseResult } from '../parser/index.ts';
 
-import type {
-  ActionFn,
-  ExtractCommand,
-  ExtractOption,
-  ExtractOptionType
-} from './extract.ts';
+import type { ActionFn, ExtractCommand, ExtractOption, ExtractOptionType } from './extract.ts';
 
 export interface AppOption {
   version?: string;
@@ -141,16 +130,10 @@ export interface Option<
 
   // Set initial option value, undefined means not init this option
   initial?: R;
-  cast?: (
-    value: T extends string ? string : T extends boolean ? boolean : never
-  ) => R;
+  cast?: (value: T extends string ? string : T extends boolean ? boolean : never) => R;
 
   // Replace the default option parser behavior
-  parse?: (
-    cursor: TreeNode,
-    token: Token,
-    context: Context
-  ) => TreeNode | false;
+  parse?: (cursor: TreeNode, token: Token, context: Context) => TreeNode | false;
 }
 
 export interface OptionOption<T extends string | boolean, R extends any = any> {
@@ -162,11 +145,7 @@ export interface OptionOption<T extends string | boolean, R extends any = any> {
 type CommandHookFn = (result: ParseResult) => void | Promise<void>;
 
 export interface Plugin {
-  onInit?(
-    breadc: Breadc,
-    allCommands: Command[],
-    globalOptions: Option[]
-  ): void;
+  onInit?(breadc: Breadc, allCommands: Command[], globalOptions: Option[]): void;
   onPreRun?(breadc: Breadc): void | Promise<void>;
   onPreCommand?: Record<string, CommandHookFn> | CommandHookFn;
   onPostCommand?: Record<string, CommandHookFn> | CommandHookFn;

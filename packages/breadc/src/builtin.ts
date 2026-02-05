@@ -19,8 +19,7 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
     finish() {
       return () => {
         const text =
-          typeof config.builtin?.version === 'object' &&
-          config.builtin.version.content
+          typeof config.builtin?.version === 'object' && config.builtin.version.content
             ? config.builtin.version.content
             : `${name}/${config.version ? config.version : 'unknown'}`;
         console.log(text);
@@ -48,11 +47,7 @@ export function makeVersionCommand(name: string, config: AppOption): Option {
 type HelpBlcok = string | Array<[string, string]>;
 type HelpMessage = Array<HelpBlcok | (() => HelpBlcok[] | undefined)>;
 
-export function makeHelpCommand(
-  name: string,
-  config: AppOption,
-  allCommands: Command[]
-): Option {
+export function makeHelpCommand(name: string, config: AppOption, allCommands: Command[]): Option {
   function expandMessage(message: HelpMessage) {
     const result: string[] = [];
     for (const row of message) {
@@ -145,10 +140,7 @@ export function makeHelpCommand(
               return [
                 '',
                 bold(underline('Commands:')),
-                cmds.map((cmd) => [
-                  `  ${bold(name)} ${bold(cmd.format)}`,
-                  cmd.description
-                ])
+                cmds.map((cmd) => [`  ${bold(name)} ${bold(cmd.format)}`, cmd.description])
               ];
             } else {
               return undefined;
@@ -159,10 +151,7 @@ export function makeHelpCommand(
           [...context.options.entries()]
             .filter(([key, op]) => key === op.name)
             .sort((lhs, rhs) => lhs[1].order - rhs[1].order)
-            .map(([_key, op]) => [
-              '  ' + (!op.short ? '    ' : '') + bold(op.format),
-              op.description
-            ]),
+            .map(([_key, op]) => ['  ' + (!op.short ? '    ' : '') + bold(op.format), op.description]),
           ''
         ];
 

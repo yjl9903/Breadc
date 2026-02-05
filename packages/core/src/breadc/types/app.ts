@@ -29,10 +29,7 @@ import type { ArgumentType } from './internal.ts';
 /**
  * @public
  */
-export type Breadc<
-  Data extends {} = {},
-  Options extends Record<never, never> = {}
-> = {
+export type Breadc<Data extends {} = {}, Options extends Record<never, never> = {}> = {
   name: string;
 
   version: string | undefined;
@@ -50,11 +47,7 @@ export type Breadc<
    * @param spec
    * @param init
    */
-  option<
-    OS extends string,
-    Initial extends InferOptionInitialType<OS>,
-    Opt extends Option<OS, Initial>
-  >(
+  option<OS extends string, Initial extends InferOptionInitialType<OS>, Opt extends Option<OS, Initial>>(
     option: Opt
   ): Breadc<Data, Options & InferOption<OS, Initial, Opt['init'] & {}>>;
   option<
@@ -66,11 +59,7 @@ export type Breadc<
     description: string,
     init: OI
   ): Breadc<Data, Options & InferOption<OS, Initial, OI>>;
-  option<
-    OS extends string,
-    Initial extends InferOptionInitialType<OS>,
-    OI extends OptionInit<OS, Initial>
-  >(
+  option<OS extends string, Initial extends InferOptionInitialType<OS>, OI extends OptionInit<OS, Initial>>(
     spec: OS,
     description?: string,
     init?: OI
@@ -95,16 +84,12 @@ export type Breadc<
   /**
    * Allow unknown option middleware
    */
-  onUnknownCommand(
-    middleware?: boolean | UnknownCommandMiddleware<Data>
-  ): Breadc<Data, Options>;
+  onUnknownCommand(middleware?: boolean | UnknownCommandMiddleware<Data>): Breadc<Data, Options>;
 
   /**
    * Allow unknown option middleware
    */
-  allowUnknownOption(
-    middleware?: boolean | UnknownOptionMiddleware<Data>
-  ): Breadc<Data, Options>;
+  allowUnknownOption(middleware?: boolean | UnknownOptionMiddleware<Data>): Breadc<Data, Options>;
 
   /**
    * Parse CLI options
@@ -144,18 +129,9 @@ export type Group<
    * @param spec
    * @param init
    */
-  option<
-    OS extends string,
-    Initial extends InferOptionInitialType<OS>,
-    Opt extends Option<OS, Initial>
-  >(
+  option<OS extends string, Initial extends InferOptionInitialType<OS>, Opt extends Option<OS, Initial>>(
     option: Opt
-  ): Group<
-    Spec,
-    Init,
-    Data,
-    Options & InferOption<OS, Initial, Opt['init'] & {}>
-  >;
+  ): Group<Spec, Init, Data, Options & InferOption<OS, Initial, Opt['init'] & {}>>;
   option<
     OS extends string,
     Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
@@ -165,11 +141,7 @@ export type Group<
     description: string,
     init: OI
   ): Group<Spec, Init, Data, Options & InferOption<OS, Initial, OI>>;
-  option<
-    OS extends string,
-    Initial extends InferOptionInitialType<OS>,
-    OI extends OptionInit<OS, Initial>
-  >(
+  option<OS extends string, Initial extends InferOptionInitialType<OS>, OI extends OptionInit<OS, Initial>>(
     spec: OS,
     description?: string,
     init?: OI
@@ -194,9 +166,7 @@ export type Group<
   /**
    * Allow unknown options middleware
    */
-  allowUnknownOptions(
-    middleware?: boolean | UnknownOptionMiddleware<Data>
-  ): Group<Spec, Init, Data, Options>;
+  allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<Data>): Group<Spec, Init, Data, Options>;
 };
 
 export type Command<
@@ -224,20 +194,9 @@ export type Command<
    * @param spec
    * @param init
    */
-  option<
-    OS extends string,
-    Initial extends InferOptionInitialType<OS>,
-    Opt extends Option<OS, Initial>
-  >(
+  option<OS extends string, Initial extends InferOptionInitialType<OS>, Opt extends Option<OS, Initial>>(
     option: Opt
-  ): Command<
-    Spec,
-    Init,
-    Data,
-    Options & InferOption<OS, Initial, Opt['init'] & {}>,
-    Arguments,
-    Return
-  >;
+  ): Command<Spec, Init, Data, Options & InferOption<OS, Initial, Opt['init'] & {}>, Arguments, Return>;
   option<
     OS extends string,
     Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
@@ -246,30 +205,12 @@ export type Command<
     spec: OS,
     description: string,
     init: OI
-  ): Command<
-    Spec,
-    Init,
-    Data,
-    Options & InferOption<OS, Initial, OI>,
-    Arguments,
-    Return
-  >;
-  option<
-    OS extends string,
-    Initial extends InferOptionInitialType<OS>,
-    OI extends OptionInit<OS, Initial>
-  >(
+  ): Command<Spec, Init, Data, Options & InferOption<OS, Initial, OI>, Arguments, Return>;
+  option<OS extends string, Initial extends InferOptionInitialType<OS>, OI extends OptionInit<OS, Initial>>(
     spec: OS,
     description?: string,
     init?: OI
-  ): Command<
-    Spec,
-    Init,
-    Data,
-    Options & InferOption<OS, Initial, OI>,
-    Arguments,
-    Return
-  >;
+  ): Command<Spec, Init, Data, Options & InferOption<OS, Initial, OI>, Arguments, Return>;
 
   /**
    * Add argument
@@ -281,14 +222,7 @@ export type Command<
     AI extends ArgumentInit<AS, Initial, Cast>
   >(
     argument: Argument<AS, Initial, Cast, AI>
-  ): Command<
-    Spec,
-    Init,
-    Data,
-    Options,
-    [...Arguments, InferArgumentType<AS, Initial, AI>],
-    Return
-  >;
+  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, Initial, AI>], Return>;
   argument<
     AS extends string,
     Initial extends NonNullable<InferArgumentRawType<AS>>,
@@ -297,14 +231,7 @@ export type Command<
   >(
     spec: AS,
     init: AI
-  ): Command<
-    Spec,
-    Init,
-    Data,
-    Options,
-    [...Arguments, InferArgumentType<AS, Initial, AI>],
-    Return
-  >;
+  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, Initial, AI>], Return>;
   argument<
     AS extends string,
     Initial extends InferArgumentRawType<AS>,
@@ -313,28 +240,14 @@ export type Command<
   >(
     spec: AS,
     init?: AI
-  ): Command<
-    Spec,
-    Init,
-    Data,
-    Options,
-    [...Arguments, InferArgumentType<AS, Initial, AI>],
-    Return
-  >;
+  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, Initial, AI>], Return>;
 
   /**
    * Action middleware
    */
   use<Middleware extends ActionMiddleware<Data>>(
     middleware: Middleware
-  ): Command<
-    Spec,
-    Init,
-    InferMiddlewareData<Middleware>,
-    Options,
-    Arguments,
-    Return
-  >;
+  ): Command<Spec, Init, InferMiddlewareData<Middleware>, Options, Arguments, Return>;
 
   /**
    * Allow unknown options middleware
@@ -347,17 +260,13 @@ export type Command<
    * Bind action function
    */
   action<R extends unknown>(
-    fn: (
-      ...args: [...Arguments, Prettify<Options & { '--': string[] }>]
-    ) => Promise<R> | R
+    fn: (...args: [...Arguments, Prettify<Options & { '--': string[] }>]) => Promise<R> | R
   ): Command<Spec, Init, Data, Options, Arguments, R>;
 
   /**
    * Run command directly
    */
-  (
-    ...args: [...Arguments, Prettify<Options & { '--': string[] }>]
-  ): Promise<Return>;
+  (...args: [...Arguments, Prettify<Options & { '--': string[] }>]): Promise<Return>;
 };
 
 export type Option<
@@ -374,11 +283,7 @@ export type Argument<
   Spec extends string = string,
   Initial extends InferArgumentRawType<Spec> = InferArgumentRawType<Spec>,
   Cast extends unknown = unknown,
-  Init extends ArgumentInit<Spec, Initial, Cast> = ArgumentInit<
-    Spec,
-    Initial,
-    Cast
-  >
+  Init extends ArgumentInit<Spec, Initial, Cast> = ArgumentInit<Spec, Initial, Cast>
 > = {
   spec: Spec;
 

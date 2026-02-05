@@ -1,9 +1,4 @@
-import type {
-  NonTrueNullable,
-  InferOptionRawType,
-  InferOptionInitialType,
-  InferArgumentRawType
-} from './infer.ts';
+import type { NonTrueNullable, InferOptionRawType, InferOptionInitialType, InferArgumentRawType } from './infer.ts';
 
 export type BreadcInit = {
   /**
@@ -88,9 +83,7 @@ export type OptionInit<
   /**
    * Cast initial value to the result
    */
-  cast?: (
-    value: Initial extends {} ? Initial : InferOptionRawType<Spec>
-  ) => Cast;
+  cast?: (value: Initial extends {} ? Initial : InferOptionRawType<Spec>) => Cast;
 
   /**
    * Default option value if it is not provided
@@ -127,9 +120,7 @@ export type NonNullableOptionInit<
   /**
    * Cast initial value to the result
    */
-  cast?: (
-    value: Initial extends {} ? Initial : InferOptionRawType<Spec>
-  ) => Cast;
+  cast?: (value: Initial extends {} ? Initial : InferOptionRawType<Spec>) => Cast;
 
   /**
    * Default option value when its value or initial value is not provided
@@ -157,9 +148,7 @@ export type ArgumentInit<
   /**
    * Cast initial value to the result
    */
-  cast?: (
-    value: Initial extends {} ? Initial : InferArgumentRawType<Spec>
-  ) => Cast;
+  cast?: (value: Initial extends {} ? Initial : InferArgumentRawType<Spec>) => Cast;
 
   /**
    * Default argument value if it is not provided
@@ -183,9 +172,7 @@ export type NonNullableArgumentInit<
   /**
    * Cast initial value to the result
    */
-  cast?: (
-    value: Initial extends {} ? Initial : InferArgumentRawType<Spec>
-  ) => Cast;
+  cast?: (value: Initial extends {} ? Initial : InferArgumentRawType<Spec>) => Cast;
 
   /**
    * Default argument value if it is not provided

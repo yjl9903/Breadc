@@ -10,12 +10,7 @@ cli
     const ans: string[][] = [];
 
     for (let dep = maxDep; dep >= 1; dep--) {
-      const q = [
-        [`[...\${infer P${dep}}]`],
-        [`[\${infer P${dep}}]`],
-        [`<\${infer P${dep}}>`],
-        [`\${infer P${dep}}`]
-      ];
+      const q = [[`[...\${infer P${dep}}]`], [`[\${infer P${dep}}]`], [`<\${infer P${dep}}>`], [`\${infer P${dep}}`]];
 
       for (let i = dep - 1; i >= 1; i--) {
         const nQ: string[][] = [];
@@ -34,8 +29,7 @@ cli
         q.splice(0);
         q.push(
           ...nQ.filter((args) => {
-            if (commandDep < args.length && args[commandDep][0] === '$')
-              return false;
+            if (commandDep < args.length && args[commandDep][0] === '$') return false;
             else return true;
           })
         );

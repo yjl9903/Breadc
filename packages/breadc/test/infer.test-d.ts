@@ -50,25 +50,21 @@ describe('Type Infer', () => {
 
   it('should have optional arg type', async () => {
     const cli = breadc('cli');
-    cli
-      .command('test build dev <host> <root> [args]')
-      .action((host, root, args) => {
-        expectTypeOf(host).toBeString();
-        expectTypeOf(root).toBeString();
-        expectTypeOf(args).toEqualTypeOf<string | undefined>();
-      });
+    cli.command('test build dev <host> <root> [args]').action((host, root, args) => {
+      expectTypeOf(host).toBeString();
+      expectTypeOf(root).toBeString();
+      expectTypeOf(args).toEqualTypeOf<string | undefined>();
+    });
     await cli.run(['test', 'build', 'dev', '123', '456', '789']);
   });
 
   it('should have rest arg type', async () => {
     const cli = breadc('cli');
-    cli
-      .command('test build dev <host> <root> [...args]')
-      .action((host, root, args) => {
-        expectTypeOf(host).toBeString();
-        expectTypeOf(root).toBeString();
-        expectTypeOf(args).toEqualTypeOf<string[]>();
-      });
+    cli.command('test build dev <host> <root> [...args]').action((host, root, args) => {
+      expectTypeOf(host).toBeString();
+      expectTypeOf(root).toBeString();
+      expectTypeOf(args).toEqualTypeOf<string[]>();
+    });
     await cli.run(['test', 'build', 'dev', '123', '456', '7', '8', '9']);
   });
 });

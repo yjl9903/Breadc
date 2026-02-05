@@ -17,27 +17,13 @@ describe('color', () => {
     expect(color.white('white')).toMatchInlineSnapshot('"[97mwhite[39m"');
     expect(color.gray('gray')).toMatchInlineSnapshot('"[90mgray[39m"');
 
-    expect(color.lightRed('lightRed')).toMatchInlineSnapshot(
-      '"[91mlightRed[39m"'
-    );
-    expect(color.lightGreen('lightGreen')).toMatchInlineSnapshot(
-      '"[92mlightGreen[39m"'
-    );
-    expect(color.lightYellow('lightYellow')).toMatchInlineSnapshot(
-      '"[93mlightYellow[39m"'
-    );
-    expect(color.lightBlue('lightBlue')).toMatchInlineSnapshot(
-      '"[94mlightBlue[39m"'
-    );
-    expect(color.lightMagenta('lightMagenta')).toMatchInlineSnapshot(
-      '"[95mlightMagenta[39m"'
-    );
-    expect(color.lightCyan('lightCyan')).toMatchInlineSnapshot(
-      '"[96mlightCyan[39m"'
-    );
-    expect(color.lightGray('lightGray')).toMatchInlineSnapshot(
-      '"[37mlightGray[39m"'
-    );
+    expect(color.lightRed('lightRed')).toMatchInlineSnapshot('"[91mlightRed[39m"');
+    expect(color.lightGreen('lightGreen')).toMatchInlineSnapshot('"[92mlightGreen[39m"');
+    expect(color.lightYellow('lightYellow')).toMatchInlineSnapshot('"[93mlightYellow[39m"');
+    expect(color.lightBlue('lightBlue')).toMatchInlineSnapshot('"[94mlightBlue[39m"');
+    expect(color.lightMagenta('lightMagenta')).toMatchInlineSnapshot('"[95mlightMagenta[39m"');
+    expect(color.lightCyan('lightCyan')).toMatchInlineSnapshot('"[96mlightCyan[39m"');
+    expect(color.lightGray('lightGray')).toMatchInlineSnapshot('"[37mlightGray[39m"');
   });
 
   it('background', () => {
@@ -46,34 +32,18 @@ describe('color', () => {
     expect(color.bgGreen('green')).toMatchInlineSnapshot('"[42mgreen[49m"');
     expect(color.bgYellow('yellow')).toMatchInlineSnapshot('"[43myellow[49m"');
     expect(color.bgBlue('blue')).toMatchInlineSnapshot('"[44mblue[49m"');
-    expect(color.bgMagenta('magenta')).toMatchInlineSnapshot(
-      '"[45mmagenta[49m"'
-    );
+    expect(color.bgMagenta('magenta')).toMatchInlineSnapshot('"[45mmagenta[49m"');
     expect(color.bgCyan('cyan')).toMatchInlineSnapshot('"[46mcyan[49m"');
     expect(color.bgWhite('white')).toMatchInlineSnapshot('"[107mwhite[49m"');
     expect(color.bgGray('gray')).toMatchInlineSnapshot('"[100mgray[49m"');
 
-    expect(color.bgLightRed('lightRed')).toMatchInlineSnapshot(
-      '"[101mlightRed[49m"'
-    );
-    expect(color.bgLightGreen('lightGreen')).toMatchInlineSnapshot(
-      '"[102mlightGreen[49m"'
-    );
-    expect(color.bgLightYellow('lightYellow')).toMatchInlineSnapshot(
-      '"[103mlightYellow[49m"'
-    );
-    expect(color.bgLightBlue('lightBlue')).toMatchInlineSnapshot(
-      '"[104mlightBlue[49m"'
-    );
-    expect(color.bgLightMagenta('lightMagenta')).toMatchInlineSnapshot(
-      '"[105mlightMagenta[49m"'
-    );
-    expect(color.bgLightCyan('lightCyan')).toMatchInlineSnapshot(
-      '"[106mlightCyan[49m"'
-    );
-    expect(color.bgLightGray('lightGray')).toMatchInlineSnapshot(
-      '"[47mlightGray[49m"'
-    );
+    expect(color.bgLightRed('lightRed')).toMatchInlineSnapshot('"[101mlightRed[49m"');
+    expect(color.bgLightGreen('lightGreen')).toMatchInlineSnapshot('"[102mlightGreen[49m"');
+    expect(color.bgLightYellow('lightYellow')).toMatchInlineSnapshot('"[103mlightYellow[49m"');
+    expect(color.bgLightBlue('lightBlue')).toMatchInlineSnapshot('"[104mlightBlue[49m"');
+    expect(color.bgLightMagenta('lightMagenta')).toMatchInlineSnapshot('"[105mlightMagenta[49m"');
+    expect(color.bgLightCyan('lightCyan')).toMatchInlineSnapshot('"[106mlightCyan[49m"');
+    expect(color.bgLightGray('lightGray')).toMatchInlineSnapshot('"[47mlightGray[49m"');
   });
 });
 
@@ -143,9 +113,7 @@ describe('preview', () => {
         '     ' +
         color.bgLightGray(color.black('lightGray'))
     );
-    console.log(
-      color.white('white') + '                  ' + color.bgWhite('white')
-    );
+    console.log(color.white('white') + '                  ' + color.bgWhite('white'));
     console.log(color.black('black') + '' + '');
   });
 });

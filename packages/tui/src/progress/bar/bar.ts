@@ -128,11 +128,7 @@ export class ProgressBar<P> extends EventEmitter {
   //   }
   // }
 
-  private format(
-    params: any,
-    payload: P | undefined,
-    options: ProgressBarOption
-  ) {
+  private format(params: any, payload: P | undefined, options: ProgressBarOption) {
     const template = ` {bar} | {value}/{total}`;
 
     let s = template;

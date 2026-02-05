@@ -76,10 +76,7 @@ describe('Parse more option', () => {
 
   const d = new Command();
   d.name('cli');
-  d.option('--flag', '')
-    .option('--host <addr>', '')
-    .option('--local', '')
-    .option('--root <root>', '');
+  d.option('--flag', '').option('--host <addr>', '').option('--local', '').option('--root <root>', '');
   d.action(() => {});
 
   const args = ['--flag', '--host', '1.1.1.1', '--local', '--root=./'];

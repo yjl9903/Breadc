@@ -2,11 +2,7 @@ import type { Breadc, Command, Option } from 'breadc';
 
 import type { CompletionGenerator } from './types';
 
-export const generatePowershell: CompletionGenerator = (
-  breadc,
-  commands,
-  globalOptions
-) => {
+export const generatePowershell: CompletionGenerator = (breadc, commands, globalOptions) => {
   const bin = breadc.name;
   const subcommands = generateSubcommands(breadc, commands, globalOptions);
 
@@ -36,11 +32,7 @@ Register-ArgumentCompleter -Native -CommandName '${bin}' -ScriptBlock {
   return template;
 };
 
-function generateSubcommands(
-  breadc: Breadc,
-  commands: Command[],
-  globalOptions: Option[]
-) {
+function generateSubcommands(breadc: Breadc, commands: Command[], globalOptions: Option[]) {
   const cases: string[] = [];
 
   cases.push(

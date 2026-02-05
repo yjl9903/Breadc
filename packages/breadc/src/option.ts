@@ -10,10 +10,7 @@ export function makeOption<
   F extends string = string,
   T extends string | boolean = ExtractOptionType<F>,
   R extends unknown = any
->(
-  format: F,
-  config: OptionOption<T, R> = { default: undefined }
-): Option<F, T> {
+>(format: F, config: OptionOption<T, R> = { default: undefined }): Option<F, T> {
   let name = '';
   let short = undefined;
 
@@ -49,10 +46,7 @@ export function makeOption<
         config.default = true;
       }
 
-      const initial =
-        config.default === undefined || config.default === null
-          ? false
-          : config.default;
+      const initial = config.default === undefined || config.default === null ? false : config.default;
 
       return <Option<F, T>>{
         format,

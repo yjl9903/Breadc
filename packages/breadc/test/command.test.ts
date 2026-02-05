@@ -9,22 +9,14 @@ options.enabled = false;
 describe('Skip unknown options', () => {
   it('should skip', async () => {
     const cli = breadc('cli');
-    cli
-      .command('echo', { allowUnknownOption: 'skip' })
-      .action((options) => options['--']);
-    expect(await cli.run(['echo', '--test', '--check'])).toMatchInlineSnapshot(
-      '[]'
-    );
+    cli.command('echo', { allowUnknownOption: 'skip' }).action((options) => options['--']);
+    expect(await cli.run(['echo', '--test', '--check'])).toMatchInlineSnapshot('[]');
   });
 
   it('should add to rest args', async () => {
     const cli = breadc('cli');
-    cli
-      .command('echo', 'Echo command', { allowUnknownOption: 'rest' })
-      .action((options) => options['--']);
-    expect(
-      await cli.run(['echo', '--test', 'abc', '--check'])
-    ).toMatchInlineSnapshot(
+    cli.command('echo', 'Echo command', { allowUnknownOption: 'rest' }).action((options) => options['--']);
+    expect(await cli.run(['echo', '--test', 'abc', '--check'])).toMatchInlineSnapshot(
       `
       [
         "--test",
@@ -128,9 +120,7 @@ describe('Version Command', () => {
 
     expect(await cli.run(['-v'])).toMatchInlineSnapshot('"cli/1.0.0"');
     expect(await cli.run(['--version'])).toMatchInlineSnapshot('"cli/1.0.0"');
-    expect(await cli.run(['--version', 'other'])).toMatchInlineSnapshot(
-      '"cli/1.0.0"'
-    );
+    expect(await cli.run(['--version', 'other'])).toMatchInlineSnapshot('"cli/1.0.0"');
   });
 
   it('should print custom version', async () => {
@@ -142,12 +132,8 @@ describe('Version Command', () => {
       }
     });
 
-    expect(await cli.run(['-v'])).toMatchInlineSnapshot(
-      '"Hello, this is version"'
-    );
-    expect(await cli.run(['--version'])).toMatchInlineSnapshot(
-      '"Hello, this is version"'
-    );
+    expect(await cli.run(['-v'])).toMatchInlineSnapshot('"Hello, this is version"');
+    expect(await cli.run(['--version'])).toMatchInlineSnapshot('"Hello, this is version"');
   });
 });
 

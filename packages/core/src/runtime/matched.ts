@@ -1,8 +1,4 @@
-import type {
-  InternalOption,
-  InternalArgument,
-  OptionType
-} from '../breadc/types/internal.ts';
+import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
@@ -112,12 +108,7 @@ export class MatchedOption {
         let value = text;
         if (value === undefined) {
           const token = context.tokens.peek();
-          if (
-            token &&
-            !token.isEscape &&
-            !token.isLong &&
-            (!token.isShort || token.isNegativeNumber)
-          ) {
+          if (token && !token.isEscape && !token.isLong && (!token.isShort || token.isNegativeNumber)) {
             value = token.toRaw();
             context.tokens.next();
           }

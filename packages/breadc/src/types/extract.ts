@@ -5,16 +5,15 @@ import type { Letter, Prettify } from './utils.ts';
 /**
  * Extract option type, boolean or string
  */
-export type ExtractOptionType<T extends string> =
-  T extends `-${Letter}, --${infer R} <${infer U}>`
-    ? string
-    : T extends `-${Letter}, --${infer R}`
-      ? boolean
-      : T extends `--${infer R} <${infer U}>`
-        ? string
-        : T extends `--${infer R}`
-          ? boolean
-          : string | boolean;
+export type ExtractOptionType<T extends string> = T extends `-${Letter}, --${infer R} <${infer U}>`
+  ? string
+  : T extends `-${Letter}, --${infer R}`
+    ? boolean
+    : T extends `--${infer R} <${infer U}>`
+      ? string
+      : T extends `--${infer R}`
+        ? boolean
+        : string | boolean;
 
 /**
  * Extract option raw name
@@ -24,20 +23,19 @@ export type ExtractOptionType<T extends string> =
  * + const t2: ExtractOption<'-r, --root'> = 'root'
  * + const t3: ExtractOption<'--page-index'> = 'pageIndex'
  */
-export type ExtractOptionRawName<T extends string> =
-  T extends `-${Letter}, --${infer R} <${infer U}>`
+export type ExtractOptionRawName<T extends string> = T extends `-${Letter}, --${infer R} <${infer U}>`
+  ? R
+  : T extends `-${Letter}, --no-${infer R}`
     ? R
-    : T extends `-${Letter}, --no-${infer R}`
+    : T extends `-${Letter}, --${infer R}`
       ? R
-      : T extends `-${Letter}, --${infer R}`
+      : T extends `--${infer R} <${infer U}>`
         ? R
-        : T extends `--${infer R} <${infer U}>`
+        : T extends `--no-${infer R}`
           ? R
-          : T extends `--no-${infer R}`
+          : T extends `--${infer R}`
             ? R
-            : T extends `--${infer R}`
-              ? R
-              : never;
+            : never;
 
 /**
  * Extrat camel case option name
@@ -121,86 +119,43 @@ export type ExtractCommand<T extends string> =
                                                   : T extends `<${infer P1}> <${infer P2}> [...${infer P3}]`
                                                     ? [string, string, string[]]
                                                     : T extends `<${infer P1}> <${infer P2}> [${infer P3}]`
-                                                      ? [
-                                                          string,
-                                                          string,
-                                                          string | undefined
-                                                        ]
+                                                      ? [string, string, string | undefined]
                                                       : T extends `<${infer P1}> <${infer P2}> <${infer P3}>`
-                                                        ? [
-                                                            string,
-                                                            string,
-                                                            string
-                                                          ]
+                                                        ? [string, string, string]
                                                         : T extends `${infer P1} <${infer P2}> [...${infer P3}]`
                                                           ? [string, string[]]
                                                           : T extends `${infer P1} <${infer P2}> [${infer P3}]`
-                                                            ? [
-                                                                string,
-                                                                (
-                                                                  | string
-                                                                  | undefined
-                                                                )
-                                                              ]
+                                                            ? [string, string | undefined]
                                                             : T extends `${infer P1} <${infer P2}> <${infer P3}>`
                                                               ? [string, string]
                                                               : T extends `${infer P1} ${infer P2} [...${infer P3}]`
                                                                 ? [string[]]
                                                                 : T extends `${infer P1} ${infer P2} [${infer P3}]`
-                                                                  ? [
-                                                                      | string
-                                                                      | undefined
-                                                                    ]
+                                                                  ? [string | undefined]
                                                                   : T extends `${infer P1} ${infer P2} <${infer P3}>`
                                                                     ? [string]
                                                                     : T extends `${infer P1} ${infer P2} ${infer P3}`
                                                                       ? []
                                                                       : T extends `<${infer P1}> [...${infer P2}]`
-                                                                        ? [
-                                                                            string,
-                                                                            string[]
-                                                                          ]
+                                                                        ? [string, string[]]
                                                                         : T extends `<${infer P1}> [${infer P2}]`
-                                                                          ? [
-                                                                              string,
-                                                                              (
-                                                                                | string
-                                                                                | undefined
-                                                                              )
-                                                                            ]
+                                                                          ? [string, string | undefined]
                                                                           : T extends `<${infer P1}> <${infer P2}>`
-                                                                            ? [
-                                                                                string,
-                                                                                string
-                                                                              ]
+                                                                            ? [string, string]
                                                                             : T extends `${infer P1} [...${infer P2}]`
-                                                                              ? [
-                                                                                  string[]
-                                                                                ]
+                                                                              ? [string[]]
                                                                               : T extends `${infer P1} [${infer P2}]`
-                                                                                ? [
-                                                                                    | string
-                                                                                    | undefined
-                                                                                  ]
+                                                                                ? [string | undefined]
                                                                                 : T extends `${infer P1} <${infer P2}>`
-                                                                                  ? [
-                                                                                      string
-                                                                                    ]
+                                                                                  ? [string]
                                                                                   : T extends `${infer P1} ${infer P2}`
                                                                                     ? []
                                                                                     : T extends `[...${infer P1}]`
-                                                                                      ? [
-                                                                                          string[]
-                                                                                        ]
+                                                                                      ? [string[]]
                                                                                       : T extends `[${infer P1}]`
-                                                                                        ? [
-                                                                                            | string
-                                                                                            | undefined
-                                                                                          ]
+                                                                                        ? [string | undefined]
                                                                                         : T extends `<${infer P1}>`
-                                                                                          ? [
-                                                                                              string
-                                                                                            ]
+                                                                                          ? [string]
                                                                                           : T extends `${infer P1}`
                                                                                             ? []
                                                                                             : T extends ``

@@ -1,9 +1,4 @@
-import type {
-  Reporter,
-  LogObject,
-  PrintContext,
-  FormatOptions
-} from '../types';
+import type { Reporter, LogObject, PrintContext, FormatOptions } from '../types';
 
 export interface FormatReporterOptions {
   prefix: string;

@@ -10,35 +10,22 @@ import type { FormatReporter, FormatReporterOptions } from './types';
 
 export interface BasicReporterOptions extends FormatReporterOptions {}
 
-export const BasicReporter = (
-  options: Partial<BasicReporterOptions> = {}
-): FormatReporter => {
+export const BasicReporter = (options: Partial<BasicReporterOptions> = {}): FormatReporter => {
   return {
     formatArgs(opts: FormatOptions, message?: string, args: any[] = []) {
       return formatWithOptions(opts, message, ...args);
     },
     formatLogObject(obj: LogObject, ctx: PrintContext) {
-      const message = this.formatArgs(
-        ctx.options.format,
-        obj.message,
-        obj.args
-      );
+      const message = this.formatArgs(ctx.options.format, obj.message, obj.args);
 
-      return [
-        options.prefix,
-        bracket(obj.type === 'log' ? undefined : obj.type),
-        bracket(obj.tag),
-        message
-      ]
+      return [options.prefix, bracket(obj.type === 'log' ? undefined : obj.type), bracket(obj.tag), message]
         .filter(Boolean)
         .join(' ');
     },
     print(obj, ctx) {
       const message = this.formatLogObject(obj, ctx);
       const stream =
-        obj.level < LogLevels.log
-          ? ctx.options.stderr || process.stderr
-          : ctx.options.stdout || process.stdout;
+        obj.level < LogLevels.log ? ctx.options.stderr || process.stderr : ctx.options.stdout || process.stdout;
       writeStream(message, stream);
     }
   };

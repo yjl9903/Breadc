@@ -1,9 +1,4 @@
-import type {
-  InputLogItem,
-  InputLogObject,
-  LogObject,
-  LoggerOptions
-} from './types';
+import type { InputLogItem, InputLogObject, LogObject, LoggerOptions } from './types';
 
 import { LogLevels } from './level';
 
@@ -48,9 +43,7 @@ export class BreadcLogger<T extends {}> {
 
   public withTag(tag: string): BreadcLogger<T> & T {
     return this.withDefaults({
-      tag: this.options.defaults.tag
-        ? this.options.defaults.tag + ':' + tag
-        : tag
+      tag: this.options.defaults.tag ? this.options.defaults.tag + ':' + tag : tag
     });
   }
 

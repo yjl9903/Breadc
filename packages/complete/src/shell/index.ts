@@ -8,12 +8,7 @@ import { generatePowershell } from './powershell';
 
 export * from './types';
 
-export function generate(
-  shell: ShellType,
-  breadc: Breadc,
-  allCommands: Command[],
-  globalOptions: Option[]
-) {
+export function generate(shell: ShellType, breadc: Breadc, allCommands: Command[], globalOptions: Option[]) {
   if (shell === 'powershell') {
     return generatePowershell(breadc, allCommands, globalOptions);
   } else {

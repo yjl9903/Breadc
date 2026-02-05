@@ -10,21 +10,5 @@ for (let i = 0; i < 10000; i++) {
   b.command('test [case]').action(action);
   b.command('run [...args]').action(action);
 
-  b.parse([
-    'run',
-    'a',
-    'b',
-    'c',
-    'd',
-    'e',
-    'f',
-    'g',
-    'h',
-    'i',
-    'j',
-    'k',
-    'l',
-    'm',
-    'n'
-  ]);
+  b.parse(['run', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n']);
 }

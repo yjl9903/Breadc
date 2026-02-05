@@ -1,10 +1,4 @@
-import type {
-  Breadc,
-  InternalBreadc,
-  InternalOption,
-  InternalGroup,
-  InternalCommand
-} from '../breadc/index.ts';
+import type { Breadc, InternalBreadc, InternalOption, InternalGroup, InternalCommand } from '../breadc/index.ts';
 import { option as makeOption, rawOption } from '../breadc/option.ts';
 import { RuntimeError, BreadcAppError } from '../error.ts';
 
@@ -28,11 +22,8 @@ export function parse(app: Breadc, argv: string[]) {
     });
   }
 
-  const defaultCommand = defaultCommands[0] as unknown as
-    | InternalCommand
-    | undefined;
-  const onlyDefaultCommand =
-    defaultCommand !== undefined && context.breadc._commands.length === 1;
+  const defaultCommand = defaultCommands[0] as unknown as InternalCommand | undefined;
+  const onlyDefaultCommand = defaultCommand !== undefined && context.breadc._commands.length === 1;
 
   // 3. Parse without default command
   doParse(context, onlyDefaultCommand ? defaultCommand : undefined);
@@ -54,28 +45,19 @@ export function resolveArgs(context: Context<any>) {
 
 export function resolveOptions(context: Context<any>) {
   const options = Object.fromEntries(
-    [...context.options.values()].map((opt) => [
-      camelCase(opt.option.long),
-      opt.value()
-    ])
+    [...context.options.values()].map((opt) => [camelCase(opt.option.long), opt.value()])
   );
   return options;
 }
 
-function doParse(
-  context: Context,
-  defaultCommand: InternalCommand | undefined
-) {
+function doParse(context: Context, defaultCommand: InternalCommand | undefined) {
   const { breadc, tokens, options: matchedOptions } = context;
 
   let index = 0;
   let matchedGroup: InternalGroup | undefined = undefined;
   let matchedCommand: InternalCommand | undefined = defaultCommand;
 
-  const pendingCommands: Map<
-    string,
-    Array<[InternalGroup | InternalCommand, number]>
-  > = new Map();
+  const pendingCommands: Map<string, Array<[InternalGroup | InternalCommand, number]>> = new Map();
   const pendingLongOptions: Map<string, InternalOption> = new Map();
   const pendingShortOptions: Map<string, InternalOption> = new Map();
   const args: string[] = [];
@@ -89,10 +71,7 @@ function doParse(
       }
     }
   };
-  const addPendingCommand = (
-    command: InternalGroup | InternalCommand,
-    alias: number
-  ) => {
+  const addPendingCommand = (command: InternalGroup | InternalCommand, alias: number) => {
     const piece = command._pieces[alias][index];
     if (!pendingCommands.has(piece)) {
       pendingCommands.set(piece, []);
@@ -103,10 +82,7 @@ function doParse(
   // 1. Prepare global options
   addPendingOptions(breadc._options);
   if (breadc._init.builtin?.version !== false) {
-    const spec =
-      typeof breadc._init.builtin?.version === 'object'
-        ? breadc._init.builtin.version.spec
-        : undefined;
+    const spec = typeof breadc._init.builtin?.version === 'object' ? breadc._init.builtin.version.spec : undefined;
     const option = spec
       ? (makeOption(spec) as InternalOption)
       : rawOption('boolean', 'version', 'v', { description: '' });
@@ -118,13 +94,8 @@ function doParse(
     }
   }
   if (breadc._init.builtin?.help !== false) {
-    const spec =
-      typeof breadc._init.builtin?.help === 'object'
-        ? breadc._init.builtin.help.spec
-        : undefined;
-    const option = spec
-      ? (makeOption(spec) as InternalOption)
-      : rawOption('boolean', 'help', 'h', { description: '' });
+    const spec = typeof breadc._init.builtin?.help === 'object' ? breadc._init.builtin.help.spec : undefined;
+    const option = spec ? (makeOption(spec) as InternalOption) : rawOption('boolean', 'help', 'h', { description: '' });
     breadc._help = option;
 
     pendingLongOptions.set(option.long, option);
@@ -208,15 +179,10 @@ function doParse(
       const isLong = token.isLong;
       // TODO: handle --no-xxx
       const [key, value] = isLong ? token.toLong()! : token.toShort()!;
-      const option = isLong
-        ? pendingLongOptions.get(key)
-        : pendingShortOptions.get(key);
+      const option = isLong ? pendingLongOptions.get(key) : pendingShortOptions.get(key);
 
       if (option) {
-        if (
-          !matchedOptions.has(option.long) ||
-          matchedOptions.get(option.long)?.option !== option
-        ) {
+        if (!matchedOptions.has(option.long) || matchedOptions.get(option.long)?.option !== option) {
           matchedOptions.set(option.long, new MatchedOption(option));
         }
         const matchedOption = matchedOptions.get(option.long)!;
@@ -231,9 +197,11 @@ function doParse(
           const result = middleware(context, key, value);
           if (result) {
             // TODO: check following unknown option logic
-            const matched = new MatchedOption(
-              rawOption(result.type ?? 'optional', key, undefined, {})
-            ).accept(context, key, value);
+            const matched = new MatchedOption(rawOption(result.type ?? 'optional', key, undefined, {})).accept(
+              context,
+              key,
+              value
+            );
             matchedOptions.set(key, matched);
             break;
           }
@@ -283,12 +251,7 @@ function doParse(
   } else {
     // Fill missing unknown arguments
     context.arguments.push(
-      ...unknown.map((arg, idx) =>
-        new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(
-          context,
-          arg
-        )
-      )
+      ...unknown.map((arg, idx) => new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(context, arg))
     );
   }
 

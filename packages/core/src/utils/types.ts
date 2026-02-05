@@ -5,10 +5,7 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-export type IsEqual<T, U> =
-  (<G>() => G extends T ? 1 : 0) extends <G>() => G extends U ? 1 : 0
-    ? true
-    : false;
+export type IsEqual<T, U> = (<G>() => G extends T ? 1 : 0) extends <G>() => G extends U ? 1 : 0 ? true : false;
 
 export type Digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 

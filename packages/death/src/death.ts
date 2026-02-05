@@ -16,10 +16,7 @@ export interface OnDeathContext {
   kill: NodeJS.Signals | undefined;
 }
 
-export type OnDeathCallback = (
-  signal: DeathSignals,
-  context: OnDeathContext
-) => unknown | Promise<unknown>;
+export type OnDeathCallback = (signal: DeathSignals, context: OnDeathContext) => unknown | Promise<unknown>;
 
 export interface OnDeathOptions {
   SIGINT?: boolean;
@@ -70,10 +67,7 @@ export function onDeath(
   };
 }
 
-export function useDeath(
-  callback: OnDeathCallback,
-  options: OnDeathOptions = {}
-) {
+export function useDeath(callback: OnDeathCallback, options: OnDeathOptions = {}) {
   const cancel = onDeath(callback, options);
 
   return {
@@ -119,10 +113,7 @@ function makeHandler(signal: DeathSignals): Handler {
     },
     async listener(signal: NodeJS.Signals) {
       if (context.triggered) {
-        if (
-          new Date().getTime() - context.triggered.getTime() >=
-          FORCE_KILL_TIMEOUT
-        ) {
+        if (new Date().getTime() - context.triggered.getTime() >= FORCE_KILL_TIMEOUT) {
           process.exit(130);
         }
         return;

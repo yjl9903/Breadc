@@ -1,7 +1,4 @@
-import type {
-  InternalCommand,
-  InternalGroup
-} from './breadc/types/internal.ts';
+import type { InternalCommand, InternalGroup } from './breadc/types/internal.ts';
 
 export abstract class BreadcError extends Error {}
 
@@ -33,9 +30,7 @@ export class ResolveGroupError extends BreadcError {
   public cause: { spec: string; position: number };
 
   public constructor(message: string, cause: ResolveGroupError['cause']) {
-    super(
-      `${message} at the command "${cause.spec}", position ${cause.position}`
-    );
+    super(`${message} at the command "${cause.spec}", position ${cause.position}`);
     this.cause = cause;
   }
 }
@@ -51,26 +46,20 @@ export class ResolveCommandError extends BreadcError {
 
   static INVALID_SPREAD_ARG = 'Resolving invalid spread argument';
 
-  static INVALID_ALIAS_FORMAT =
-    'Alias command format should not have arguments';
+  static INVALID_ALIAS_FORMAT = 'Alias command format should not have arguments';
 
-  static PIECE_BEFORE_REQUIRED =
-    'Sub-command should be placed in the beginning';
+  static PIECE_BEFORE_REQUIRED = 'Sub-command should be placed in the beginning';
 
-  static REQUIRED_BEFORE_OPTIONAL =
-    'Required argument should be placed before optional arguments';
+  static REQUIRED_BEFORE_OPTIONAL = 'Required argument should be placed before optional arguments';
 
-  static OPTIONAL_BEFORE_SPREAD =
-    'Optional argument should be placed before spread arguments';
+  static OPTIONAL_BEFORE_SPREAD = 'Optional argument should be placed before spread arguments';
 
   static SPREAD_ONLY_ONCE = 'Spread argument can only appear once';
 
   public cause: { spec: string; position: number };
 
   public constructor(message: string, cause: ResolveCommandError['cause']) {
-    super(
-      `${message} at the command "${cause.spec}", position ${cause.position}`
-    );
+    super(`${message} at the command "${cause.spec}", position ${cause.position}`);
     this.cause = cause;
   }
 }

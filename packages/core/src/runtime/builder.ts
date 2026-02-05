@@ -1,12 +1,6 @@
-import type {
-  InternalBreadc,
-  InternalGroup,
-  InternalCommand
-} from '../breadc/types/internal.ts';
+import type { InternalBreadc, InternalGroup, InternalCommand } from '../breadc/types/internal.ts';
 
-export function isGroup(
-  command: InternalGroup | InternalCommand
-): command is InternalGroup {
+export function isGroup(command: InternalGroup | InternalCommand): command is InternalGroup {
   return !!(command as InternalGroup)._commands;
 }
 

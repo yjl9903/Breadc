@@ -33,19 +33,13 @@ export function breadc(name: string, config: AppOption = {}) {
     name,
     description: config.description ?? '',
     option(format, _config, _config2: any = {}) {
-      const config =
-        typeof _config === 'string'
-          ? { description: _config, ..._config2 }
-          : _config;
+      const config = typeof _config === 'string' ? { description: _config, ..._config2 } : _config;
       const option = makeOption(format, config);
       globalOptions.push(option);
       return breadc as Breadc<any>;
     },
     command(text, _config = {}, _config2: any = {}) {
-      const config =
-        typeof _config === 'string'
-          ? { description: _config, ..._config2 }
-          : _config;
+      const config = typeof _config === 'string' ? { description: _config, ..._config2 } : _config;
 
       const command = makeCommand(text, config, root, container);
 

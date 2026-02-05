@@ -30,29 +30,18 @@ const globalVar =
         : ({} as any);
 
 if (globalVar.process && globalVar.process.env && globalVar.process.stdout) {
-  const { FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } =
-    globalVar.process.env;
+  const { FORCE_COLOR, NODE_DISABLE_COLORS, NO_COLOR, TERM } = globalVar.process.env;
   if (NODE_DISABLE_COLORS || NO_COLOR || FORCE_COLOR === '0') {
     options.enabled = false;
-  } else if (
-    FORCE_COLOR === '1' ||
-    FORCE_COLOR === '2' ||
-    FORCE_COLOR === '3'
-  ) {
+  } else if (FORCE_COLOR === '1' || FORCE_COLOR === '2' || FORCE_COLOR === '3') {
     options.enabled = true;
   } else if (TERM === 'dumb') {
     options.enabled = false;
   } else if (
     'CI' in globalVar.process.env &&
-    [
-      'TRAVIS',
-      'CIRCLECI',
-      'APPVEYOR',
-      'GITLAB_CI',
-      'GITHUB_ACTIONS',
-      'BUILDKITE',
-      'DRONE'
-    ].some((vendor) => vendor in globalVar.process.env)
+    ['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE', 'DRONE'].some(
+      (vendor) => vendor in globalVar.process.env
+    )
   ) {
     options.enabled = true;
   } else {
@@ -60,26 +49,17 @@ if (globalVar.process && globalVar.process.env && globalVar.process.stdout) {
   }
 
   if (options.enabled) {
-    options.supportLevel =
-      TERM && TERM.endsWith('-256color')
-        ? SupportLevel.ansi256
-        : SupportLevel.ansi;
+    options.supportLevel = TERM && TERM.endsWith('-256color') ? SupportLevel.ansi256 : SupportLevel.ansi;
   }
 }
 
-function kolorist(
-  start: number | string,
-  end: number | string,
-  level: SupportLevel = SupportLevel.ansi
-) {
+function kolorist(start: number | string, end: number | string, level: SupportLevel = SupportLevel.ansi) {
   const open = `\x1b[${start}m`;
   const close = `\x1b[${end}m`;
   const regex = new RegExp(`\\x1b\\[${end}m`, 'g');
 
   return (str: string | number) => {
-    return options.enabled && options.supportLevel >= level
-      ? open + ('' + str).replace(regex, open) + close
-      : '' + str;
+    return options.enabled && options.supportLevel >= level ? open + ('' + str).replace(regex, open) + close : '' + str;
   };
 }
 
@@ -93,9 +73,7 @@ export function combine(...fns: ReturnType<typeof kolorist>[]) {
 }
 
 export function stripColors(str: string | number) {
-  return ('' + str)
-    .replace(/\x1b\[[0-9;]+m/g, '')
-    .replace(/\x1b\]8;;.*?\x07(.*?)\x1b\]8;;\x07/g, (_, group) => group);
+  return ('' + str).replace(/\x1b\[[0-9;]+m/g, '').replace(/\x1b\]8;;.*?\x07(.*?)\x1b\]8;;\x07/g, (_, group) => group);
 }
 
 // modifiers
@@ -147,10 +125,8 @@ export const bgLightCyan = kolorist(106, 49);
 export const bgLightGray = kolorist(47, 49);
 
 // 256 support
-export const ansi256 = (n: number) =>
-  kolorist('38;5;' + n, 0, SupportLevel.ansi256);
-export const ansi256Bg = (n: number) =>
-  kolorist('48;5;' + n, 0, SupportLevel.ansi256);
+export const ansi256 = (n: number) => kolorist('38;5;' + n, 0, SupportLevel.ansi256);
+export const ansi256Bg = (n: number) => kolorist('48;5;' + n, 0, SupportLevel.ansi256);
 
 // Links
 const OSC = '\u001B]';

@@ -28,10 +28,7 @@ export interface LogObject extends InputLogObject {
   date: Date;
 }
 
-export type InputLogItem =
-  | string
-  | number
-  | Omit<InputLogObject, 'level' | 'type'>;
+export type InputLogItem = string | number | Omit<InputLogObject, 'level' | 'type'>;
 
 export interface PrintContext {
   options: LoggerOptions;

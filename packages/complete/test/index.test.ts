@@ -68,9 +68,7 @@ describe('Complete', () => {
       plugins: [complete()]
     });
 
-    cli
-      .command('build', 'Build static sites')
-      .option('--root', 'Root directory');
+    cli.command('build', 'Build static sites').option('--root', 'Root directory');
 
     expect(await cli.run(['--complete'])).toMatchInlineSnapshot(`
       "using namespace System.Management.Automation

@@ -1,10 +1,5 @@
 import type { PluginContainer } from './plugin.ts';
-import type {
-  Command,
-  CommandOption,
-  Argument,
-  Option
-} from './types/index.ts';
+import type { Command, CommandOption, Argument, Option } from './types/index.ts';
 
 import { ParseError, BreadcError } from './error.ts';
 import { TreeNode, makeTreeNode, Token } from './parser/index.ts';
@@ -27,10 +22,7 @@ export function makeCommand<F extends string = string>(
     _arguments: args,
     _options: options,
     option(format, _config, _config2: any = {}) {
-      const config =
-        typeof _config === 'string'
-          ? { description: _config, ..._config2 }
-          : _config;
+      const config = typeof _config === 'string' ? { description: _config, ..._config2 } : _config;
       const option = makeOption(format, config);
       options.push(option);
       return command;
@@ -77,8 +69,7 @@ export function makeCommand<F extends string = string>(
     return makeTreeNode({
       command,
       init(context) {
-        context.config.allowUnknownOption =
-          config.allowUnknownOption ?? 'error';
+        context.config.allowUnknownOption = config.allowUnknownOption ?? 'error';
         initContextOptions(options, context);
       },
       finish(context) {
@@ -92,9 +83,7 @@ export function makeCommand<F extends string = string>(
             }
           } else if (args[i].type === 'require') {
             if (i >= rest.length) {
-              throw new ParseError(
-                `You must provide require argument ${args[i].name}`
-              );
+              throw new ParseError(`You must provide require argument ${args[i].name}`);
             }
             context.result.arguments.push(rest[i]);
           } else if (args[i].type === 'optional') {
@@ -110,11 +99,7 @@ export function makeCommand<F extends string = string>(
     });
   }
 
-  function insertTreeNode(
-    args: Argument[],
-    node: TreeNode,
-    parsed: Generator<Argument>
-  ) {
+  function insertTreeNode(args: Argument[], node: TreeNode, parsed: Generator<Argument>) {
     let cursor = root;
 
     for (const arg of parsed) {
@@ -173,9 +158,7 @@ function* parseCommandFormat(format: string): Generator<Argument> {
   for (let i = 0; i < format.length; i++) {
     if (format[i] === '<') {
       if (state !== 0 && state !== 1) {
-        throw new BreadcError(
-          `Required arguments should be placed before optional or rest arguments`
-        );
+        throw new BreadcError(`Required arguments should be placed before optional or rest arguments`);
       }
 
       const start = i;
@@ -188,9 +171,7 @@ function* parseCommandFormat(format: string): Generator<Argument> {
       yield { type: 'require', name };
     } else if (format[i] === '[') {
       if (state !== 0 && state !== 1) {
-        throw new BreadcError(
-          `There is at most one optional or rest arguments`
-        );
+        throw new BreadcError(`There is at most one optional or rest arguments`);
       }
 
       const start = i;

@@ -1,10 +1,6 @@
 import type { BreadcInit, GroupInit } from './init.ts';
 import type { Breadc, Option, Group, Command, Argument } from './app.ts';
-import type {
-  ActionMiddleware,
-  UnknownCommandMiddleware,
-  UnknownOptionMiddleware
-} from './middleware.ts';
+import type { ActionMiddleware, UnknownCommandMiddleware, UnknownOptionMiddleware } from './middleware.ts';
 
 /**
  * @internal

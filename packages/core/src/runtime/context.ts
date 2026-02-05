@@ -1,8 +1,4 @@
-import type {
-  InternalBreadc,
-  InternalGroup,
-  InternalCommand
-} from '../breadc/types/index.ts';
+import type { InternalBreadc, InternalGroup, InternalCommand } from '../breadc/types/index.ts';
 
 import type { MatchedArgument, MatchedOption } from './matched.ts';
 
@@ -60,10 +56,7 @@ export type Context<Data extends {} = {}> = {
   readonly tokens: TokenStream;
 };
 
-export function context<Data extends {} = {}>(
-  breadc: InternalBreadc,
-  args: string[]
-): Context<Data> {
+export function context<Data extends {} = {}>(breadc: InternalBreadc, args: string[]): Context<Data> {
   return {
     data: {} as Data,
     output: undefined,
@@ -78,9 +71,7 @@ export function context<Data extends {} = {}>(
   };
 }
 
-export function reset<Data extends {} = {}>(
-  context: Context<Data>
-): Context<Data> {
+export function reset<Data extends {} = {}>(context: Context<Data>): Context<Data> {
   context.data = {} as Data;
   context.group = undefined;
   context.command = undefined;

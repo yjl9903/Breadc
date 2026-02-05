@@ -1,15 +1,8 @@
 import { ResolveOptionError } from '../error.ts';
 
-import type {
-  Option,
-  OptionInit,
-  InferOptionInitialType,
-  InternalOption,
-  OptionType
-} from './types/index.ts';
+import type { Option, OptionInit, InferOptionInitialType, InternalOption, OptionType } from './types/index.ts';
 
-const OptionRE =
-  /^(?:(-[a-zA-Z]), )?--(no-)?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
+const OptionRE = /^(?:(-[a-zA-Z]), )?--(no-)?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
 export function option<
   Spec extends string,

@@ -53,8 +53,7 @@ describe('Basic Parser', () => {
       ]
     `);
 
-    expect(await cli.run(['echo', '--', 'hello', 'world']))
-      .toMatchInlineSnapshot(`
+    expect(await cli.run(['echo', '--', 'hello', 'world'])).toMatchInlineSnapshot(`
       [
         undefined,
         [
@@ -64,8 +63,7 @@ describe('Basic Parser', () => {
       ]
     `);
 
-    expect(await cli.run(['--', 'echo', 'hello', 'world']))
-      .toMatchInlineSnapshot(`
+    expect(await cli.run(['--', 'echo', 'hello', 'world'])).toMatchInlineSnapshot(`
       [
         "echo",
         "hello",
@@ -460,8 +458,7 @@ describe('Option Parser', () => {
       }
     `);
 
-    expect(await cli.run(['--run', 'abc', '--no-local', '--remote']))
-      .toMatchInlineSnapshot(`
+    expect(await cli.run(['--run', 'abc', '--no-local', '--remote'])).toMatchInlineSnapshot(`
       {
         "--": [],
         "local": false,
@@ -515,9 +512,7 @@ describe('Option Parser', () => {
 
     expect(await cli.run(['--no-open=false'])).toMatchInlineSnapshot('true');
 
-    expect(
-      async () => await cli.run(['--open=hello'])
-    ).rejects.toThrowErrorMatchingInlineSnapshot(
+    expect(async () => await cli.run(['--open=hello'])).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Error: Unexpected value hello for --open]`
     );
   });
@@ -577,8 +572,7 @@ describe('Option Parser', () => {
       ]
     `);
 
-    expect(await cli.run(['--allow-page', '--no-allow-index']))
-      .toMatchInlineSnapshot(`
+    expect(await cli.run(['--allow-page', '--no-allow-index'])).toMatchInlineSnapshot(`
         [
           {
             "--": [],

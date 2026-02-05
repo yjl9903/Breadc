@@ -22,10 +22,7 @@ vite
   .option('--open <path>', `[boolean | string] open browser on startup`)
   .option('--cors', `[boolean] enable CORS`)
   .option('--strict-port', `[boolean] exit if specified port is already in use`)
-  .option(
-    '--force',
-    `[boolean] force the optimizer to ignore the cache and re-bundle`
-  )
+  .option('--force', `[boolean] force the optimizer to ignore the cache and re-bundle`)
   .action(async (root, option) => {
     console.log(`Root: ${root}`);
     console.log(`Option:`);

@@ -1,8 +1,4 @@
-import {
-  parse as doParse,
-  resolveArgs,
-  resolveOptions
-} from '../runtime/parser.ts';
+import { parse as doParse, resolveArgs, resolveOptions } from '../runtime/parser.ts';
 import { run as doRun } from '../runtime/run.ts';
 
 import type {
@@ -53,15 +49,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
     >(spec: Spec | Option<Spec>, description?: string, init?: Init) {
       const option =
         typeof spec === 'string'
-          ? makeOption(
-              spec,
-              description,
-              init as unknown as OptionInit<
-                Spec,
-                InferOptionInitialType<Spec>,
-                unknown
-              >
-            )
+          ? makeOption(spec, description, init as unknown as OptionInit<Spec, InferOptionInitialType<Spec>, unknown>)
           : spec;
       options.push(option as unknown as InternalOption);
       return app;
@@ -73,18 +61,9 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       return group;
     },
 
-    command<S extends string, I extends CommandInit<S>>(
-      spec: S | Command<S>,
-      description?: string,
-      init?: I
-    ) {
+    command<S extends string, I extends CommandInit<S>>(spec: S | Command<S>, description?: string, init?: I) {
       const command =
-        typeof spec === 'string'
-          ? makeCommand(
-              spec,
-              description || init ? { description, ...init } : undefined
-            )
-          : spec;
+        typeof spec === 'string' ? makeCommand(spec, description || init ? { description, ...init } : undefined) : spec;
       commands.push(command as unknown as InternalCommand);
       return command;
     },

@@ -18,10 +18,7 @@ import type {
 import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
 
-export function group<S extends string, I extends GroupInit<S>>(
-  spec: S,
-  init?: I
-): Group<S, I, {}, {}> {
+export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: I): Group<S, I, {}, {}> {
   if (!spec) {
     throw new ResolveGroupError(ResolveGroupError.EMPTY, { spec, position: 0 });
   }
@@ -68,31 +65,20 @@ export function group<S extends string, I extends GroupInit<S>>(
       group._pieces = [pieces];
     },
 
-    option<
-      Spec extends string,
-      Initial extends InferOptionInitialType<Spec>,
-      I extends OptionInit<Spec, Initial>
-    >(spec: Spec | Option<Spec>, description?: string, init?: I) {
+    option<Spec extends string, Initial extends InferOptionInitialType<Spec>, I extends OptionInit<Spec, Initial>>(
+      spec: Spec | Option<Spec>,
+      description?: string,
+      init?: I
+    ) {
       const option =
         typeof spec === 'string'
-          ? makeOption(
-              spec,
-              description,
-              init as unknown as OptionInit<
-                Spec,
-                InferOptionInitialType<Spec>,
-                unknown
-              >
-            )
+          ? makeOption(spec, description, init as unknown as OptionInit<Spec, InferOptionInitialType<Spec>, unknown>)
           : spec;
       options.push(option as unknown as InternalOption);
       return group;
     },
 
-    command<S extends string, I extends CommandInit<S>>(
-      spec: S | Command<S>,
-      init?: I
-    ) {
+    command<S extends string, I extends CommandInit<S>>(spec: S | Command<S>, init?: I) {
       const command = typeof spec === 'string' ? makeCommand(spec, init) : spec;
       commands.push(command as unknown as InternalCommand);
       return command;

@@ -2,10 +2,7 @@ import type { ParseResult } from './parser/index.ts';
 import type { Breadc, Command, Option, Plugin } from './types/index.ts';
 
 export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
-  type Container = Record<
-    string,
-    Array<(result: ParseResult) => void | Promise<void>>
-  >;
+  type Container = Record<string, Array<(result: ParseResult) => void | Promise<void>>>;
   const onPreCommand: Container = {};
   const onPostCommand: Container = {};
 
@@ -41,14 +38,8 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
     }
   }
 
-  const run = async (
-    container: Container,
-    command: Command,
-    result: ParseResult
-  ) => {
-    const prefix = command._arguments
-      .filter((a) => a.type === 'const')
-      .map((a) => a.name);
+  const run = async (container: Container, command: Command, result: ParseResult) => {
+    const prefix = command._arguments.filter((a) => a.type === 'const').map((a) => a.name);
     if (prefix.length === 0) {
       prefix.push('_');
     }
@@ -58,9 +49,7 @@ export function makePluginContainer(plugins: Partial<Plugin>[] = []) {
           ? '*'
           : prefix
               .slice(0, i)
-              .map((t, idx) =>
-                idx === 0 ? t : t[0].toUpperCase() + t.slice(1)
-              )
+              .map((t, idx) => (idx === 0 ? t : t[0].toUpperCase() + t.slice(1)))
               .join('');
       const fns = container[key];
       if (fns && fns.length > 0) {

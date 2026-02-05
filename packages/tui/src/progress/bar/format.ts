@@ -1,10 +1,6 @@
 import type { ProgressBarOption } from './types';
 
-export function formatTime(
-  t: number,
-  roundToMultipleOf: number,
-  options: ProgressBarOption
-) {
+export function formatTime(t: number, roundToMultipleOf: number, options: ProgressBarOption) {
   function round(value: number) {
     if (roundToMultipleOf) {
       return roundToMultipleOf * Math.round(value / roundToMultipleOf);
@@ -20,18 +16,11 @@ export function formatTime(
 
   // > 1h ?
   if (t > 3600) {
-    return (
-      autopadding(Math.floor(t / 3600)) +
-      'h' +
-      autopadding(round((t % 3600) / 60)) +
-      'm'
-    );
+    return autopadding(Math.floor(t / 3600)) + 'h' + autopadding(round((t % 3600) / 60)) + 'm';
 
     // > 60s ?
   } else if (t > 60) {
-    return (
-      autopadding(Math.floor(t / 60)) + 'm' + autopadding(round(t % 60)) + 's'
-    );
+    return autopadding(Math.floor(t / 60)) + 'm' + autopadding(round(t % 60)) + 's';
 
     // > 10s ?
   } else if (t > 10) {
@@ -43,11 +32,7 @@ export function formatTime(
   }
 }
 
-export function formatValue(
-  v: number,
-  options: ProgressBarOption,
-  type: string
-) {
+export function formatValue(v: number, options: ProgressBarOption, type: string) {
   return v + '';
   // // no autopadding ? passthrough
   // if (options.autopadding !== true) {

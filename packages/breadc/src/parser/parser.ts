@@ -29,11 +29,7 @@ export function makeTreeNode(pnode: Partial<TreeNode>): TreeNode {
   return node;
 }
 
-export function parseOption(
-  cursor: TreeNode,
-  token: Token,
-  context: Context
-): TreeNode | false {
+export function parseOption(cursor: TreeNode, token: Token, context: Context): TreeNode | false {
   const o = token.option();
   const [key, rawV] = o.split('=');
 
@@ -47,10 +43,7 @@ export function parseOption(
     } else if (option.type === 'boolean') {
       // Parse boolean option
       const negative = key.startsWith('no-');
-      if (
-        rawV === undefined ||
-        ['true', 'yes', 't', 'y'].includes(rawV.toLowerCase())
-      ) {
+      if (rawV === undefined || ['true', 'yes', 't', 'y'].includes(rawV.toLowerCase())) {
         context.result.options[name] = !negative ? true : false;
       } else if (['false', 'no', 'f', 'n'].includes(rawV.toLowerCase())) {
         context.result.options[name] = !negative ? false : true;
@@ -68,9 +61,7 @@ export function parseOption(
         if (value !== undefined && !value.isOption()) {
           context.result.options[name] = value.raw();
         } else {
-          throw new ParseError(
-            `You should provide arguments for ${option.format}`
-          );
+          throw new ParseError(`You should provide arguments for ${option.format}`);
         }
       }
       /* c8 ignore next 3 */
