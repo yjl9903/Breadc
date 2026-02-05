@@ -67,7 +67,12 @@ describe('matched option', () => {
     const matched = new MatchedOption(opt);
     matched.accept(ctx, '-s', 'a');
     matched.accept(ctx, '-s', 'b');
-    expect(matched.value()).toEqual(['a', 'b']);
+    expect(matched.value()).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+      ]
+    `);
   });
 
   it('reads spread value from next token when omitted', () => {
@@ -78,6 +83,10 @@ describe('matched option', () => {
     const ctx = makeContext(app as any, ['next']);
     const matched = new MatchedOption(opt);
     matched.accept(ctx, '-s', undefined);
-    expect(matched.value()).toEqual(['next']);
+    expect(matched.value()).toMatchInlineSnapshot(`
+      [
+        "next",
+      ]
+    `);
   });
 });
