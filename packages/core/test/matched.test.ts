@@ -10,11 +10,14 @@ import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
 
 describe('matched argument', () => {
   it('uses default when not dirty and applies cast when dirty', () => {
+    const app = breadc('cli');
+    const ctx = makeContext(app, []);
+
     const arg = argument('[count]', { default: '1', cast: (t) => Number(t) }) as unknown as InternalArgument;
     const matched = new MatchedArgument(arg);
     expect(matched.value()).toMatchInlineSnapshot(`"1"`);
 
-    matched.accept({} as any, '2');
+    matched.accept(ctx, '2');
     expect(matched.value()).toMatchInlineSnapshot(`2`);
   });
 
@@ -31,9 +34,10 @@ describe('matched option', () => {
     const opt = option('-o, --output [value]') as unknown as InternalOption;
     opt._resolve();
 
-    const ctx = makeContext(app as any, ['next']);
-    const matched = new MatchedOption(opt);
-    matched.accept(ctx, '-o', undefined);
+    const ctx = makeContext(app, ['-o', 'next']);
+    ctx.tokens.next();
+
+    const matched = new MatchedOption(opt).accept(ctx, '-o', undefined);
     expect(matched.value()).toMatchInlineSnapshot(`"next"`);
   });
 
@@ -42,7 +46,7 @@ describe('matched option', () => {
     const opt = option('-n, --number <value>') as unknown as InternalOption;
     opt._resolve();
 
-    const ctx = makeContext(app as any, ['--']);
+    const ctx = makeContext(app, ['--']);
     const matched = new MatchedOption(opt);
     expect(() => matched.accept(ctx, '-n', undefined)).toThrowError();
   });
@@ -52,9 +56,8 @@ describe('matched option', () => {
     const opt = option('-n, --number <value>') as unknown as InternalOption;
     opt._resolve();
 
-    const ctx = makeContext(app as any, []);
-    const matched = new MatchedOption(opt);
-    matched.accept(ctx, '-n', '1');
+    const ctx = makeContext(app, []);
+    const matched = new MatchedOption(opt).accept(ctx, '-n', '1');
     expect(matched.value()).toMatchInlineSnapshot(`"1"`);
   });
 
@@ -63,10 +66,8 @@ describe('matched option', () => {
     const opt = option('-s, --include [...value]') as unknown as InternalOption;
     opt._resolve();
 
-    const ctx = makeContext(app as any, []);
-    const matched = new MatchedOption(opt);
-    matched.accept(ctx, '-s', 'a');
-    matched.accept(ctx, '-s', 'b');
+    const ctx = makeContext(app, []);
+    const matched = new MatchedOption(opt).accept(ctx, '-s', 'a').accept(ctx, '-s', 'b');
     expect(matched.value()).toMatchInlineSnapshot(`
       [
         "a",
@@ -80,7 +81,9 @@ describe('matched option', () => {
     const opt = option('-s, --include [...value]') as unknown as InternalOption;
     opt._resolve();
 
-    const ctx = makeContext(app as any, ['next']);
+    const ctx = makeContext(app, ['-s', 'next']);
+    ctx.tokens.next();
+
     const matched = new MatchedOption(opt);
     matched.accept(ctx, '-s', undefined);
     expect(matched.value()).toMatchInlineSnapshot(`
