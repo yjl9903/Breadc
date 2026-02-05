@@ -15,7 +15,7 @@ describe('builtin version command', () => {
     const ctx = makeContext(app as any, []);
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    expect(printVersion(ctx)).toBe('cli/unknown');
+    expect(printVersion(ctx)).toMatchInlineSnapshot(`"cli/unknown"`);
     expect(log).toHaveBeenCalledWith('cli/unknown');
   });
 
@@ -24,7 +24,7 @@ describe('builtin version command', () => {
     const ctx = makeContext(app as any, []);
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    expect(printVersion(ctx)).toBe('cli/1.0.0');
+    expect(printVersion(ctx)).toMatchInlineSnapshot(`"cli/1.0.0"`);
     expect(log).toHaveBeenCalledWith('cli/1.0.0');
   });
 });
@@ -35,7 +35,7 @@ describe('builtin help command', () => {
     const ctx = makeContext(app as any, []);
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    expect(printHelp(ctx)).toBe('cli/unknown');
+    expect(printHelp(ctx)).toMatchInlineSnapshot(`"cli/unknown"`);
     expect(log).toHaveBeenCalledWith('cli/unknown');
   });
 
@@ -44,7 +44,7 @@ describe('builtin help command', () => {
     app.command('ping').action(() => 'pong');
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await expect(app.run(['unknown'])).resolves.toBe('cli/unknown');
+    await expect(app.run(['unknown'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
     expect(log).toHaveBeenCalledWith('cli/unknown');
   });
 

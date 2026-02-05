@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
-import { breadc, option } from '../src/breadc/index.ts';
 import type { InternalOption } from '../src/breadc/index.ts';
-import { context as makeContext } from '../src/runtime/context.ts';
+
+import { breadc, option } from '../src/breadc/index.ts';
 import { MatchedOption } from '../src/runtime/matched.ts';
+import { context as makeContext } from '../src/runtime/context.ts';
+import { BreadcAppError, RuntimeError } from '../src/error.ts';
 
 describe('parse behavior', () => {
   it('matches a single default command', () => {
@@ -57,7 +59,11 @@ describe('parse behavior', () => {
 
     expect(result1.context.command?.spec).toMatchInlineSnapshot(`"dev"`);
     expect(result2.context.command?.spec).toMatchInlineSnapshot(`"<file>"`);
-    expect(result2.args).toMatchInlineSnapshot(['readme.md']);
+    expect(result2.args).toMatchInlineSnapshot(`
+      [
+        "readme.md",
+      ]
+    `);
   });
 
   it('matches group commands alongside default command', () => {
@@ -69,7 +75,12 @@ describe('parse behavior', () => {
     const result = app.parse(['store', 'ls']);
     expect(result.context.group?.spec).toMatchInlineSnapshot(`"store"`);
     expect(result.context.command?.spec).toMatchInlineSnapshot(`"ls"`);
-    expect(result.context.pieces).toMatchInlineSnapshot(['store', 'ls']);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "store",
+        "ls",
+      ]
+    `);
   });
 
   it('matches sub-commands with aliases', () => {
@@ -80,6 +91,20 @@ describe('parse behavior', () => {
     expect(app.parse(['d']).context.command?.spec).toMatchInlineSnapshot(`"dev"`);
     expect(app.parse(['develop']).context.command?.spec).toMatchInlineSnapshot(`"dev"`);
     expect(app.parse(['b']).context.command?.spec).toMatchInlineSnapshot(`"build"`);
+  });
+
+  it('matches multi-level sub-commands', () => {
+    const app = breadc('cli');
+    app.command('dev run');
+
+    const result = app.parse(['dev', 'run']);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"dev run"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "dev",
+        "run",
+      ]
+    `);
   });
 
   it.todo('matches default command aliases alongside sub-commands');
@@ -133,7 +158,12 @@ describe('argument matching', () => {
     app.command('echo <first>').argument('[second]');
 
     const result = app.parse(['echo', 'a', 'b']);
-    expect(result.args).toMatchInlineSnapshot(['a', 'b']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+      ]
+    `);
   });
 
   it('applies manual argument cast when provided', () => {
@@ -143,10 +173,26 @@ describe('argument matching', () => {
     });
 
     const result = app.parse(['echo', 'hello', '2']);
-    expect(result.args).toMatchInlineSnapshot(['hello', 2]);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "hello",
+        2,
+      ]
+    `);
   });
 
-  it.todo('matches spread arguments and consumes remaining args');
+  it('matches spread arguments and consumes remaining args', () => {
+    const app = breadc('cli');
+    app.command('echo [...rest]');
+
+    const result = app.parse(['echo', 'a', 'b', 'c']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "c",
+      ]
+    `);
+    expect(result['--']).toMatchInlineSnapshot(`[]`);
+  });
   it.todo('respects manual argument default/initial values when omitted');
 });
 
@@ -194,7 +240,12 @@ describe('options behavior', () => {
     app.option('-s, --include [...value]');
 
     const result = app.parse<unknown[], { include: string[] }>(['-s=a', '-s=b']);
-    expect(result.options.include).toMatchInlineSnapshot(['a', 'b']);
+    expect(result.options.include).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+      ]
+    `);
   });
 
   it('supports --no-* negation semantics for boolean options', () => {
@@ -238,8 +289,83 @@ describe('options behavior', () => {
   });
 
   it.todo('parses long options (--flag/--flag=value/--flag value)');
-  it.todo('supports -- escape and options["--"]');
+  it('supports -- escape and options["--"]', () => {
+    const app = breadc('cli');
+    app.command('echo [message]');
+
+    const result = app.parse(['echo', '--', 'hello', 'world']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        undefined,
+      ]
+    `);
+    expect(result['--']).toMatchInlineSnapshot(`
+      [
+        "hello",
+        "world",
+      ]
+    `);
+  });
   it.todo('maps option keys to camelCase');
+});
+
+describe('unknown options', () => {
+  it('allows unknown options at app level', () => {
+    const app = breadc('cli').allowUnknownOption(true);
+
+    const result = app.parse(['-x', 'foo']);
+    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it('allows unknown options at app level with custom middleware', () => {
+    const app = breadc('cli').allowUnknownOption((_ctx, key, value) => ({
+      name: key,
+      value
+    }));
+
+    const result = app.parse(['-x', 'foo']);
+    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it('allows unknown options at group level', () => {
+    const app = breadc('cli');
+    const group = app.group('tool').allowUnknownOptions((_ctx, key, value) => ({
+      name: key,
+      value
+    }));
+    group.command('run');
+
+    const result = app.parse(['tool', 'run', '-x', 'foo']);
+    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it('allows unknown options at group level with boolean', () => {
+    const app = breadc('cli');
+    const group = app.group('tool').allowUnknownOptions(true);
+    group.command('run');
+
+    const result = app.parse(['tool', 'run', '-x', 'foo']);
+    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it('allows unknown options at command level', () => {
+    const app = breadc('cli');
+    app.command('echo').allowUnknownOptions((_ctx, key, value) => ({
+      name: key,
+      value
+    }));
+
+    const result = app.parse(['echo', '-x', 'foo']);
+    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+  });
+
+  it('allows unknown options at command level with boolean', () => {
+    const app = breadc('cli');
+    app.command('echo').allowUnknownOptions(true);
+
+    const result = app.parse(['echo', '-x', 'foo']);
+    expect(result.context.options.get('-x')?.value()).toMatchInlineSnapshot(`"foo"`);
+  });
 });
 
 describe('option layering', () => {
@@ -289,16 +415,61 @@ describe('other parsing rules', () => {
     app.command('calc <value>');
 
     const result = app.parse(['calc', '-1']);
-    expect(result.args).toMatchInlineSnapshot(['-1']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "-1",
+      ]
+    `);
     expect(result.options).toMatchInlineSnapshot(`{}`);
   });
 
-  it.todo('supports allowUnknownOptions');
+  it('resolves app options for default command', () => {
+    const app = breadc('cli');
+    app.option('-f, --flag');
+    app.command('<name>');
+
+    const result = app.parse<unknown[], { flag: boolean }>(['hello', '-f']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "hello",
+      ]
+    `);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+      }
+    `);
+  });
 });
 
 describe('parse errors', () => {
-  it.todo('throws on missing required arguments');
+  it('throws on missing required arguments', () => {
+    const app = breadc('cli');
+    app.command('echo <name>');
+
+    expect(() => app.parse(['echo'])).toThrowError(RuntimeError);
+  });
   it.todo('throws on unknown sub-commands');
-  it.todo('throws on duplicated default command');
+  it('throws on duplicated default command', () => {
+    const app = breadc('cli');
+    app.command('<one>');
+    app.command('<two>');
+
+    expect(() => app.parse(['value'])).toThrowError(BreadcAppError);
+  });
+  it('throws on duplicated group pieces', () => {
+    const app = breadc('cli');
+    app.group('store').command('ls');
+    app.group('store').command('rm');
+
+    expect(() => app.parse(['store', 'ls'])).toThrowError(RuntimeError);
+  });
+  it('throws on duplicated command pieces', () => {
+    const app = breadc('cli');
+    app.command('dev');
+    app.command('dev');
+
+    expect(() => app.parse(['dev'])).toThrowError(RuntimeError);
+  });
   it.todo('throws on other parse-time error paths');
 });

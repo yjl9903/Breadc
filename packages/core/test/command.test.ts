@@ -190,7 +190,7 @@ describe('command', () => {
     const cmd = command('<abc> [def]') as unknown as InternalCommand;
     cmd._resolve();
 
-    expect(cmd._default).toBe(true);
+    expect(cmd._default).toMatchInlineSnapshot(`true`);
     expect(cmd._pieces).toMatchInlineSnapshot(`
       [
         [],
@@ -288,6 +288,27 @@ describe('command', () => {
         },
       ]
     `);
+  });
+
+  it('should allow alias to become default command', () => {
+    const cmd = command('build').alias('') as unknown as InternalCommand;
+    cmd._resolve();
+
+    expect(cmd._default).toMatchInlineSnapshot(`true`);
+    expect(cmd._pieces).toMatchInlineSnapshot(`
+      [
+        [
+          "build",
+        ],
+        [],
+      ]
+    `);
+  });
+
+  it('should reject invalid argument format', () => {
+    expect(() => argument('arg')).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Resolving invalid argument at the command "arg", position -1]`
+    );
   });
 
   it('should reject invalid custom argument ordering', async () => {
@@ -481,5 +502,3 @@ describe('command', () => {
     );
   });
 });
-
-// TODO: test alias command resolve, test manual added arguments

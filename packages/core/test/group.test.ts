@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { type InternalCommand, type InternalGroup, group } from '../src/breadc/index.ts';
-import { buildGroup } from '../src/runtime/builder.ts';
+import { type InternalGroup, breadc, group, command } from '../src/breadc/index.ts';
 
 describe('group', () => {
   it('should resolve pieces', () => {
@@ -31,20 +30,15 @@ describe('group', () => {
     );
   });
 
-  it('should resolve command pieces with group prefix', () => {
-    const grp = group('store ops') as unknown as InternalGroup;
-    const cmd = grp.command('ls') as unknown as InternalCommand;
-    grp._resolve();
-    buildGroup(grp);
+  it('should register existing group and command instances', () => {
+    const app = breadc('cli');
+    const grp = group('store');
+    const cmd = command('echo');
 
-    expect(cmd._pieces).toMatchInlineSnapshot(`
-      [
-        [
-          "store",
-          "ops",
-          "ls",
-        ],
-      ]
-    `);
+    const registeredGroup = app.group(grp as never) as unknown;
+    const registeredCommand = app.command(cmd as never) as unknown;
+
+    expect(Object.is(registeredGroup, grp as unknown)).toMatchInlineSnapshot(`true`);
+    expect(Object.is(registeredCommand, cmd as unknown)).toMatchInlineSnapshot(`true`);
   });
 });

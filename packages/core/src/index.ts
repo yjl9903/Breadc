@@ -18,3 +18,5 @@ export { breadc, group, option, command, argument } from './breadc/index.ts';
 export { type Context } from './runtime/context.ts';
 
 export { MatchedArgument, MatchedOption, type MatchedUnknownOption } from './runtime/matched.ts';
+
+export { BreadcError, BreadcAppError, ResolveGroupError, ResolveCommandError, ResolveOptionError } from './error.ts';

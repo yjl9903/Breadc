@@ -25,10 +25,10 @@ describe('token stream', () => {
     for (const token of lexer) {
       if (token.toRaw() === 'a') {
         // Skip 'b'
-        expect(lexer.next()?.toRaw()).toBe('a');
-        expect(lexer.peek()?.toRaw()).toBe('b');
+        expect(lexer.next()?.toRaw()).toMatchInlineSnapshot(`"a"`);
+        expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"b"`);
       } else {
-        expect(token.toRaw()).toBe('c');
+        expect(token.toRaw()).toMatchInlineSnapshot(`"c"`);
       }
     }
   });
@@ -52,6 +52,14 @@ describe('token stream', () => {
     `);
     expect(lexer.peek()).toMatchInlineSnapshot(`undefined`);
     expect(lexer.isEnd).toBeTruthy();
+  });
+
+  it('can move cursor backward', () => {
+    const lexer = new TokenStream(['a', 'b']);
+    expect(lexer.next()?.toRaw()).toMatchInlineSnapshot(`"a"`);
+    lexer.prev();
+    expect(lexer.next()?.toRaw()).toMatchInlineSnapshot(`"a"`);
+    expect(lexer.next()?.toRaw()).toMatchInlineSnapshot(`"b"`);
   });
 
   it('can receive empty string', () => {
@@ -102,59 +110,59 @@ describe('token stream', () => {
     ]);
 
     // -
-    expect(lexer.peek()?.toRaw()).toBe('-');
-    expect(lexer.peek()?.isStdio).toBe(true);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`true`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['-', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['-', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // 123
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('123');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"123"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['123', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['123', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(true);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // abc
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('abc');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"abc"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // -f
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('-f');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-f"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['-f', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(true);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
         "-f",
@@ -167,19 +175,19 @@ describe('token stream', () => {
         undefined,
       ]
     `);
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // -fg
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('-fg');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-fg"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['-fg', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(true);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
         "-fg",
@@ -192,19 +200,19 @@ describe('token stream', () => {
         undefined,
       ]
     `);
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // -n=1
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('-n=1');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-n=1"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['-n', '1']);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(true);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
         "-n",
@@ -217,16 +225,16 @@ describe('token stream', () => {
         "1",
       ]
     `);
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // --flag
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('--flag');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(true);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--flag"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
         "--flag",
@@ -239,19 +247,19 @@ describe('token stream', () => {
         undefined,
       ]
     `);
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['--flag', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // --value=def
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('--value=def');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(true);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--value=def"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
         "--value",
@@ -264,22 +272,22 @@ describe('token stream', () => {
         "def",
       ]
     `);
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['--value', 'def']);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // -1
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('-1');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-1"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['-1', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(true);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
         "-1",
@@ -292,16 +300,16 @@ describe('token stream', () => {
         undefined,
       ]
     `);
-    expect(lexer.peek()?.isNumber).toBe(true);
-    expect(lexer.peek()?.isNegativeNumber).toBe(true);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`true`);
 
     // --1
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('--1');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(true);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--1"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
         "--1",
@@ -314,46 +322,46 @@ describe('token stream', () => {
         undefined,
       ]
     `);
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['--1', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // --
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('--');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(true);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`true`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['--', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['--', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // abc
     lexer.next();
-    expect(lexer.peek()?.toRaw()).toBe('abc');
-    expect(lexer.peek()?.isStdio).toBe(false);
-    expect(lexer.peek()?.isEscape).toBe(false);
-    expect(lexer.peek()?.isEmpty).toBe(false);
-    expect(lexer.peek()?.isLong).toBe(false);
+    expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"abc"`);
+    expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
-    expect(lexer.peek()?.isShort).toBe(false);
+    expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
-    expect(lexer.peek()?.isNumber).toBe(false);
-    expect(lexer.peek()?.isNegativeNumber).toBe(false);
+    expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+    expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
     // End
     lexer.next();
     expect(lexer.next()).toBeUndefined();
-    expect(lexer.isEnd).toBe(true);
+    expect(lexer.isEnd).toMatchInlineSnapshot(`true`);
   });
 
   it('can reset parser state', () => {
@@ -376,193 +384,193 @@ describe('token stream', () => {
       lexer.reset();
 
       // -
-      expect(lexer.peek()?.toRaw()).toBe('-');
-      expect(lexer.peek()?.isStdio).toBe(true);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`true`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['-', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['-', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // 123
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('123');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"123"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['123', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['123', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(true);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // abc
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('abc');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"abc"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // -f
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('-f');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-f"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['-f', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(true);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['-f', undefined]);
       expect(lexer.peek()?.checkToShort()).toStrictEqual(['-f', undefined]);
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // -fg
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('-fg');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-fg"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['-fg', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(true);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['-fg', undefined]);
       expect(lexer.peek()?.checkToShort()).toStrictEqual(['-fg', undefined]);
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // -n=1
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('-n=1');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-n=1"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['-n', '1']);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(true);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['-n', '1']);
       expect(lexer.peek()?.checkToShort()).toStrictEqual(['-n', '1']);
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // --flag
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('--flag');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(true);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--flag"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['--flag', undefined]);
       expect(lexer.peek()?.checkToLong()).toStrictEqual(['--flag', undefined]);
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['--flag', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // --value=def
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('--value=def');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(true);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--value=def"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['--value', 'def']);
       expect(lexer.peek()?.checkToLong()).toStrictEqual(['--value', 'def']);
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['--value', 'def']);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // -1
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('-1');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"-1"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['-1', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(true);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['-1', undefined]);
       expect(lexer.peek()?.checkToShort()).toStrictEqual(['-1', undefined]);
-      expect(lexer.peek()?.isNumber).toBe(true);
-      expect(lexer.peek()?.isNegativeNumber).toBe(true);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`true`);
 
       // --1
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('--1');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(true);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--1"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['--1', undefined]);
       expect(lexer.peek()?.checkToLong()).toStrictEqual(['--1', undefined]);
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['--1', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // --
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('--');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(true);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"--"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`true`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['--', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['--', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // abc
       lexer.next();
-      expect(lexer.peek()?.toRaw()).toBe('abc');
-      expect(lexer.peek()?.isStdio).toBe(false);
-      expect(lexer.peek()?.isEscape).toBe(false);
-      expect(lexer.peek()?.isEmpty).toBe(false);
-      expect(lexer.peek()?.isLong).toBe(false);
+      expect(lexer.peek()?.toRaw()).toMatchInlineSnapshot(`"abc"`);
+      expect(lexer.peek()?.isStdio).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
-      expect(lexer.peek()?.isShort).toBe(false);
+      expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
-      expect(lexer.peek()?.isNumber).toBe(false);
-      expect(lexer.peek()?.isNegativeNumber).toBe(false);
+      expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
+      expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
       // End
       lexer.next();
       expect(lexer.next()).toBeUndefined();
-      expect(lexer.isEnd).toBe(true);
+      expect(lexer.isEnd).toMatchInlineSnapshot(`true`);
     }
 
     // End
     lexer.next();
     expect(lexer.next()).toBeUndefined();
-    expect(lexer.isEnd).toBe(true);
+    expect(lexer.isEnd).toMatchInlineSnapshot(`true`);
   });
 });

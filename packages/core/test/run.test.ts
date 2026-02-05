@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
-import { breadc } from '../src/breadc/index.ts';
+import type { InternalOption } from '../src/breadc/index.ts';
+
 import { RuntimeError } from '../src/error.ts';
+import { breadc, option } from '../src/breadc/index.ts';
 
 describe('runtime', () => {
   it('passes arguments to action and returns result', async () => {
@@ -17,6 +19,50 @@ describe('runtime', () => {
         },
       ]
     `);
+  });
+
+  it('returns builtin version/help when configured', async () => {
+    const app = breadc('cli', { builtin: { version: false, help: false } });
+    const version = option('-v, --version') as unknown as InternalOption;
+    const help = option('-h, --help') as unknown as InternalOption;
+
+    app.option(version);
+    app.option(help);
+    (app as any)._version = version;
+    (app as any)._help = help;
+
+    await expect(app.run(['-v'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
+    await expect(app.run(['-h'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
+  });
+
+  it('invokes next when middleware does not call it', async () => {
+    const app = breadc('cli');
+    const calls: string[] = [];
+
+    app.use(async (ctx, _next) => {
+      calls.push('middleware');
+      return ctx;
+    });
+
+    app.command('ping').action(() => {
+      calls.push('action');
+      return 'pong';
+    });
+
+    await expect(app.run(['ping'])).resolves.toMatchInlineSnapshot(`"pong"`);
+    expect(calls).toMatchInlineSnapshot(`
+      [
+        "middleware",
+        "action",
+      ]
+    `);
+  });
+
+  it('uses unknown command middleware', async () => {
+    const app = breadc('cli');
+    app.onUnknownCommand(() => 'handled');
+
+    await expect(app.run(['unknown'])).resolves.toMatchInlineSnapshot(`"handled"`);
   });
 
   it('runs middlewares in app → group → command order', async () => {

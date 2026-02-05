@@ -325,9 +325,8 @@ export function command<S extends string, I extends CommandInit<S>>(
         }
         if (aliasPieces.length === 0) {
           run._default = true;
-        } else {
-          resolvedAliases.push(aliasPieces);
         }
+        resolvedAliases.push(aliasPieces);
       }
       run._pieces = resolvedAliases;
     } else {
