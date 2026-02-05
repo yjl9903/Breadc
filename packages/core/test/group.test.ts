@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import {
-  type InternalCommand,
-  type InternalGroup,
-  group
-} from '../src/breadc/index.ts';
+import { type InternalCommand, type InternalGroup, group } from '../src/breadc/index.ts';
 import { buildGroup } from '../src/runtime/builder.ts';
 
 describe('group', () => {

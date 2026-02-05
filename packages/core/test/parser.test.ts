@@ -5,27 +5,37 @@ import type { InternalOption } from '../src/breadc/index.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedOption } from '../src/runtime/matched.ts';
 
-const argValues = (ctx: { arguments: Array<{ value: () => unknown }> }) =>
-  ctx.arguments.map((arg) => arg.value());
-
 describe('parse behavior', () => {
   it('matches a single default command', () => {
     const app = breadc('cli');
     app.command('<name>');
 
-    const ctx = app.parse(['hello']);
-    expect(ctx.command?.spec).toBe('<name>');
-    expect(ctx.pieces).toEqual([]);
-    expect(argValues(ctx)).toEqual(['hello']);
+    const result = app.parse(['hello']);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"<name>"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`[]`);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "hello",
+      ]
+    `);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result['--']).toMatchInlineSnapshot(`[]`);
   });
 
   it('matches a single sub-command', () => {
     const app = breadc('cli');
     app.command('dev');
 
-    const ctx = app.parse(['dev']);
-    expect(ctx.command?.spec).toBe('dev');
-    expect(ctx.pieces).toEqual(['dev']);
+    const result = app.parse(['dev']);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"dev"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "dev",
+      ]
+    `);
+    expect(result.args).toMatchInlineSnapshot(`[]`);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result['--']).toMatchInlineSnapshot(`[]`);
   });
 
   it('matches multiple sub-commands', () => {
@@ -33,8 +43,8 @@ describe('parse behavior', () => {
     app.command('dev');
     app.command('build');
 
-    expect(app.parse(['build']).command?.spec).toBe('build');
-    expect(app.parse(['dev']).command?.spec).toBe('dev');
+    expect(app.parse(['build']).context.command?.spec).toMatchInlineSnapshot(`"build"`);
+    expect(app.parse(['dev']).context.command?.spec).toMatchInlineSnapshot(`"dev"`);
   });
 
   it('falls back to default command when no sub-command matches', () => {
@@ -42,12 +52,12 @@ describe('parse behavior', () => {
     app.command('<file>');
     app.command('dev');
 
-    const ctx1 = app.parse(['dev']);
-    const ctx2 = app.parse(['readme.md']);
+    const result1 = app.parse(['dev']);
+    const result2 = app.parse(['readme.md']);
 
-    expect(ctx1.command?.spec).toBe('dev');
-    expect(ctx2.command?.spec).toBe('<file>');
-    expect(argValues(ctx2)).toEqual(['readme.md']);
+    expect(result1.context.command?.spec).toMatchInlineSnapshot(`"dev"`);
+    expect(result2.context.command?.spec).toMatchInlineSnapshot(`"<file>"`);
+    expect(result2.args).toMatchInlineSnapshot(['readme.md']);
   });
 
   it('matches group commands alongside default command', () => {
@@ -56,10 +66,10 @@ describe('parse behavior', () => {
     const store = app.group('store');
     store.command('ls');
 
-    const ctx = app.parse(['store', 'ls']);
-    expect(ctx.group?.spec).toBe('store');
-    expect(ctx.command?.spec).toBe('ls');
-    expect(ctx.pieces).toEqual(['store', 'ls']);
+    const result = app.parse(['store', 'ls']);
+    expect(result.context.group?.spec).toMatchInlineSnapshot(`"store"`);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"ls"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(['store', 'ls']);
   });
 
   it('matches sub-commands with aliases', () => {
@@ -67,9 +77,9 @@ describe('parse behavior', () => {
     app.command('dev').alias('d').alias('develop');
     app.command('build').alias('b');
 
-    expect(app.parse(['d']).command?.spec).toBe('dev');
-    expect(app.parse(['develop']).command?.spec).toBe('dev');
-    expect(app.parse(['b']).command?.spec).toBe('build');
+    expect(app.parse(['d']).context.command?.spec).toMatchInlineSnapshot(`"dev"`);
+    expect(app.parse(['develop']).context.command?.spec).toMatchInlineSnapshot(`"dev"`);
+    expect(app.parse(['b']).context.command?.spec).toMatchInlineSnapshot(`"build"`);
   });
 
   it.todo('matches default command aliases alongside sub-commands');
@@ -80,26 +90,50 @@ describe('argument matching', () => {
     const app = breadc('cli');
     app.command('echo <first> [second]');
 
-    const ctx = app.parse(['echo', 'a', 'b', 'c', 'd']);
-    expect(argValues(ctx)).toEqual(['a', 'b']);
-    expect(ctx.remaining).toEqual(['c', 'd']);
+    const result = app.parse(['echo', 'a', 'b', 'c', 'd']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+      ]
+    `);
+    expect(result['--']).toMatchInlineSnapshot(`
+      [
+        "c",
+        "d",
+      ]
+    `);
   });
 
   it('matches optional arguments when omitted', () => {
     const app = breadc('cli');
     app.command('echo <first> [second]');
 
-    const ctx = app.parse(['echo', 'a']);
-    expect(argValues(ctx)).toEqual(['a', undefined]);
-    expect(ctx.remaining).toEqual([]);
+    const result1 = app.parse(['echo', 'a']);
+    expect(result1.args).toMatchInlineSnapshot(`
+      [
+        "a",
+        undefined,
+      ]
+    `);
+    expect(result1['--']).toMatchInlineSnapshot(`[]`);
+
+    const result2 = app.parse(['echo', 'a', 'b']);
+    expect(result2.args).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+      ]
+    `);
+    expect(result2['--']).toMatchInlineSnapshot(`[]`);
   });
 
   it('matches manual arguments mixed with spec arguments', () => {
     const app = breadc('cli');
     app.command('echo <first>').argument('[second]');
 
-    const ctx = app.parse(['echo', 'a', 'b']);
-    expect(argValues(ctx)).toEqual(['a', 'b']);
+    const result = app.parse(['echo', 'a', 'b']);
+    expect(result.args).toMatchInlineSnapshot(['a', 'b']);
   });
 
   it('applies manual argument cast when provided', () => {
@@ -108,8 +142,8 @@ describe('argument matching', () => {
       cast: (t) => Number(t)
     });
 
-    const ctx = app.parse(['echo', 'hello', '2']);
-    expect(argValues(ctx)).toEqual(['hello', 2]);
+    const result = app.parse(['echo', 'hello', '2']);
+    expect(result.args).toMatchInlineSnapshot(['hello', 2]);
   });
 
   it.todo('matches spread arguments and consumes remaining args');
@@ -121,20 +155,20 @@ describe('options behavior', () => {
     const app = breadc('cli');
     app.option('-f, --flag');
 
-    const ctx = app.parse(['-f']);
-    expect(ctx.options.get('flag')?.value()).toBe(true);
+    const result = app.parse<unknown[], { flag: boolean }>(['-f']);
+    expect(result.options.flag).toMatchInlineSnapshot(`true`);
   });
 
   it('parses short boolean options with value', () => {
     const app = breadc('cli');
     app.option('-f, --flag');
 
-    const read = (arg: string) => app.parse([arg]).options.get('flag')?.value();
+    const read = (arg: string) => app.parse<unknown[], { flag: boolean }>([arg]).options.flag;
 
-    expect(read('-f=YES')).toBe(true);
-    expect(read('-f=T')).toBe(true);
-    expect(read('-f=No')).toBe(false);
-    expect(read('-f=f')).toBe(false);
+    expect(read('-f=YES')).toMatchInlineSnapshot(`true`);
+    expect(read('-f=T')).toMatchInlineSnapshot(`true`);
+    expect(read('-f=No')).toMatchInlineSnapshot(`false`);
+    expect(read('-f=f')).toMatchInlineSnapshot(`false`);
   });
 
   it.todo('parses required option values');
@@ -143,18 +177,24 @@ describe('options behavior', () => {
     const app = breadc('cli');
     app.option('-o, --output [value]');
 
-    expect(app.parse(['-o']).options.get('output')?.value()).toBe(true);
-    expect(app.parse(['-o', 'file']).options.get('output')?.value()).toBe(
-      'file'
-    );
+    expect(app.parse<unknown[], { output: boolean | string }>(['-o']).options).toMatchInlineSnapshot(`
+      {
+        "output": true,
+      }
+    `);
+    expect(app.parse<unknown[], { output: boolean | string }>(['-o', 'file']).options).toMatchInlineSnapshot(`
+      {
+        "output": "file",
+      }
+    `);
   });
 
   it('parses spread option values', () => {
     const app = breadc('cli');
     app.option('-s, --include [...value]');
 
-    const ctx = app.parse(['-s=a', '-s=b']);
-    expect(ctx.options.get('include')?.value()).toEqual(['a', 'b']);
+    const result = app.parse<unknown[], { include: string[] }>(['-s=a', '-s=b']);
+    expect(result.options.include).toMatchInlineSnapshot(['a', 'b']);
   });
 
   it('supports --no-* negation semantics for boolean options', () => {
@@ -165,13 +205,13 @@ describe('options behavior', () => {
     const ctx = makeContext(app as any, []);
     const matched = new MatchedOption(opt);
     matched.accept(ctx, '--open', undefined);
-    expect(matched.value()).toBe(true);
+    expect(matched.value()).toMatchInlineSnapshot(`true`);
 
     matched.accept(ctx, '--no-open', undefined);
-    expect(matched.value()).toBe(false);
+    expect(matched.value()).toMatchInlineSnapshot(`false`);
 
     matched.accept(ctx, '--no-open', 'false');
-    expect(matched.value()).toBe(true);
+    expect(matched.value()).toMatchInlineSnapshot(`true`);
   });
 
   it('applies option default/initial/cast semantics', () => {
@@ -184,9 +224,9 @@ describe('options behavior', () => {
 
     const ctx = makeContext(app as any, []);
     const matched = new MatchedOption(opt);
-    expect(matched.value()).toBe(true);
+    expect(matched.value()).toMatchInlineSnapshot(`true`);
     matched.accept(ctx, '-f', undefined);
-    expect(matched.value()).toBe('on');
+    expect(matched.value()).toMatchInlineSnapshot(`"on"`);
 
     const opt2 = option('-o, --output [value]', '', {
       initial: 'seed',
@@ -194,7 +234,7 @@ describe('options behavior', () => {
     }) as unknown as InternalOption;
     opt2._resolve();
     const matched2 = new MatchedOption(opt2);
-    expect(matched2.value()).toBe('seed');
+    expect(matched2.value()).toMatchInlineSnapshot(`"seed"`);
   });
 
   it.todo('parses long options (--flag/--flag=value/--flag value)');
@@ -213,8 +253,12 @@ describe('option layering', () => {
       cast: () => 'command'
     });
 
-    const ctx = app.parse(['store', 'ls', '-f']);
-    expect(ctx.options.get('flag')?.value()).toBe('command');
+    const result = app.parse<unknown[], { flag: string }>(['store', 'ls', '-f']);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "flag": "command",
+      }
+    `);
   });
 
   it('keeps app options when parsed before group resolution', () => {
@@ -227,8 +271,12 @@ describe('option layering', () => {
       cast: () => 'command'
     });
 
-    const ctx = app.parse(['-f', 'store', 'ls']);
-    expect(ctx.options.get('flag')?.value()).toBe('app');
+    const result = app.parse<unknown[], { flag: string }>(['-f', 'store', 'ls']);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "flag": "app",
+      }
+    `);
   });
 
   it.todo('supports options["--"] alongside layered options');
@@ -240,9 +288,9 @@ describe('other parsing rules', () => {
     app.option('-n, --number <value>');
     app.command('calc <value>');
 
-    const ctx = app.parse(['calc', '-1']);
-    expect(argValues(ctx)).toEqual(['-1']);
-    expect(ctx.options.size).toBe(0);
+    const result = app.parse(['calc', '-1']);
+    expect(result.args).toMatchInlineSnapshot(['-1']);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
   });
 
   it.todo('supports allowUnknownOptions');

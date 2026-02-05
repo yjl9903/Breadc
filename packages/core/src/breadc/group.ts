@@ -107,7 +107,10 @@ export function group<S extends string, I extends GroupInit<S>>(
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
       } else if (middleware) {
-        unknownOptionMiddlewares.push(() => true);
+        unknownOptionMiddlewares.push((_ctx, key, value) => ({
+          name: key,
+          value
+        }));
       }
       return group;
     }

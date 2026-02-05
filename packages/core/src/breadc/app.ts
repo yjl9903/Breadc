@@ -1,11 +1,16 @@
+import {
+  parse as doParse,
+  resolveArgs,
+  resolveOptions
+} from '../runtime/parser.ts';
 import { run as doRun } from '../runtime/run.ts';
-import { parse as doParse } from '../runtime/parser.ts';
 
 import type {
   Breadc,
   BreadcInit,
   InternalBreadc,
   ActionMiddleware,
+  UnknownCommandMiddleware,
   UnknownOptionMiddleware,
   Option,
   OptionInit,
@@ -26,6 +31,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
   const commands: (InternalGroup | InternalCommand)[] = [];
   const options: InternalOption[] = [];
   const actionMiddlewares: ActionMiddleware<any, any>[] = [];
+  const unknownCommandMiddlewares: UnknownCommandMiddleware<any>[] = [];
   const unknownOptionMiddlewares: UnknownOptionMiddleware<any>[] = [];
 
   const app = <InternalBreadc>{
@@ -38,6 +44,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
     _options: options,
     _actionMiddlewares: actionMiddlewares,
     _unknownOptionMiddlewares: unknownOptionMiddlewares,
+    _unknownCommandMiddlewares: unknownCommandMiddlewares,
 
     option<
       Spec extends string,
@@ -82,28 +89,43 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       return command;
     },
 
-    use<Return, Middleware extends ActionMiddleware<{}, Return>>(
-      middleware: Middleware
-    ) {
+    use<Middleware extends ActionMiddleware<{}>>(middleware: Middleware) {
       actionMiddlewares.push(middleware);
       return app;
     },
 
-    allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<{}>) {
+    onUnknownCommand(middleware: UnknownCommandMiddleware<{}>) {
+      unknownCommandMiddlewares.push(middleware);
+      return app;
+    },
+
+    allowUnknownOption(middleware?: boolean | UnknownOptionMiddleware<{}>) {
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
       } else if (middleware) {
-        unknownOptionMiddlewares.push(() => true);
+        unknownOptionMiddlewares.push((_ctx, key, value) => ({
+          name: key,
+          value
+        }));
       }
       return app;
     },
 
-    parse(args: string[]) {
-      return doParse(app, args);
+    parse(argv: string[]) {
+      const context = doParse(app, argv);
+      const args = resolveArgs(context);
+      const options = resolveOptions(context);
+
+      return {
+        args,
+        options,
+        '--': context.remaining,
+        context
+      };
     },
 
-    async run(args: string[]) {
-      return doRun(app, args);
+    async run(argv: string[]) {
+      return doRun(app, argv);
     }
   };
 

@@ -2,6 +2,7 @@ import type { BreadcInit, GroupInit } from './init.ts';
 import type { Breadc, Option, Group, Command, Argument } from './app.ts';
 import type {
   ActionMiddleware,
+  UnknownCommandMiddleware,
   UnknownOptionMiddleware
 } from './middleware.ts';
 
@@ -37,7 +38,12 @@ export type InternalBreadc = Breadc<any, any> & {
   /**
    * @internal
    */
-  _actionMiddlewares: ActionMiddleware[];
+  _actionMiddlewares: ActionMiddleware<any, any>[];
+
+  /**
+   * @internal
+   */
+  _unknownCommandMiddlewares: UnknownCommandMiddleware<any>[];
 
   /**
    * @internal

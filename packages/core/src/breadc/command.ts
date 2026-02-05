@@ -81,9 +81,7 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run;
   };
 
-  run.use = <Return, Middleware extends ActionMiddleware>(
-    middleware: Middleware
-  ) => {
+  run.use = <Middleware extends ActionMiddleware>(middleware: Middleware) => {
     if (!run._actionMiddlewares) {
       run._actionMiddlewares = [];
     }
@@ -100,7 +98,10 @@ export function command<S extends string, I extends CommandInit<S>>(
     if (typeof middleware === 'function') {
       run._unknownOptionMiddlewares.push(middleware);
     } else {
-      run._unknownOptionMiddlewares.push(() => true);
+      run._unknownOptionMiddlewares.push((_ctx, key, value) => ({
+        name: key,
+        value
+      }));
     }
     return run;
   };

@@ -21,6 +21,7 @@ import type {
   ActionMiddleware,
   ActionMiddlewareNextFn,
   InferMiddlewareData,
+  UnknownCommandMiddleware,
   UnknownOptionMiddleware
 } from './middleware.ts';
 import type { ArgumentType } from './internal.ts';
@@ -87,35 +88,44 @@ export type Breadc<
   /**
    * Action middleware
    */
-  use<
-    Return,
-    Middleware extends ActionMiddleware<
-      Data,
-      Return,
-      ActionMiddlewareNextFn<any>
-    >
-  >(
+  use<Middleware extends ActionMiddleware<Data, ActionMiddlewareNextFn>>(
     middleware: Middleware
   ): Breadc<InferMiddlewareData<Middleware>, Options>;
 
   /**
-   * Allow unknown options middleware
+   * Allow unknown option middleware
    */
-  allowUnknownOptions(
+  onUnknownCommand(
+    middleware?: boolean | UnknownCommandMiddleware<Data>
+  ): Breadc<Data, Options>;
+
+  /**
+   * Allow unknown option middleware
+   */
+  allowUnknownOption(
     middleware?: boolean | UnknownOptionMiddleware<Data>
   ): Breadc<Data, Options>;
 
   /**
+   * Parse CLI options
    *
-   * @param args
+   * @param argv CLI arguments
    */
-  parse<T>(args: string[]): Context<Data, T>;
+  parse<PArgs extends any[] = any[], POpts extends Record<string, any> = {}>(
+    argv: string[]
+  ): {
+    args: PArgs;
+    options: Prettify<Options & POpts>;
+    '--': string[];
+    context: Context<Data>;
+  };
 
   /**
+   * Parse and run corresponding command actions
    *
-   * @param args
+   * @param argv CLI arguments
    */
-  run<T>(args: string[]): Promise<T>;
+  run<T>(argv: string[]): Promise<T>;
 };
 
 export type Group<
@@ -177,7 +187,7 @@ export type Group<
   /**
    * Action middleware
    */
-  use<Return, Middleware extends ActionMiddleware<Data, Return>>(
+  use<Middleware extends ActionMiddleware<Data>>(
     middleware: Middleware
   ): Group<Spec, Init, InferMiddlewareData<Middleware>, Options>;
 
@@ -315,7 +325,7 @@ export type Command<
   /**
    * Action middleware
    */
-  use<Return, Middleware extends ActionMiddleware<Data, Return>>(
+  use<Middleware extends ActionMiddleware<Data>>(
     middleware: Middleware
   ): Command<
     Spec,

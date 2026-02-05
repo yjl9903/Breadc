@@ -9,7 +9,7 @@ import { printVersion } from '../breadc/builtin/version.ts';
 
 import { RuntimeError } from '../error.ts';
 
-import { parse } from './parser.ts';
+import { parse, resolveArgs, resolveOptions } from './parser.ts';
 
 export async function run(app: Breadc, argv: string[]) {
   // 1. Parse arguments
@@ -17,16 +17,27 @@ export async function run(app: Breadc, argv: string[]) {
 
   // 2. Check whether there is a matched command
   if (!context.command) {
-    const version = context.breadc._version;
+    const { breadc } = context;
+
+    const version = breadc._version;
     if (version && context.options.get(version.long)?.value<boolean>()) {
       return printVersion(context);
     }
-    const help = context.breadc._help;
+
+    const help = breadc._help;
     if (help && context.options.get(help.long)?.value<boolean>()) {
       return printHelp(context);
     }
-    // TODO: handle unknown commands
-    return printHelp(context);
+
+    if (breadc._unknownCommandMiddlewares.length > 0) {
+      let res: any;
+      for (const middleware of breadc._unknownCommandMiddlewares) {
+        res = await middleware(context);
+      }
+      return res;
+    } else {
+      return printHelp(context);
+    }
   }
 
   // 3. Collect middlewares
@@ -37,10 +48,9 @@ export async function run(app: Breadc, argv: string[]) {
   ];
 
   // 4. Run
-  const args = context.arguments.map((arg) => arg.value());
-  const options = Object.fromEntries(
-    [...context.options.values()].map((opt) => [opt.option.long, opt.value()])
-  );
+  const args = resolveArgs(context);
+  const options = resolveOptions(context);
+  options['--'] = context.remaining;
 
   if (context.command._actionFn) {
     const actionFn = context.command._actionFn;

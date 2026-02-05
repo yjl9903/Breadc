@@ -114,17 +114,13 @@ describe('option', () => {
     expect(() => {
       const opt = option('--no-open <value>') as unknown as InternalOption;
       opt._resolve();
-    }).toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid option at the option "--no-open <value>"]`
-    );
+    }).toThrowErrorMatchingInlineSnapshot(`[Error: Resolving invalid option at the option "--no-open <value>"]`);
   });
 
   it('should reject invalid option spec', () => {
     expect(() => {
       const opt = option('invalid') as unknown as InternalOption;
       opt._resolve();
-    }).toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid option at the option "invalid"]`
-    );
+    }).toThrowErrorMatchingInlineSnapshot(`[Error: Resolving invalid option at the option "invalid"]`);
   });
 });

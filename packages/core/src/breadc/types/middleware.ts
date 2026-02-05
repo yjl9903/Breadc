@@ -1,4 +1,14 @@
 import type { Context } from '../../runtime/context.ts';
+import type { MatchedUnknownOption } from '../../runtime/matched.ts';
+
+/**
+ * Unknown command middleware
+ *
+ * @public
+ */
+export type UnknownCommandMiddleware<Data extends {} = {}> = (
+  context: Context<Data>
+) => Promise<any> | any;
 
 /**
  * Unknown option middleware
@@ -6,17 +16,20 @@ import type { Context } from '../../runtime/context.ts';
  * @public
  */
 export type UnknownOptionMiddleware<Data extends {} = {}> = (
-  context: Context<Data, unknown>
-) => boolean | void | undefined | null;
+  context: Context<Data>,
+  key: string,
+  value: string | undefined
+) => MatchedUnknownOption | null | undefined;
 
-export interface ActionMiddlewareNextFn<Return extends any = any> {
+export interface ActionMiddlewareNextFn {
   <NextData extends {} = {}>(nextContextData?: {
     data?: NextData;
-  }): Promise<Context<NextData, Return>>;
+  }): Promise<Context<NextData>>;
 }
 
-export type InferMiddlewareNextFn<Fn extends ActionMiddlewareNextFn<any>> =
-  Awaited<ReturnType<Fn>>['data'];
+export type InferMiddlewareNextFn<Fn extends ActionMiddlewareNextFn> = Awaited<
+  ReturnType<Fn>
+>['data'];
 
 /**
  * Command action middleware
@@ -25,13 +38,12 @@ export type InferMiddlewareNextFn<Fn extends ActionMiddlewareNextFn<any>> =
  */
 export type ActionMiddleware<
   Data extends {} = {},
-  Return extends any = any,
-  NextFn extends ActionMiddlewareNextFn<any> = ActionMiddlewareNextFn<any>
+  NextFn extends ActionMiddlewareNextFn = ActionMiddlewareNextFn
 > = (
-  context: Context<Data, Return>,
+  context: Context<Data>,
   next: NextFn
-) => Promise<Context<InferMiddlewareNextFn<NextFn>, Return>>;
+) => Promise<Context<InferMiddlewareNextFn<NextFn>>>;
 
 export type InferMiddlewareData<
-  Middleware extends ActionMiddleware<any, any, ActionMiddlewareNextFn<any>>
+  Middleware extends ActionMiddleware<any, ActionMiddlewareNextFn>
 > = Awaited<ReturnType<Middleware>>['data'];

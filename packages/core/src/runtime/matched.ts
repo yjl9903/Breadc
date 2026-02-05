@@ -1,6 +1,7 @@
 import type {
   InternalOption,
-  InternalArgument
+  InternalArgument,
+  OptionType
 } from '../breadc/types/internal.ts';
 
 import type { Token } from './lexer.ts';
@@ -166,4 +167,12 @@ export class MatchedOption {
     }
     return this;
   }
+}
+
+export interface MatchedUnknownOption<T = any> {
+  name: string;
+
+  type?: OptionType;
+
+  value: T;
 }

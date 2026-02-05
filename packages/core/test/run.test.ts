@@ -6,19 +6,15 @@ import { RuntimeError } from '../src/error.ts';
 describe('runtime', () => {
   it('passes arguments to action and returns result', async () => {
     const app = breadc('cli');
-    app
-      .command('echo <first> [second]')
-      .action((first: string, second: string | undefined, options: {}) => [
-        first,
-        second,
-        options
-      ]);
+    app.command('echo <first> [second]').action((first, second, options) => [first, second, options]);
 
     await expect(app.run(['echo', 'hello'])).resolves.toMatchInlineSnapshot(`
       [
         "hello",
         undefined,
-        {},
+        {
+          "--": [],
+        },
       ]
     `);
   });
@@ -28,14 +24,14 @@ describe('runtime', () => {
     const order: string[] = [];
 
     app.use(async (_ctx, next) => {
-      order.push('app');
+      order.push('app:before');
       const result = await next();
       order.push('app:after');
       return result;
     });
 
     const grp = app.group('tool').use(async (_ctx, next) => {
-      order.push('group');
+      order.push('group:before');
       const result = await next();
       order.push('group:after');
       return result;
@@ -44,7 +40,7 @@ describe('runtime', () => {
     grp
       .command('run')
       .use(async (_ctx, next) => {
-        order.push('command');
+        order.push('command:before');
         const result = await next();
         order.push('command:after');
         return result;
@@ -56,15 +52,17 @@ describe('runtime', () => {
 
     await app.run(['tool', 'run']);
 
-    expect(order).toEqual([
-      'app',
-      'group',
-      'command',
-      'action',
-      'command:after',
-      'group:after',
-      'app:after'
-    ]);
+    expect(order).toMatchInlineSnapshot(`
+      [
+        "app:before",
+        "group:before",
+        "command:before",
+        "action",
+        "command:after",
+        "group:after",
+        "app:after",
+      ]
+    `);
   });
 
   it('merges middleware data and allows override', async () => {
@@ -94,11 +92,25 @@ describe('runtime', () => {
 
     await app.run(['tool', 'run']);
 
-    expect(seen).toEqual([
-      { command: true, count: 3, group: true },
-      { command: true, count: 3, group: true },
-      { command: true, count: 3, group: true }
-    ]);
+    expect(seen).toMatchInlineSnapshot(`
+      [
+        {
+          "command": true,
+          "count": 3,
+          "group": true,
+        },
+        {
+          "command": true,
+          "count": 3,
+          "group": true,
+        },
+        {
+          "command": true,
+          "count": 3,
+          "group": true,
+        },
+      ]
+    `);
   });
 
   it('throws when no action is bound', async () => {

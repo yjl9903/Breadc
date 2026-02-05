@@ -8,7 +8,7 @@ import type { MatchedArgument, MatchedOption } from './matched.ts';
 
 import { TokenStream } from './lexer.ts';
 
-export type Context<Data extends {} = {}, Return extends unknown = unknown> = {
+export type Context<Data extends {} = {}> = {
   /**
    * Data used in the command action
    */
@@ -17,7 +17,7 @@ export type Context<Data extends {} = {}, Return extends unknown = unknown> = {
   /**
    * Output of the command action
    */
-  output?: Return;
+  output?: any;
 
   /**
    * Matched commands or groups, sorted by appearance order
@@ -60,10 +60,10 @@ export type Context<Data extends {} = {}, Return extends unknown = unknown> = {
   readonly tokens: TokenStream;
 };
 
-export function context<Data extends {} = {}, Return extends unknown = unknown>(
+export function context<Data extends {} = {}>(
   breadc: InternalBreadc,
   args: string[]
-): Context<Data, Return> {
+): Context<Data> {
   return {
     data: {} as Data,
     output: undefined,
@@ -78,9 +78,9 @@ export function context<Data extends {} = {}, Return extends unknown = unknown>(
   };
 }
 
-export function reset<Data extends {} = {}, Return extends unknown = unknown>(
-  context: Context<Data, Return>
-): Context<Data, Return> {
+export function reset<Data extends {} = {}>(
+  context: Context<Data>
+): Context<Data> {
   context.data = {} as Data;
   context.group = undefined;
   context.command = undefined;

@@ -11,9 +11,11 @@ import { RuntimeError, BreadcAppError } from '../error.ts';
 import { MatchedArgument, MatchedOption } from './matched.ts';
 import { buildApp, buildCommand, buildGroup, isGroup } from './builder.ts';
 import { type Context, context as makeContext, reset } from './context.ts';
+import { camelCase } from '../utils/string.ts';
+import { rawArgument } from '../breadc/command.ts';
 
 export function parse(app: Breadc, argv: string[]) {
-  const context = makeContext(app as InternalBreadc, argv);
+  const context = makeContext<any>(app as InternalBreadc, argv);
 
   // 1. Prepare root commands
   buildApp(context.breadc);
@@ -46,6 +48,20 @@ export function parse(app: Breadc, argv: string[]) {
   return context;
 }
 
+export function resolveArgs(context: Context<any>) {
+  return context.arguments.map((arg) => arg.value());
+}
+
+export function resolveOptions(context: Context<any>) {
+  const options = Object.fromEntries(
+    [...context.options.values()].map((opt) => [
+      camelCase(opt.option.long),
+      opt.value()
+    ])
+  );
+  return options;
+}
+
 function doParse(
   context: Context,
   defaultCommand: InternalCommand | undefined
@@ -63,6 +79,7 @@ function doParse(
   const pendingLongOptions: Map<string, InternalOption> = new Map();
   const pendingShortOptions: Map<string, InternalOption> = new Map();
   const args: string[] = [];
+  const unknown: string[] = [];
 
   const addPendingOptions = (options: InternalOption[]) => {
     for (const option of options) {
@@ -189,26 +206,45 @@ function doParse(
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
       // 3. handle long options or short options (not negative number)
       const isLong = token.isLong;
+      // TODO: handle --no-xxx
       const [key, value] = isLong ? token.toLong()! : token.toShort()!;
       const option = isLong
         ? pendingLongOptions.get(key)
         : pendingShortOptions.get(key);
 
       if (option) {
-        if (!matchedOptions.has(option.long)) {
+        if (
+          !matchedOptions.has(option.long) ||
+          matchedOptions.get(option.long)?.option !== option
+        ) {
           matchedOptions.set(option.long, new MatchedOption(option));
         }
         const matchedOption = matchedOptions.get(option.long)!;
         matchedOption.accept(context, key, value);
       } else {
-        // TODO: handle unknown options
+        const unknownOptionMiddlewares = [
+          ...breadc._unknownOptionMiddlewares,
+          ...(matchedGroup?._unknownOptionMiddlewares ?? []),
+          ...(matchedCommand?._unknownOptionMiddlewares ?? [])
+        ];
+        for (const middleware of unknownOptionMiddlewares) {
+          const result = middleware(context, key, value);
+          if (result) {
+            // TODO: check following unknown option logic
+            const matched = new MatchedOption(
+              rawOption(result.type ?? 'optional', key, undefined, {})
+            ).accept(context, key, value);
+            matchedOptions.set(key, matched);
+            break;
+          }
+        }
       }
     } else {
       // 4. no matching
       if (matchedCommand) {
         args.push(rawToken);
       } else {
-        return undefined;
+        unknown.push(rawToken);
       }
     }
   }
@@ -244,6 +280,16 @@ function doParse(
     if (i < args.length) {
       context.remaining.unshift(...args.slice(i));
     }
+  } else {
+    // Fill missing unknown arguments
+    context.arguments.push(
+      ...unknown.map((arg, idx) =>
+        new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(
+          context,
+          arg
+        )
+      )
+    );
   }
 
   return matchedCommand;
