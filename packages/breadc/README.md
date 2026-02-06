@@ -4,7 +4,7 @@
 
 Yet another Command Line Application Framework with fully strong **[TypeScript](https://www.typescriptlang.org/) support**.
 
-![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/assets/vscode.png)
+![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/assets/typescript.png)
 
 ## Features
 
@@ -27,14 +27,12 @@ Try [./examples/echo.ts](./examples/echo.ts).
 import { breadc } from 'breadc';
 
 const cli = breadc('echo', { version: '1.0.0' })
-  .option('--host <host>', '', { initial: 'localhost' })
-  .option('--port <port>', '', { initial: '3000', cast: (t) => +t });
+  .option('--host <host>', 'specify hostname', { initial: 'localhost' })
+  .option('--port <port>', 'specify port', { initial: '3000', cast: (t) => +t });
 
-cli.command('[message]', 'Say something!').action((_message, option) => {
-  const message = _message;
+cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(message ?? 'You can say anything!');
-  const host = option.host;
-  const port = option.port;
+  const { host, port } = option; // { host: string, port: number, '--': string[] }
   console.log(`Host: ${host}`);
   console.log(`Port: ${port}`);
 });
@@ -44,7 +42,7 @@ cli.run(process.argv.slice(2)).catch((err) => console.error(err));
 
 If you are using IDEs that support TypeScript (like [Visual Studio Code](https://code.visualstudio.com/)), input something using `option`, and then you will find the `option` is automatically typed with `{ host: string, port: number }`. In the figure below, [Visual Studio Code](https://code.visualstudio.com/) will automatically infer that the type of `option.host` is `string` and the type of `option.port` is `number`.
 
-![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/assets/vscode.png)
+![vscode](https://cdn.jsdelivr.net/gh/yjl9903/Breadc/assets/typescript.png)
 
 ## Inspiration
 
