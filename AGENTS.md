@@ -8,7 +8,7 @@ Breadc is a pnpm/turbo monorepo. Core libraries live under `packages/*`. `packag
 
 Related CLI toolchains reside in `apps/*`, which is also working-in-progess.
 
-Documentation is maintained in `docs/` (VitePress), demos in `examples/`, and static assets in `images/`.
+Documentation is maintained in `docs/` (VitePress), demos in `examples/`.
 
 Shared configuration stays at the root (`tsconfig.json`, `turbo.json`, `pnpm-workspace.yaml`) with package-specific overrides inside each workspace.
 

@@ -1,4 +1,4 @@
-import { breadc } from '../packages/breadc/src';
+import { breadc } from '../packages/core/src';
 
 const vite = breadc('vite', {
   version: '1.0.0',
@@ -6,7 +6,7 @@ const vite = breadc('vite', {
 })
   .option('-c, --config <file>', `[string] use specified config file`)
   .option('--base <path>', `[string] public base path (default: /)`, {
-    default: '/'
+    initial: '/'
   })
   .option('-l, --logLevel <level>', `[string] info | warn | error | silent`)
   .option('--clear-screen', `[boolean] allow/disable clear screen when logging`)
@@ -15,7 +15,7 @@ const vite = breadc('vite', {
   .option('-m, --mode <mode>', `[string] set env mode`);
 
 vite
-  .command('dev [root]', { description: 'start dev server' })
+  .command('dev [root]', 'start dev server')
   .option('--host <host>', `[string] specify hostname`)
   .option('--port <port>', `[number] specify port`)
   .option('--https', `<boolean> use TLS + HTTP/2`)

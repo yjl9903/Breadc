@@ -1,8 +1,8 @@
-import { breadc } from '../packages/breadc/src';
+import { breadc } from '../packages/core/src';
 
 const cli = breadc('echo', { version: '1.0.0' })
-  .option('--host <host>', { default: 'localhost' })
-  .option('--port <port>', { default: '3000', cast: (t) => +t });
+  .option('--host <host>', '', { initial: 'localhost' })
+  .option('--port <port>', '', { initial: '3000', cast: (t) => +t });
 
 cli.command('[message]', 'Say something!').action((_message, option) => {
   const message = _message;

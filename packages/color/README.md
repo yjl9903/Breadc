@@ -2,7 +2,7 @@
 
 [![version](https://img.shields.io/npm/v/@breadc/color?label=@breadc/color)](https://www.npmjs.com/package/@breadc/color) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 
-![example](../../images/color.png)
+![example](../../assets/color.png)
 
 ## Installation
 
