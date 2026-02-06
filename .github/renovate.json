@@ -1,4 +1,4 @@
 {
   "extends": ["github>yjl9903/renovate-config"],
-  "baseBranches": ["ng"]
+  "baseBranches": ["main"]
 }
