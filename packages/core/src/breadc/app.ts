@@ -78,10 +78,10 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       return app;
     },
 
-    allowUnknownOption(middleware?: boolean | UnknownOptionMiddleware<{}>) {
+    allowUnknownOption(middleware?: UnknownOptionMiddleware<{}>) {
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
-      } else if (middleware) {
+      } else {
         unknownOptionMiddlewares.push((_ctx, key, value) => ({
           name: key,
           value

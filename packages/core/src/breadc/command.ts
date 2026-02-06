@@ -74,10 +74,10 @@ export function command<S extends string, I extends CommandInit<S>>(
       run._actionMiddlewares = [];
     }
     run._actionMiddlewares.push(middleware);
-    return run as any;
+    return run;
   };
 
-  run.allowUnknownOptions = (middleware?: boolean | UnknownOptionMiddleware<{}>) => {
+  run.allowUnknownOption = (middleware?: UnknownOptionMiddleware<{}>) => {
     if (!run._unknownOptionMiddlewares) {
       run._unknownOptionMiddlewares = [];
     }

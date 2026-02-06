@@ -321,7 +321,7 @@ describe('command', () => {
 
   it('should allow unknown options with default handler', () => {
     const app = breadc('cli');
-    app.command('echo').allowUnknownOptions();
+    app.command('echo').allowUnknownOption();
 
     const result = app.parse(['echo', '-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
@@ -329,6 +329,17 @@ describe('command', () => {
         "X": "foo",
       }
     `);
+  });
+
+  it('should register command middlewares', () => {
+    const cmd = command('echo') as unknown as InternalCommand;
+    cmd.use((_ctx, next) => next());
+    cmd.use((_ctx, next) => next());
+    cmd.allowUnknownOption();
+    cmd.allowUnknownOption();
+
+    expect(cmd._actionMiddlewares?.length).toMatchInlineSnapshot(`2`);
+    expect(cmd._unknownOptionMiddlewares?.length).toMatchInlineSnapshot(`2`);
   });
 
   it('should reject invalid custom argument ordering', async () => {

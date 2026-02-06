@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
+import { context as makeContext } from '../src/runtime/context.ts';
 import { type InternalGroup, breadc, group, command, option } from '../src/breadc/index.ts';
 
 describe('group', () => {
@@ -14,6 +15,30 @@ describe('group', () => {
           "tools",
         ],
       ]
+    `);
+  });
+
+  it('should reuse resolved pieces and allow unknown options by default', () => {
+    const grp = group('dev tools') as unknown as InternalGroup;
+    grp.allowUnknownOption();
+
+    grp._resolve();
+    grp._resolve();
+
+    expect(grp._pieces).toMatchInlineSnapshot(`
+      [
+        [
+          "dev",
+          "tools",
+        ],
+      ]
+    `);
+    expect(grp._unknownOptionMiddlewares!.length).toMatchInlineSnapshot(`1`);
+    expect(grp._unknownOptionMiddlewares![0](makeContext(breadc('cli'), []), '-x', '1')).toMatchInlineSnapshot(`
+      {
+        "name": "-x",
+        "value": "1",
+      }
     `);
   });
 

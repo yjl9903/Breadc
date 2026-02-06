@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import type { InternalOption } from '../src/breadc/index.ts';
+import type { InternalBreadc, InternalOption } from '../src/breadc/index.ts';
 
 import { breadc, option } from '../src/breadc/index.ts';
 import { MatchedOption } from '../src/runtime/matched.ts';
@@ -81,6 +81,42 @@ describe('parse behavior', () => {
         "ls",
       ]
     `);
+  });
+
+  it('registers builtin help option when custom spec is provided', () => {
+    const app = breadc('cli', {
+      builtin: {
+        help: {
+          spec: '-H, --help'
+        }
+      }
+    }) as unknown as InternalBreadc;
+    app.command('echo');
+
+    app.parse(['echo']);
+    app._help?._resolve();
+
+    expect(Boolean(app._help)).toMatchInlineSnapshot(`true`);
+    expect(app._help?.spec).toMatchInlineSnapshot(`"-H, --help"`);
+    expect(app._help?.short).toMatchInlineSnapshot(`"-H"`);
+  });
+
+  it('registers builtin version option when custom spec is provided', () => {
+    const app = breadc('cli', {
+      builtin: {
+        version: {
+          spec: '-V, --version'
+        }
+      }
+    }) as unknown as InternalBreadc;
+    app.command('echo');
+
+    app.parse(['echo']);
+    app._version?._resolve();
+
+    expect(Boolean(app._version)).toMatchInlineSnapshot(`true`);
+    expect(app._version?.spec).toMatchInlineSnapshot(`"-V, --version"`);
+    expect(app._version?.short).toMatchInlineSnapshot(`"-V"`);
   });
 
   it('matches sub-commands with aliases', () => {
@@ -192,6 +228,43 @@ describe('argument matching', () => {
       ]
     `);
     expect(result['--']).toMatchInlineSnapshot(`[]`);
+  });
+
+  it('captures spread argument values in matched arguments', () => {
+    const app = breadc('cli');
+    app.command('echo [...rest]');
+
+    const result = app.parse(['echo', 'a', 'b']);
+    expect(result.context.arguments.map((arg) => arg.raw)).toMatchInlineSnapshot(`
+      [
+        "b",
+      ]
+    `);
+  });
+
+  it('marks spread arguments when parsing', () => {
+    const app = breadc('cli');
+    app.command('echo [...rest]');
+
+    const result = app.parse(['echo', 'a']);
+    expect(result.context.arguments.map((arg) => arg.argument.type)).toMatchInlineSnapshot(`
+      [
+        "spread",
+      ]
+    `);
+  });
+
+  it('fulfills spread arguments for default command', () => {
+    const app = breadc('cli');
+    app.command('<first> [...rest]');
+
+    const result = app.parse(['a', 'b', 'c']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "a",
+        "c",
+      ]
+    `);
   });
   it.todo('respects manual argument default/initial values when omitted');
 });
@@ -333,7 +406,7 @@ describe('options behavior', () => {
 
 describe('unknown options', () => {
   it('allows unknown options at app level', () => {
-    const app = breadc('cli').allowUnknownOption(true);
+    const app = breadc('cli').allowUnknownOption();
 
     const result = app.parse(['-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
@@ -357,9 +430,31 @@ describe('unknown options', () => {
     `);
   });
 
+  it('accepts unknown option values via middleware type', () => {
+    const app = breadc('cli').allowUnknownOption((_ctx, key, value) => ({
+      name: key,
+      value,
+      type: 'required'
+    }));
+
+    const result = app.parse(['-x', 'foo']);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "X": "foo",
+      }
+    `);
+  });
+
+  it('ignores unknown options when middleware returns nothing', () => {
+    const app = breadc('cli').allowUnknownOption(() => undefined);
+
+    const result = app.parse(['-x', 'foo']);
+    expect(result.options).toMatchInlineSnapshot(`{}`);
+  });
+
   it('allows unknown options at group level', () => {
     const app = breadc('cli');
-    const group = app.group('tool').allowUnknownOptions((_ctx, key, value) => ({
+    const group = app.group('tool').allowUnknownOption((_ctx, key, value) => ({
       name: key,
       value
     }));
@@ -375,7 +470,7 @@ describe('unknown options', () => {
 
   it('allows unknown options at group level with boolean', () => {
     const app = breadc('cli');
-    const group = app.group('tool').allowUnknownOptions(true);
+    const group = app.group('tool').allowUnknownOption();
     group.command('run');
 
     const result = app.parse(['tool', 'run', '-x', 'foo']);
@@ -388,7 +483,7 @@ describe('unknown options', () => {
 
   it('allows unknown options at command level', () => {
     const app = breadc('cli');
-    app.command('echo').allowUnknownOptions((_ctx, key, value) => ({
+    app.command('echo').allowUnknownOption((_ctx, key, value) => ({
       name: key,
       value
     }));
@@ -403,7 +498,7 @@ describe('unknown options', () => {
 
   it('allows unknown options at command level with boolean', () => {
     const app = breadc('cli');
-    app.command('echo').allowUnknownOptions(true);
+    app.command('echo').allowUnknownOption();
 
     const result = app.parse(['echo', '-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`

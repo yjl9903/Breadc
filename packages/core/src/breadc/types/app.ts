@@ -87,7 +87,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
   /**
    * Allow unknown option middleware
    */
-  allowUnknownOption(middleware?: boolean | UnknownOptionMiddleware<Data>): Breadc<Data, Options>;
+  allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Breadc<Data, Options>;
 
   /**
    * Parse CLI options
@@ -164,7 +164,7 @@ export type Group<
   /**
    * Allow unknown options middleware
    */
-  allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<Data>): Group<Spec, Init, Data, Options>;
+  allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Group<Spec, Init, Data, Options>;
 };
 
 export type Command<
@@ -250,9 +250,7 @@ export type Command<
   /**
    * Allow unknown options middleware
    */
-  allowUnknownOptions(
-    middleware?: boolean | UnknownOptionMiddleware<Data>
-  ): Command<Spec, Init, Data, Options, Arguments, Return>;
+  allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Command<Spec, Init, Data, Options, Arguments, Return>;
 
   /**
    * Bind action function

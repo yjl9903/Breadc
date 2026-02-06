@@ -61,6 +61,36 @@ describe('matched option', () => {
     expect(matched.value()).toMatchInlineSnapshot(`"1"`);
   });
 
+  it('interprets negated boolean option with explicit false text', () => {
+    const app = breadc('cli');
+    const opt = option('--open') as unknown as InternalOption;
+    opt._resolve();
+
+    const ctx = makeContext(app, []);
+    const matched = new MatchedOption(opt).accept(ctx, '--no-open', 'false');
+    expect(matched.value()).toMatchInlineSnapshot(`true`);
+  });
+
+  it('interprets negated boolean option with explicit true text', () => {
+    const app = breadc('cli');
+    const opt = option('--open') as unknown as InternalOption;
+    opt._resolve();
+
+    const ctx = makeContext(app, []);
+    const matched = new MatchedOption(opt).accept(ctx, '--no-open', 'true');
+    expect(matched.value()).toMatchInlineSnapshot(`false`);
+  });
+
+  it('throws when required option is accepted twice', () => {
+    const app = breadc('cli');
+    const opt = option('-n, --number <value>') as unknown as InternalOption;
+    opt._resolve();
+
+    const ctx = makeContext(app, []);
+    const matched = new MatchedOption(opt).accept(ctx, '-n', '1');
+    expect(() => matched.accept(ctx, '-n', '2')).toThrowErrorMatchingInlineSnapshot(`[Error]`);
+  });
+
   it('accumulates spread option values', () => {
     const app = breadc('cli');
     const opt = option('-s, --include [...value]') as unknown as InternalOption;
@@ -91,5 +121,27 @@ describe('matched option', () => {
         "next",
       ]
     `);
+  });
+
+  it('reads optional value from next token when it is negative', () => {
+    const app = breadc('cli');
+    const opt = option('-o, --offset [value]') as unknown as InternalOption;
+    opt._resolve();
+
+    const ctx = makeContext(app, ['-o', '-1']);
+    ctx.tokens.next();
+
+    const matched = new MatchedOption(opt).accept(ctx, '-o', undefined);
+    expect(matched.value()).toMatchInlineSnapshot(`"-1"`);
+  });
+
+  it('uses optional value when provided directly', () => {
+    const app = breadc('cli');
+    const opt = option('-o, --offset [value]') as unknown as InternalOption;
+    opt._resolve();
+
+    const ctx = makeContext(app, []);
+    const matched = new MatchedOption(opt).accept(ctx, '-o', 'manual');
+    expect(matched.value()).toMatchInlineSnapshot(`"manual"`);
   });
 });

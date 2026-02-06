@@ -89,10 +89,10 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
       return group;
     },
 
-    allowUnknownOptions(middleware?: boolean | UnknownOptionMiddleware<any>) {
+    allowUnknownOption(middleware?: UnknownOptionMiddleware<any>) {
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
-      } else if (middleware) {
+      } else {
         unknownOptionMiddlewares.push((_ctx, key, value) => ({
           name: key,
           value
