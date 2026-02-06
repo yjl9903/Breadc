@@ -1,12 +1,13 @@
 import type { Breadc, InternalBreadc, InternalOption, InternalGroup, InternalCommand } from '../breadc/index.ts';
+
+import { camelCase } from '../utils/string.ts';
+import { rawArgument } from '../breadc/command.ts';
 import { option as makeOption, rawOption } from '../breadc/option.ts';
 import { RuntimeError, BreadcAppError } from '../error.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
-import { buildApp, buildCommand, buildGroup, isGroup } from './builder.ts';
 import { type Context, context as makeContext, reset } from './context.ts';
-import { camelCase } from '../utils/string.ts';
-import { rawArgument } from '../breadc/command.ts';
+import { buildApp, buildCommand, buildGroup, isGroup, resolveOption } from './builder.ts';
 
 export function parse(app: Breadc, argv: string[]) {
   const context = makeContext<any>(app as InternalBreadc, argv);
@@ -59,16 +60,24 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
 
   const pendingCommands: Map<string, Array<[InternalGroup | InternalCommand, number]>> = new Map();
   const pendingLongOptions: Map<string, InternalOption> = new Map();
+  const pendingNegateOptions: Map<string, InternalOption> = new Map();
   const pendingShortOptions: Map<string, InternalOption> = new Map();
   const args: string[] = [];
   const unknown: string[] = [];
 
   const addPendingOptions = (options: InternalOption[]) => {
     for (const option of options) {
+      // Add to pending options
       pendingLongOptions.set(option.long, option);
+      if (option.type === 'boolean') {
+        pendingNegateOptions.set('no-' + option.long, option);
+      }
       if (option.short) {
         pendingShortOptions.set(option.short, option);
       }
+
+      // Add to matched options
+      matchedOptions.set(option.long, new MatchedOption(option));
     }
   };
   const addPendingCommand = (command: InternalGroup | InternalCommand, alias: number) => {
@@ -83,9 +92,7 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   addPendingOptions(breadc._options);
   if (breadc._init.builtin?.version !== false) {
     const spec = typeof breadc._init.builtin?.version === 'object' ? breadc._init.builtin.version.spec : undefined;
-    const option = spec
-      ? (makeOption(spec) as InternalOption)
-      : rawOption('boolean', 'version', 'v', { description: '' });
+    const option = spec ? resolveOption(makeOption(spec)) : rawOption('boolean', 'version', 'v', { description: '' }); // TODO
     breadc._version = option;
 
     pendingLongOptions.set(option.long, option);
@@ -95,7 +102,7 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   }
   if (breadc._init.builtin?.help !== false) {
     const spec = typeof breadc._init.builtin?.help === 'object' ? breadc._init.builtin.help.spec : undefined;
-    const option = spec ? (makeOption(spec) as InternalOption) : rawOption('boolean', 'help', 'h', { description: '' });
+    const option = spec ? resolveOption(makeOption(spec)) : rawOption('boolean', 'help', 'h', { description: '' }); // TODO
     breadc._help = option;
 
     pendingLongOptions.set(option.long, option);
@@ -177,9 +184,10 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
       // 3. handle long options or short options (not negative number)
       const isLong = token.isLong;
-      // TODO: handle --no-xxx
-      const [key, value] = isLong ? token.toLong()! : token.toShort()!;
-      const option = isLong ? pendingLongOptions.get(key) : pendingShortOptions.get(key);
+      const [key, value] = isLong ? token.toLong() : token.toShort();
+      const option = isLong
+        ? pendingLongOptions.get(key) || pendingNegateOptions.get(key)
+        : pendingShortOptions.get(key);
 
       if (option) {
         if (!matchedOptions.has(option.long) || matchedOptions.get(option.long)?.option !== option) {
@@ -238,7 +246,7 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
       } else if (argument.type === 'optional') {
         matchedArgument.accept(context, value);
         context.arguments.push(matchedArgument);
-      } else if (argument.type === 'spread') {
+      } else {
         for (; i < args.length; i++) {
           matchedArgument.accept(context, args[i]);
         }

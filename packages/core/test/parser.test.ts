@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import type { InternalBreadc, InternalOption } from '../src/breadc/index.ts';
+import type { InternalBreadc } from '../src/breadc/index.ts';
 
-import { breadc, option } from '../src/breadc/index.ts';
-import { MatchedOption } from '../src/runtime/matched.ts';
-import { context as makeContext } from '../src/runtime/context.ts';
+import { breadc } from '../src/breadc/app.ts';
 import { BreadcAppError, RuntimeError } from '../src/error.ts';
 
 describe('parse behavior', () => {
@@ -90,15 +88,22 @@ describe('parse behavior', () => {
           spec: '-H, --help'
         }
       }
-    }) as unknown as InternalBreadc;
-    app.command('echo');
+    });
 
-    app.parse(['echo']);
-    app._help?._resolve();
+    app.parse(['-H']);
+    app.parse(['--help']);
 
-    expect(Boolean(app._help)).toMatchInlineSnapshot(`true`);
-    expect(app._help?.spec).toMatchInlineSnapshot(`"-H, --help"`);
-    expect(app._help?.short).toMatchInlineSnapshot(`"-H"`);
+    expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
+      {
+        "init": {
+          "description": undefined,
+        },
+        "long": "help",
+        "short": "H",
+        "spec": "-H, --help",
+        "type": "boolean",
+      }
+    `);
   });
 
   it('registers builtin version option when custom spec is provided', () => {
@@ -108,15 +113,59 @@ describe('parse behavior', () => {
           spec: '-V, --version'
         }
       }
-    }) as unknown as InternalBreadc;
-    app.command('echo');
+    });
 
-    app.parse(['echo']);
-    app._version?._resolve();
+    app.parse(['-V']);
+    app.parse(['--version']);
 
-    expect(Boolean(app._version)).toMatchInlineSnapshot(`true`);
-    expect(app._version?.spec).toMatchInlineSnapshot(`"-V, --version"`);
-    expect(app._version?.short).toMatchInlineSnapshot(`"-V"`);
+    expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
+      {
+        "init": {
+          "description": undefined,
+        },
+        "long": "version",
+        "short": "V",
+        "spec": "-V, --version",
+        "type": "boolean",
+      }
+    `);
+  });
+
+  it('supports builtin help/version without short aliases', () => {
+    const app = breadc('cli', {
+      builtin: {
+        help: {
+          spec: '--help'
+        },
+        version: {
+          spec: '--version'
+        }
+      }
+    });
+
+    app.parse(['--help']);
+    app.parse(['--version']);
+
+    expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
+      {
+        "init": {
+          "description": undefined,
+        },
+        "long": "help",
+        "spec": "--help",
+        "type": "boolean",
+      }
+    `);
+    expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
+      {
+        "init": {
+          "description": undefined,
+        },
+        "long": "version",
+        "spec": "--version",
+        "type": "boolean",
+      }
+    `);
   });
 
   it('matches sub-commands with aliases', () => {
@@ -224,7 +273,11 @@ describe('argument matching', () => {
     const result = app.parse(['echo', 'a', 'b', 'c']);
     expect(result.args).toMatchInlineSnapshot(`
       [
-        "c",
+        [
+          "a",
+          "b",
+          "c",
+        ],
       ]
     `);
     expect(result['--']).toMatchInlineSnapshot(`[]`);
@@ -237,7 +290,10 @@ describe('argument matching', () => {
     const result = app.parse(['echo', 'a', 'b']);
     expect(result.context.arguments.map((arg) => arg.raw)).toMatchInlineSnapshot(`
       [
-        "b",
+        [
+          "a",
+          "b",
+        ],
       ]
     `);
   });
@@ -254,6 +310,23 @@ describe('argument matching', () => {
     `);
   });
 
+  it('fulfills required, optional and spread arguments for default command', () => {
+    const app = breadc('cli');
+    app.command('<first> [second] [...rest]');
+
+    const result = app.parse(['a', 'b', 'c', 'd']);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "a",
+        "b",
+        [
+          "c",
+          "d",
+        ],
+      ]
+    `);
+  });
+
   it('fulfills spread arguments for default command', () => {
     const app = breadc('cli');
     app.command('<first> [...rest]');
@@ -262,10 +335,14 @@ describe('argument matching', () => {
     expect(result.args).toMatchInlineSnapshot(`
       [
         "a",
-        "c",
+        [
+          "b",
+          "c",
+        ],
       ]
     `);
   });
+
   it.todo('respects manual argument default/initial values when omitted');
 });
 
@@ -275,7 +352,11 @@ describe('options behavior', () => {
     app.option('-f, --flag');
 
     const result = app.parse<unknown[], { flag: boolean }>(['-f']);
-    expect(result.options.flag).toMatchInlineSnapshot(`true`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+      }
+    `);
   });
 
   it('parses short boolean options with value', () => {
@@ -322,61 +403,153 @@ describe('options behavior', () => {
   });
 
   it('supports --no-* negation semantics for boolean options', () => {
-    const app = breadc('cli');
-    const opt = option('--open') as unknown as InternalOption;
-    opt._resolve();
+    const app = breadc('cli').option('--open');
 
-    const ctx = makeContext(app as any, []);
-    const matched = new MatchedOption(opt);
-    matched.accept(ctx, '--open', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`true`);
-
-    matched.accept(ctx, '--no-open', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`false`);
-
-    matched.accept(ctx, '--no-open', 'false');
-    expect(matched.value()).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open=true']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open', 'true']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open=false']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--open', 'false']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open=f']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--open', 'f']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open=no']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--open', 'no']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open=n']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--open', 'n']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--open=off']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--open', 'off']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--no-open']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open=true']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open', 'true']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open=false']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--no-open', 'false']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open=f']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--no-open', 'f']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open=no']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--no-open', 'no']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open=n']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--no-open', 'n']).options.open).toMatchInlineSnapshot(`false`);
+    expect(app.parse(['--no-open=off']).options.open).toMatchInlineSnapshot(`true`);
+    expect(app.parse(['--no-open', 'off']).options.open).toMatchInlineSnapshot(`false`);
   });
 
   it('applies option default/initial/cast semantics', () => {
-    const app = breadc('cli');
-    const opt = option('-f, --flag', '', {
-      default: true,
-      cast: (t) => (t ? 'on' : 'off')
-    }) as unknown as InternalOption;
-    opt._resolve();
+    const app = breadc('cli')
+      .option('-f, --flag', '', {
+        default: true,
+        cast: (t) => (t ? 'on' : 'off')
+      })
+      .option('-o, --output [value]', '', {
+        initial: 'seed',
+        cast: (t) => String(t)
+      });
 
-    const ctx = makeContext(app as any, []);
-    const matched = new MatchedOption(opt);
-    expect(matched.value()).toMatchInlineSnapshot(`true`);
-    matched.accept(ctx, '-f', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`"on"`);
+    expect(app.parse(['-f']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "on",
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--flag']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "on",
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--flag=true']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "on",
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--flag=false']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "off",
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--no-flag']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "off",
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--no-flag=true']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "off",
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--no-flag=false']).options).toMatchInlineSnapshot(`
+      {
+        "flag": "on",
+        "output": "seed",
+      }
+    `);
 
-    const opt2 = option('-o, --output [value]', '', {
-      initial: 'seed',
-      cast: (t) => String(t)
-    }) as unknown as InternalOption;
-    opt2._resolve();
-    const matched2 = new MatchedOption(opt2);
-    expect(matched2.value()).toMatchInlineSnapshot(`"seed"`);
+    expect(app.parse(['-o']).options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--output']).options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+        "output": "seed",
+      }
+    `);
+    expect(app.parse(['--output=dirty']).options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+        "output": "dirty",
+      }
+    `);
+    expect(app.parse(['--output', 'dirty']).options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+        "output": "dirty",
+      }
+    `);
   });
 
   it('should parse long options', () => {
     const app = breadc('cli').option('--flag').option('--mode [value]');
     app.command('echo');
 
-    const result1 = app.parse<unknown[], { flag: boolean }>(['echo', '--flag']);
-    expect(result1.options).toMatchInlineSnapshot(`{}`);
+    const result1 = app.parse(['echo', '--flag']);
+    expect(result1.options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+        "mode": false,
+      }
+    `);
 
-    const result2 = app.parse<unknown[], { flag: boolean }>(['echo', '--flag=NO']);
-    expect(result2.options).toMatchInlineSnapshot(`{}`);
+    const result2 = app.parse(['echo', '--flag=NO']);
+    expect(result2.options).toMatchInlineSnapshot(`
+      {
+        "flag": false,
+        "mode": false,
+      }
+    `);
 
-    const result3 = app.parse<unknown[], { mode: boolean | string }>(['echo', '--mode=fast']);
-    expect(result3.options).toMatchInlineSnapshot(`{}`);
+    const result3 = app.parse(['echo', '--mode=fast']);
+    expect(result3.options).toMatchInlineSnapshot(`
+      {
+        "flag": false,
+        "mode": "fast",
+      }
+    `);
 
-    const result4 = app.parse<unknown[], { mode: boolean | string }>(['echo', '--mode', 'fast']);
-    expect(result4.options).toMatchInlineSnapshot(`{}`);
+    const result4 = app.parse(['echo', '--mode', 'fast']);
+    expect(result4.options).toMatchInlineSnapshot(`
+      {
+        "flag": false,
+        "mode": "fast",
+      }
+    `);
   });
+
   it('supports -- escape and options["--"]', () => {
     const app = breadc('cli');
     app.command('echo [message]');
@@ -394,13 +567,18 @@ describe('options behavior', () => {
       ]
     `);
   });
+
   it('maps option keys to camelCase', () => {
     const app = breadc('cli');
     app.option('--allow-page');
     app.command('echo');
 
     const result = app.parse<unknown[], { allowPage: boolean }>(['echo', '--allow-page']);
-    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "allowPage": true,
+      }
+    `);
   });
 });
 
@@ -411,7 +589,7 @@ describe('unknown options', () => {
     const result = app.parse(['-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -425,7 +603,7 @@ describe('unknown options', () => {
     const result = app.parse(['-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -440,7 +618,7 @@ describe('unknown options', () => {
     const result = app.parse(['-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -463,7 +641,7 @@ describe('unknown options', () => {
     const result = app.parse(['tool', 'run', '-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -476,7 +654,7 @@ describe('unknown options', () => {
     const result = app.parse(['tool', 'run', '-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -491,7 +669,7 @@ describe('unknown options', () => {
     const result = app.parse(['echo', '-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -503,7 +681,7 @@ describe('unknown options', () => {
     const result = app.parse(['echo', '-x', 'foo']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "X": "foo",
+        "x": "foo",
       }
     `);
   });
@@ -541,17 +719,15 @@ describe('option layering', () => {
     const result = app.parse<unknown[], { flag: string }>(['-f', 'store', 'ls']);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "flag": "app",
+        "flag": "command",
       }
     `);
   });
 
   it('supports options["--"] alongside layered options', () => {
-    const app = breadc('cli');
-    app.option('--root');
+    const app = breadc('cli').option('--root');
     const group = app.group('tool');
-    const cmd = group.command('run');
-    cmd.option('--flag');
+    group.command('run').option('--flag');
 
     const result = app.parse<unknown[], { root: boolean; flag: boolean }>([
       'tool',
@@ -562,7 +738,13 @@ describe('option layering', () => {
       'a',
       'b'
     ]);
-    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result.args).toMatchInlineSnapshot(`[]`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+        "root": true,
+      }
+    `);
     expect(result['--']).toMatchInlineSnapshot(`
       [
         "a",
@@ -574,8 +756,7 @@ describe('option layering', () => {
 
 describe('other parsing rules', () => {
   it('treats negative numbers as arguments, not short options', () => {
-    const app = breadc('cli');
-    app.option('-n, --number <value>');
+    const app = breadc('cli').option('-n, --number <value>');
     app.command('calc <value>');
 
     const result = app.parse(['calc', '-1']);
@@ -584,15 +765,18 @@ describe('other parsing rules', () => {
         "-1",
       ]
     `);
-    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "number": undefined,
+      }
+    `);
   });
 
   it('resolves app options for default command', () => {
-    const app = breadc('cli');
-    app.option('-f, --flag');
+    const app = breadc('cli').option('-f, --flag');
     app.command('<name>');
 
-    const result = app.parse<unknown[], { flag: boolean }>(['hello', '-f']);
+    const result = app.parse(['hello', '-f']);
     expect(result.args).toMatchInlineSnapshot(`
       [
         "hello",
@@ -613,7 +797,9 @@ describe('parse errors', () => {
 
     expect(() => app.parse(['echo'])).toThrowError(RuntimeError);
   });
+
   it.todo('throws on unknown sub-commands');
+
   it('throws on duplicated default command', () => {
     const app = breadc('cli');
     app.command('<one>');
@@ -621,6 +807,7 @@ describe('parse errors', () => {
 
     expect(() => app.parse(['value'])).toThrowError(BreadcAppError);
   });
+
   it('throws on duplicated group pieces', () => {
     const app = breadc('cli');
     app.group('store').command('ls');
@@ -628,6 +815,7 @@ describe('parse errors', () => {
 
     expect(() => app.parse(['store', 'ls'])).toThrowError(RuntimeError);
   });
+
   it('throws on duplicated command pieces', () => {
     const app = breadc('cli');
     app.command('dev');
@@ -635,5 +823,6 @@ describe('parse errors', () => {
 
     expect(() => app.parse(['dev'])).toThrowError(RuntimeError);
   });
+
   it.todo('throws on other parse-time error paths');
 });

@@ -115,10 +115,20 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['-', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['-', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -130,10 +140,20 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['123', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "3",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['123', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "23",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -145,10 +165,20 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "c",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "bc",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -160,18 +190,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['-f', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "-f",
+        "f",
         undefined,
       ]
     `);
     expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
-        "-f",
+        "f",
         undefined,
       ]
     `);
@@ -185,18 +220,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['-fg', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "g",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "-fg",
+        "fg",
         undefined,
       ]
     `);
     expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
-        "-fg",
+        "fg",
         undefined,
       ]
     `);
@@ -210,18 +250,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['-n', '1']);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "",
+        "1",
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "-n",
+        "n",
         "1",
       ]
     `);
     expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
-        "-n",
+        "n",
         "1",
       ]
     `);
@@ -237,18 +282,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
-        "--flag",
+        "flag",
         undefined,
       ]
     `);
     expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
       [
-        "--flag",
+        "flag",
         undefined,
       ]
     `);
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['--flag', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-flag",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -262,18 +312,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
-        "--value",
+        "value",
         "def",
       ]
     `);
     expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
       [
-        "--value",
+        "value",
         "def",
       ]
     `);
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['--value', 'def']);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-value",
+        "def",
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -285,18 +340,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['-1', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
       [
-        "-1",
+        "1",
         undefined,
       ]
     `);
     expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
       [
-        "-1",
+        "1",
         undefined,
       ]
     `);
@@ -312,18 +372,23 @@ describe('token stream', () => {
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
       [
-        "--1",
+        "1",
         undefined,
       ]
     `);
     expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
       [
-        "--1",
+        "1",
         undefined,
       ]
     `);
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['--1', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-1",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -335,10 +400,20 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`true`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['--', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['--', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "-",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -350,10 +425,20 @@ describe('token stream', () => {
     expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+      [
+        "c",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToLong()).toBeUndefined();
     expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-    expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+    expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+      [
+        "bc",
+        undefined,
+      ]
+    `);
     expect(lexer.peek()?.checkToShort()).toBeUndefined();
     expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
     expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -389,10 +474,20 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['-', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['-', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -404,10 +499,20 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['123', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "3",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['123', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "23",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -419,10 +524,20 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "c",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "bc",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -434,11 +549,26 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['-f', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['-f', undefined]);
-      expect(lexer.peek()?.checkToShort()).toStrictEqual(['-f', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "f",
+          undefined,
+        ]
+      `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+        [
+          "f",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
@@ -449,11 +579,26 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['-fg', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "g",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['-fg', undefined]);
-      expect(lexer.peek()?.checkToShort()).toStrictEqual(['-fg', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "fg",
+          undefined,
+        ]
+      `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+        [
+          "fg",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
@@ -464,11 +609,26 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['-n', '1']);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "",
+          "1",
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['-n', '1']);
-      expect(lexer.peek()?.checkToShort()).toStrictEqual(['-n', '1']);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "n",
+          "1",
+        ]
+      `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+        [
+          "n",
+          "1",
+        ]
+      `);
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
 
@@ -479,10 +639,25 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['--flag', undefined]);
-      expect(lexer.peek()?.checkToLong()).toStrictEqual(['--flag', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "flag",
+          undefined,
+        ]
+      `);
+      expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+        [
+          "flag",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['--flag', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "-flag",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -494,10 +669,25 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['--value', 'def']);
-      expect(lexer.peek()?.checkToLong()).toStrictEqual(['--value', 'def']);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "value",
+          "def",
+        ]
+      `);
+      expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+        [
+          "value",
+          "def",
+        ]
+      `);
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['--value', 'def']);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "-value",
+          "def",
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -509,11 +699,26 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['-1', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['-1', undefined]);
-      expect(lexer.peek()?.checkToShort()).toStrictEqual(['-1', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "1",
+          undefined,
+        ]
+      `);
+      expect(lexer.peek()?.checkToShort()).toMatchInlineSnapshot(`
+        [
+          "1",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`true`);
 
@@ -524,10 +729,25 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`true`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['--1', undefined]);
-      expect(lexer.peek()?.checkToLong()).toStrictEqual(['--1', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "1",
+          undefined,
+        ]
+      `);
+      expect(lexer.peek()?.checkToLong()).toMatchInlineSnapshot(`
+        [
+          "1",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['--1', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "-1",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -539,10 +759,20 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`true`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['--', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['--', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "-",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);
@@ -554,10 +784,20 @@ describe('token stream', () => {
       expect(lexer.peek()?.isEscape).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isEmpty).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isLong).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toLong()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.toLong()).toMatchInlineSnapshot(`
+        [
+          "c",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToLong()).toBeUndefined();
       expect(lexer.peek()?.isShort).toMatchInlineSnapshot(`false`);
-      expect(lexer.peek()?.toShort()).toStrictEqual(['abc', undefined]);
+      expect(lexer.peek()?.toShort()).toMatchInlineSnapshot(`
+        [
+          "bc",
+          undefined,
+        ]
+      `);
       expect(lexer.peek()?.checkToShort()).toBeUndefined();
       expect(lexer.peek()?.isNumber).toMatchInlineSnapshot(`false`);
       expect(lexer.peek()?.isNegativeNumber).toMatchInlineSnapshot(`false`);

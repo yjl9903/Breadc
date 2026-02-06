@@ -139,8 +139,9 @@ export class Token {
    *
    * @returns a long flag and its argument
    */
-  public toLong(): [key: string, value: string | undefined] | undefined {
-    return splitOnce(this.text, '=');
+  public toLong(): [key: string, value: string | undefined] {
+    const result = splitOnce(this.text, '=');
+    return [result[0].slice(2), result[1]];
   }
 
   /**
@@ -155,7 +156,8 @@ export class Token {
     // Should not be escape
     if (this.text.length <= 2) return undefined;
 
-    return splitOnce(this.text, '=');
+    const result = splitOnce(this.text, '=');
+    return [result[0].slice(2), result[1]];
   }
 
   /**
@@ -170,8 +172,9 @@ export class Token {
    *
    * @returns a short flag and its argument
    */
-  public toShort(): [key: string, value: string | undefined] | undefined {
-    return splitOnce(this.text, '=');
+  public toShort(): [key: string, value: string | undefined] {
+    const result = splitOnce(this.text, '=');
+    return [result[0].slice(1), result[1]];
   }
 
   /**
@@ -187,7 +190,8 @@ export class Token {
     // Should not start with '--'
     if (this.text[1] === '-') return undefined;
 
-    return splitOnce(this.text, '=');
+    const result = splitOnce(this.text, '=');
+    return [result[0].slice(1), result[1]];
   }
 
   // --- String ---

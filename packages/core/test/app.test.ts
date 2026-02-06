@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import type { InternalBreadc, InternalCommand } from '../src/breadc/index.ts';
+import type { InternalBreadc } from '../src/breadc/index.ts';
 
+import { resolveCommand } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { breadc, group, command, option } from '../src/breadc/index.ts';
 
@@ -10,21 +11,25 @@ describe('app', () => {
     const opt = option('--flag');
     const app = breadc('cli').option(opt);
     const result = app.parse(['--flag']);
-    expect(result.options).toMatchInlineSnapshot(`{}`);
+    expect(result.options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+      }
+    `);
   });
 
   it('should register default unknown option middleware', () => {
-    const app = breadc('cli') as unknown as InternalBreadc;
+    const app = breadc('cli');
     app.allowUnknownOption();
 
-    expect(app._unknownOptionMiddlewares.length).toMatchInlineSnapshot(`1`);
+    expect((app as unknown as InternalBreadc)._unknownOptionMiddlewares.length).toMatchInlineSnapshot(`1`);
   });
 
   it('default unknown option middleware should return name/value', () => {
-    const app = breadc('cli') as unknown as InternalBreadc;
+    const app = breadc('cli');
     app.allowUnknownOption();
 
-    const middleware = app._unknownOptionMiddlewares[0];
+    const middleware = (app as unknown as InternalBreadc)._unknownOptionMiddlewares[0];
     const result = middleware(makeContext(app, []), '-x', '1');
     expect(result).toMatchInlineSnapshot(`
       {
@@ -36,9 +41,10 @@ describe('app', () => {
 
   it('should pass description into command init', () => {
     const app = breadc('cli');
-    const cmd = app.command('ping', 'Ping command') as unknown as InternalCommand;
+    const cmd = app.command('ping', 'Ping command');
 
-    cmd._resolve();
+    resolveCommand(cmd);
+
     expect(cmd.init).toMatchInlineSnapshot(`
       {
         "description": "Ping command",

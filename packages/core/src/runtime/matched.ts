@@ -1,8 +1,9 @@
-import type { Option } from '../breadc/index.ts';
+import type { Option, Argument } from '../breadc/types/app.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
+import { RuntimeError } from '../error.ts';
 
 export class MatchedArgument {
   public readonly argument: InternalArgument;
@@ -13,19 +14,21 @@ export class MatchedArgument {
 
   public raw: string | string[] | undefined;
 
-  public constructor(argument: InternalArgument) {
+  public constructor(argument: Argument<string, any, any> | InternalArgument) {
     this.argument = argument;
     if (argument.init?.initial !== undefined) {
       this.raw = argument.init.initial;
     } else {
       switch (argument.type) {
         case 'required':
-        case 'optional':
+        case 'optional': {
           this.raw = undefined;
           break;
-        case 'spread':
+        }
+        case 'spread': {
           this.raw = [];
           break;
+        }
       }
     }
   }
@@ -40,9 +43,36 @@ export class MatchedArgument {
   }
 
   public accept(_context: Context, value: string | string[] | undefined) {
-    this.dirty = true;
-    this.raw = value;
-    return this;
+    switch (this.argument.type) {
+      case 'optional': {
+        if (this.dirty) {
+          // TODO
+          throw new RuntimeError();
+        }
+        this.raw = value ?? this.argument.init?.initial ?? undefined;
+        this.dirty = true;
+        return this;
+      }
+      case 'required': {
+        if (this.dirty) {
+          // TODO
+          throw new RuntimeError();
+        }
+        this.raw = value ?? this.argument.init?.initial ?? '';
+        this.dirty = true;
+        return this;
+      }
+      case 'spread': {
+        (this.raw as string[]).push((value ?? this.argument.init?.initial ?? '') as string);
+        this.dirty = true;
+        return this;
+      }
+      /* v8 ignore next -- @preserve */
+      default: {
+        // c8 ignore
+        return this;
+      }
+    }
   }
 }
 
@@ -55,22 +85,25 @@ export class MatchedOption {
 
   public raw: any;
 
-  public constructor(option: Option | InternalOption) {
+  public constructor(option: Option<string, any, any> | InternalOption) {
     this.option = option as InternalOption;
     if (option.init.initial !== undefined) {
       this.raw = option.init.initial;
     } else {
       switch ((option as InternalOption).type) {
         case 'boolean':
-        case 'optional':
+        case 'optional': {
           this.raw = false;
           break;
-        case 'required':
+        }
+        case 'required': {
           this.raw = undefined;
           break;
-        case 'spread':
+        }
+        case 'spread': {
           this.raw = [];
           break;
+        }
       }
     }
   }
@@ -87,15 +120,20 @@ export class MatchedOption {
   public accept(context: Context, long: string, text: string | undefined) {
     switch (this.option.type) {
       case 'boolean': {
+        if (this.dirty) {
+          // TODO
+          throw new RuntimeError();
+        }
+
         if (text !== undefined) {
           const value = text.toLowerCase();
-          if (!long.startsWith('--no-')) {
+          if (!long.startsWith('no-')) {
             this.raw = FALSE_OPTION.includes(value) ? false : true;
           } else {
             this.raw = FALSE_OPTION.includes(value) ? true : false;
           }
         } else {
-          if (!long.startsWith('--no-')) {
+          if (!long.startsWith('no-')) {
             this.raw = true;
           } else {
             this.raw = false;
@@ -107,6 +145,11 @@ export class MatchedOption {
         break;
       }
       case 'optional': {
+        if (this.dirty) {
+          // TODO
+          throw new RuntimeError();
+        }
+
         // Handle optional options
         let value = text;
         if (value === undefined) {
@@ -123,7 +166,7 @@ export class MatchedOption {
         if (value !== undefined) {
           this.raw = value;
         } else {
-          this.raw = true;
+          this.raw = this.option.init.initial ?? true;
         }
 
         this.dirty = true;
@@ -140,9 +183,6 @@ export class MatchedOption {
           if (token && !token.isEscape) {
             value = token.toRaw();
             context.tokens.next();
-          } else {
-            // TODO: throw parse error
-            throw new Error('');
           }
         }
 
@@ -152,9 +192,9 @@ export class MatchedOption {
             // TODO: throw parse error, not support multiple required
             throw new Error('');
           }
-          this.raw = value;
+          this.raw = value ?? this.option.init.initial;
         } else {
-          this.raw.push(value);
+          this.raw.push(value ?? '');
         }
 
         this.dirty = true;

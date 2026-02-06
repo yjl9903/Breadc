@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 
+import { resolveGroup } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { type InternalGroup, breadc, group, command, option } from '../src/breadc/index.ts';
 
 describe('group', () => {
   it('should resolve pieces', () => {
     const grp = group(' dev   tools ') as unknown as InternalGroup;
-    grp._resolve();
+    resolveGroup(grp);
 
     expect(grp._pieces).toMatchInlineSnapshot(`
       [
@@ -22,8 +23,8 @@ describe('group', () => {
     const grp = group('dev tools') as unknown as InternalGroup;
     grp.allowUnknownOption();
 
-    grp._resolve();
-    grp._resolve();
+    resolveGroup(grp);
+    resolveGroup(grp);
 
     expect(grp._pieces).toMatchInlineSnapshot(`
       [
@@ -50,7 +51,7 @@ describe('group', () => {
 
   it('should reject arguments in group spec', () => {
     const grp = group('dev <path>') as unknown as InternalGroup;
-    expect(() => grp._resolve()).toThrowErrorMatchingInlineSnapshot(
+    expect(() => resolveGroup(grp)).toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving argument in group spec at the command "dev <path>", position 4]`
     );
   });
@@ -74,7 +75,7 @@ describe('group', () => {
 
     grp.option(opt);
     grp.command(cmd);
-    grp._resolve();
+    resolveGroup(grp);
 
     expect(Object.is(grp._options[0], opt)).toMatchInlineSnapshot(`true`);
     expect(Object.is(grp._commands[0], cmd)).toMatchInlineSnapshot(`true`);

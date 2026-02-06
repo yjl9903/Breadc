@@ -49,15 +49,6 @@ export type InternalBreadc = Breadc<any, any> & {
 
 export type InternalGroup = Group<string, GroupInit<string>, any, any> & {
   /**
-   * Lazy resolve the command:
-   * - Split command and alias pieces
-   * - Merge arguments config
-   *
-   * @internal
-   */
-  _resolve(): void;
-
-  /**
    * Mark whether it is a default command
    *
    * @internal
@@ -94,13 +85,14 @@ export type InternalGroup = Group<string, GroupInit<string>, any, any> & {
 
 export type InternalCommand = Command & {
   /**
-   * Lazy resolve the command:
-   * - Split command and alias pieces
-   * - Merge arguments config
-   *
    * @internal
    */
-  _resolve(group?: InternalGroup): void;
+  _group?: InternalGroup;
+
+  /**
+   * @internal
+   */
+  _aliases: string[];
 
   /**
    * Mark whether it is a default command
@@ -152,13 +144,6 @@ export type InternalOption = Option & {
   short?: string | undefined;
 
   argument?: string | undefined;
-
-  /**
-   * Lazy resolve the option
-   *
-   * @internal
-   */
-  _resolve(): void;
 };
 
 export type ArgumentType = 'required' | 'optional' | 'spread';
