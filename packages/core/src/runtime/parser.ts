@@ -19,6 +19,7 @@ export function parse(app: Breadc, argv: string[]) {
   const defaultCommands = context.breadc._commands.filter((c) => c._default);
   if (defaultCommands.length >= 2) {
     throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
+      context,
       commands: defaultCommands
     });
   }
@@ -92,7 +93,9 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   addPendingOptions(breadc._options);
   if (breadc._init.builtin?.version !== false) {
     const spec = typeof breadc._init.builtin?.version === 'object' ? breadc._init.builtin.version.spec : undefined;
-    const option = spec ? resolveOption(makeOption(spec)) : rawOption('boolean', 'version', 'v', { description: '' }); // TODO
+    const option = spec
+      ? resolveOption(makeOption(spec))
+      : rawOption('boolean', 'version', 'v', { description: 'Print version' });
     breadc._version = option;
 
     pendingLongOptions.set(option.long, option);
@@ -102,7 +105,9 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   }
   if (breadc._init.builtin?.help !== false) {
     const spec = typeof breadc._init.builtin?.help === 'object' ? breadc._init.builtin.help.spec : undefined;
-    const option = spec ? resolveOption(makeOption(spec)) : rawOption('boolean', 'help', 'h', { description: '' }); // TODO
+    const option = spec
+      ? resolveOption(makeOption(spec))
+      : rawOption('boolean', 'help', 'h', { description: 'Print help' });
     breadc._help = option;
 
     pendingLongOptions.set(option.long, option);
@@ -155,8 +160,10 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
             if (!matchedGroup || matchedGroup === group) {
               matchedGroup = group;
             } else {
-              // TODO
-              throw new RuntimeError();
+              throw new BreadcAppError(BreadcAppError.DUPLICATED_GROUP, {
+                context,
+                commands: [matchedGroup, group]
+              });
             }
 
             buildGroup(group);
@@ -170,8 +177,10 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
             if (!matchedCommand || matchedCommand === command) {
               matchedCommand = command;
             } else {
-              // TODO
-              throw new RuntimeError();
+              throw new BreadcAppError(BreadcAppError.DUPLICATED_COMMAND, {
+                context,
+                commands: [matchedCommand, command]
+              });
             }
 
             buildCommand(command);
@@ -238,8 +247,10 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
 
       if (argument.type === 'required') {
         if (value === undefined) {
-          // TODO
-          throw new RuntimeError();
+          throw new RuntimeError(RuntimeError.REQUIRED_ARGUMENT_MISSING, {
+            context,
+            argument
+          });
         }
         matchedArgument.accept(context, value);
         context.arguments.push(matchedArgument);

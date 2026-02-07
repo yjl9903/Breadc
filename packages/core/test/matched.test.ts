@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { breadc } from '../src/breadc/app.ts';
 import { option } from '../src/breadc/option.ts';
 import { argument } from '../src/breadc/command.ts';
+import { RuntimeError } from '../src/error.ts';
 import { resolveOption } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
@@ -162,7 +163,7 @@ describe('matched option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'n', '1');
-    expect(() => matched.accept(ctx, '-n', '2')).toThrowErrorMatchingInlineSnapshot(`[Error]`);
+    expect(() => matched.accept(ctx, '-n', '2')).toThrowError(RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE);
   });
 
   it('throws when boolean option is accepted twice', () => {
@@ -172,7 +173,7 @@ describe('matched option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'open', undefined);
-    expect(() => matched.accept(ctx, 'open', undefined)).toThrowErrorMatchingInlineSnapshot(`[Error]`);
+    expect(() => matched.accept(ctx, 'open', undefined)).toThrowError(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE);
   });
 
   it('throws when optional option is accepted twice', () => {
@@ -182,7 +183,7 @@ describe('matched option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'o', 'first');
-    expect(() => matched.accept(ctx, 'o', 'second')).toThrowErrorMatchingInlineSnapshot(`[Error]`);
+    expect(() => matched.accept(ctx, 'o', 'second')).toThrowError(RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE);
   });
 
   it('accumulates spread option values', () => {

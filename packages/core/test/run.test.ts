@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import type { InternalOption } from '../src/breadc/index.ts';
 
-import { RuntimeError } from '../src/error.ts';
+import { BreadcAppError } from '../src/error.ts';
 import { breadc, option } from '../src/breadc/index.ts';
 
 describe('runtime', () => {
@@ -163,7 +163,7 @@ describe('runtime', () => {
     const app = breadc('cli');
     app.command('noop');
 
-    await expect(app.run(['noop'])).rejects.toBeInstanceOf(RuntimeError);
+    await expect(app.run(['noop'])).rejects.toThrowError(BreadcAppError.NO_ACTION_BOUND);
   });
 
   it('forwards options["--"] to action', async () => {

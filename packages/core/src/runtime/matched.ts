@@ -42,12 +42,15 @@ export class MatchedArgument {
     }
   }
 
-  public accept(_context: Context, value: string | string[] | undefined) {
+  public accept(context: Context, value: string | string[] | undefined) {
     switch (this.argument.type) {
       case 'optional': {
         if (this.dirty) {
-          // TODO
-          throw new RuntimeError();
+          throw new RuntimeError(RuntimeError.OPTIONAL_ARGUMENT_ACCEPT_ONCE, {
+            context,
+            argument: this.argument,
+            value
+          });
         }
         this.raw = value ?? this.argument.init?.initial ?? undefined;
         this.dirty = true;
@@ -55,8 +58,11 @@ export class MatchedArgument {
       }
       case 'required': {
         if (this.dirty) {
-          // TODO
-          throw new RuntimeError();
+          throw new RuntimeError(RuntimeError.REQUIRED_ARGUMENT_ACCEPT_ONCE, {
+            context,
+            argument: this.argument,
+            value
+          });
         }
         this.raw = value ?? this.argument.init?.initial ?? '';
         this.dirty = true;
@@ -121,8 +127,12 @@ export class MatchedOption {
     switch (this.option.type) {
       case 'boolean': {
         if (this.dirty) {
-          // TODO
-          throw new RuntimeError();
+          throw new RuntimeError(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE, {
+            context,
+            option: this.option,
+            name: long,
+            value: text
+          });
         }
 
         if (text !== undefined) {
@@ -146,8 +156,12 @@ export class MatchedOption {
       }
       case 'optional': {
         if (this.dirty) {
-          // TODO
-          throw new RuntimeError();
+          throw new RuntimeError(RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE, {
+            context,
+            option: this.option,
+            name: long,
+            value: text
+          });
         }
 
         // Handle optional options
@@ -189,8 +203,12 @@ export class MatchedOption {
         // Set option value
         if (this.option.type === 'required') {
           if (this.dirty) {
-            // TODO: throw parse error, not support multiple required
-            throw new Error('');
+            throw new RuntimeError(RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE, {
+              context,
+              option: this.option,
+              name: long,
+              value
+            });
           }
           this.raw = value ?? this.option.init.initial;
         } else {

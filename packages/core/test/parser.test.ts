@@ -813,7 +813,7 @@ describe('parse errors', () => {
     app.group('store').command('ls');
     app.group('store').command('rm');
 
-    expect(() => app.parse(['store', 'ls'])).toThrowError(RuntimeError);
+    expect(() => app.parse(['store', 'ls'])).toThrowError(BreadcAppError.DUPLICATED_GROUP);
   });
 
   it('throws on duplicated command pieces', () => {
@@ -821,7 +821,7 @@ describe('parse errors', () => {
     app.command('dev');
     app.command('dev');
 
-    expect(() => app.parse(['dev'])).toThrowError(RuntimeError);
+    expect(() => app.parse(['dev'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
   });
 
   it.todo('throws on other parse-time error paths');

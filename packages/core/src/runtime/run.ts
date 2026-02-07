@@ -4,7 +4,7 @@ import type { ActionMiddleware, ActionMiddlewareNextFn } from '../breadc/types/m
 import { printHelp } from '../breadc/builtin/help.ts';
 import { printVersion } from '../breadc/builtin/version.ts';
 
-import { RuntimeError } from '../error.ts';
+import { BreadcAppError } from '../error.ts';
 
 import { parse, resolveArgs, resolveOptions } from './parser.ts';
 
@@ -78,7 +78,8 @@ export async function run(app: Breadc, argv: string[]) {
       return context.output;
     }
   } else {
-    // TODO
-    throw new RuntimeError('');
+    throw new BreadcAppError(BreadcAppError.NO_ACTION_BOUND, {
+      context
+    });
   }
 }

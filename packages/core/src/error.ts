@@ -1,23 +1,83 @@
-import type { InternalCommand, InternalGroup } from './breadc/types/internal.ts';
+import type { Context } from './runtime/context.ts';
+import type { InternalArgument, InternalCommand, InternalGroup, InternalOption } from './breadc/types/internal.ts';
 
 export abstract class BreadcError extends Error {}
 
-export class RuntimeError extends BreadcError {}
+type RuntimeErrorCause = {
+  group?: InternalGroup;
+  command?: InternalCommand;
+  argument?: InternalArgument;
+} & {
+  option?: InternalOption;
+  name?: string;
+  value?: unknown;
+};
+
+type RuntimeErrorInput = RuntimeErrorCause & {
+  context?: Context<any>;
+};
+
+export class RuntimeError extends BreadcError {
+  static REQUIRED_ARGUMENT_MISSING = 'Missing required argument';
+
+  static OPTIONAL_ARGUMENT_ACCEPT_ONCE = 'Optional argument can only be assigned once';
+
+  static REQUIRED_ARGUMENT_ACCEPT_ONCE = 'Required argument can only be assigned once';
+
+  static BOOLEAN_OPTION_ACCEPT_ONCE = 'Boolean option can only be assigned once';
+
+  static OPTIONAL_OPTION_ACCEPT_ONCE = 'Optional option can only be assigned once';
+
+  static REQUIRED_OPTION_ACCEPT_ONCE = 'Required option can only be assigned once';
+
+  public cause: RuntimeErrorCause;
+
+  public context?: Context<any>;
+
+  public constructor(message: string, input: RuntimeErrorInput = {}) {
+    const { context, ...cause } = input;
+    super(message);
+    Object.defineProperty(this, 'context', {
+      value: context,
+      writable: false,
+      enumerable: false,
+      configurable: true
+    });
+    this.cause = cause;
+  }
+}
+
+type BreadcAppErrorCause = {
+  command?: InternalCommand;
+  commands?: (InternalCommand | InternalGroup)[];
+};
+
+type BreadcAppErrorInput = BreadcAppErrorCause & {
+  context?: Context<any>;
+};
 
 export class BreadcAppError extends BreadcError {
   static DUPLICATED_DEFAULT_COMMAND = `Find duplicated default commands`;
+
+  static DUPLICATED_GROUP = `Find duplicated groups`;
 
   static DUPLICATED_COMMAND = `Find duplicated commands`;
 
   static NO_ACTION_BOUND = `There is no action function bound in this command`;
 
-  public cause: {
-    command?: InternalCommand;
-    commands?: (InternalCommand | InternalGroup)[];
-  };
+  public cause: BreadcAppErrorCause;
 
-  public constructor(message: string, cause: BreadcAppError['cause']) {
+  public context?: Context<any>;
+
+  public constructor(message: string, input: BreadcAppErrorInput) {
+    const { context, ...cause } = input;
     super(message);
+    Object.defineProperty(this, 'context', {
+      value: context,
+      writable: false,
+      enumerable: false,
+      configurable: true
+    });
     this.cause = cause;
   }
 }
