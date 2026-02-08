@@ -1,7 +1,13 @@
-import { vi, describe, it, expect } from 'vitest';
+import { vi, describe, it, expect, beforeAll } from 'vitest';
+
+import { options as colorOptions } from '@breadc/color';
 
 import { breadc } from '../src/breadc/index.ts';
 import { BreadcAppError } from '../src/error.ts';
+
+beforeAll(() => {
+  colorOptions.enabled = false;
+});
 
 describe('runtime', () => {
   it('passes arguments to action and returns result', async () => {
