@@ -1,6 +1,6 @@
 {
   "name": "create-breadc",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Yet another Command Line Application Framework with fully strong TypeScript support",
   "keywords": [
     "breadc",
