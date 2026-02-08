@@ -6,7 +6,7 @@ import { printVersion } from '../breadc/builtin/version.ts';
 
 import { BreadcAppError } from '../error.ts';
 
-import { parse, resolveArgs, resolveOptions } from './parser.ts';
+import { parse, isHelp, isVersion, resolveArgs, resolveOptions } from './parser.ts';
 
 export async function run(app: Breadc, argv: string[]) {
   // 1. Parse arguments
@@ -16,13 +16,11 @@ export async function run(app: Breadc, argv: string[]) {
   if (!context.command) {
     const { breadc } = context;
 
-    const version = breadc._version;
-    if (version && context.options.get(version.long)?.value<boolean>()) {
+    if (isVersion(context)) {
       return printVersion(context);
     }
 
-    const help = breadc._help;
-    if (help && context.options.get(help.long)?.value<boolean>()) {
+    if (isHelp(context)) {
       return printHelp(context);
     }
 

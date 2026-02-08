@@ -20,13 +20,14 @@ export function option<
 }
 
 export function rawOption(
+  spec: string,
   type: OptionType,
   long: string,
   short: string | undefined,
   init: InternalOption['init']
 ): InternalOption {
   return {
-    spec: '',
+    spec,
     init,
     type,
     long,

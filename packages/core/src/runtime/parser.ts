@@ -1,13 +1,15 @@
 import type { Breadc, InternalBreadc, InternalOption, InternalGroup, InternalCommand } from '../breadc/index.ts';
 
 import { camelCase } from '../utils/string.ts';
+import { rawOption } from '../breadc/option.ts';
 import { rawArgument } from '../breadc/command.ts';
-import { option as makeOption, rawOption } from '../breadc/option.ts';
 import { RuntimeError, BreadcAppError } from '../error.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
 import { type Context, context as makeContext, reset } from './context.ts';
-import { buildApp, buildCommand, buildGroup, isGroup, resolveOption } from './builder.ts';
+import { buildApp, buildCommand, buildGroup, isGroup } from './builder.ts';
+import { buildHelpOption } from '../breadc/builtin/help.ts';
+import { buildVersionOption } from '../breadc/builtin/version.ts';
 
 export function parse(app: Breadc, argv: string[]) {
   const context = makeContext<any>(app as InternalBreadc, argv);
@@ -30,7 +32,7 @@ export function parse(app: Breadc, argv: string[]) {
   // 3. Parse without default command
   doParse(context, onlyDefaultCommand ? defaultCommand : undefined);
 
-  if (context.command) {
+  if (context.command || isVersion(context) || isHelp(context)) {
     // 4.1. Parse ok
   } else if (defaultCommand) {
     // 4.2. Parse with default command
@@ -50,6 +52,24 @@ export function resolveOptions(context: Context<any>) {
     [...context.options.values()].map((opt) => [camelCase(opt.option.long), opt.value()])
   );
   return options;
+}
+
+export function isHelp(context: Context<any>) {
+  const help = context.breadc._help;
+  if (help && context.options.get(help.long)?.value<boolean>()) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export function isVersion(context: Context<any>) {
+  const version = context.breadc._version;
+  if (version && context.options.get(version.long)?.value<boolean>()) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function doParse(context: Context, defaultCommand: InternalCommand | undefined) {
@@ -92,24 +112,14 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   // 1. Prepare global options
   addPendingOptions(breadc._options);
   if (breadc._init.builtin?.version !== false) {
-    const spec = typeof breadc._init.builtin?.version === 'object' ? breadc._init.builtin.version.spec : undefined;
-    const option = spec
-      ? resolveOption(makeOption(spec))
-      : rawOption('boolean', 'version', 'v', { description: 'Print version' });
-    breadc._version = option;
-
+    const option = buildVersionOption(context);
     pendingLongOptions.set(option.long, option);
     if (option.short) {
       pendingShortOptions.set(option.short, option);
     }
   }
   if (breadc._init.builtin?.help !== false) {
-    const spec = typeof breadc._init.builtin?.help === 'object' ? breadc._init.builtin.help.spec : undefined;
-    const option = spec
-      ? resolveOption(makeOption(spec))
-      : rawOption('boolean', 'help', 'h', { description: 'Print help' });
-    breadc._help = option;
-
+    const option = buildHelpOption(context);
     pendingLongOptions.set(option.long, option);
     if (option.short) {
       pendingShortOptions.set(option.short, option);
@@ -214,11 +224,9 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
           const result = middleware(context, key, value);
           if (result) {
             // TODO: check following unknown option logic
-            const matched = new MatchedOption(rawOption(result.type ?? 'optional', key, undefined, {})).accept(
-              context,
-              key,
-              value
-            );
+            const matched = new MatchedOption(
+              rawOption(isLong ? `--${key}` : `-${key}`, result.type ?? 'optional', key, undefined, {})
+            ).accept(context, key, value);
             matchedOptions.set(key, matched);
             break;
           }

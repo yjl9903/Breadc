@@ -113,7 +113,7 @@ describe('matched option', () => {
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt);
     matched.accept(ctx, 'n', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`undefined`);
+    expect(matched.value()).toMatchInlineSnapshot(`""`);
   });
 
   it('accepts required option value when provided', () => {

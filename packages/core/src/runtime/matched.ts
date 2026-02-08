@@ -20,7 +20,10 @@ export class MatchedArgument {
       this.raw = argument.init.initial;
     } else {
       switch (argument.type) {
-        case 'required':
+        case 'required': {
+          this.raw = '';
+          break;
+        }
         case 'optional': {
           this.raw = undefined;
           break;
@@ -103,7 +106,7 @@ export class MatchedOption {
           break;
         }
         case 'required': {
-          this.raw = undefined;
+          this.raw = '';
           break;
         }
         case 'spread': {
@@ -210,7 +213,7 @@ export class MatchedOption {
               value
             });
           }
-          this.raw = value ?? this.option.init.initial;
+          this.raw = value ?? this.option.init.initial ?? '';
         } else {
           this.raw.push(value ?? '');
         }

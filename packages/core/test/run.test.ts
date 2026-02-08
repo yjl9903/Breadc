@@ -1,9 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 
-import type { InternalOption } from '../src/breadc/index.ts';
-
+import { breadc } from '../src/breadc/index.ts';
 import { BreadcAppError } from '../src/error.ts';
-import { breadc, option } from '../src/breadc/index.ts';
 
 describe('runtime', () => {
   it('passes arguments to action and returns result', async () => {
@@ -22,17 +20,22 @@ describe('runtime', () => {
   });
 
   it('returns builtin version/help when configured', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+
     const app = breadc('cli', { builtin: { version: false, help: false } });
-    const version = option('-v, --version') as unknown as InternalOption;
-    const help = option('-h, --help') as unknown as InternalOption;
 
-    app.option(version);
-    app.option(help);
-    (app as any)._version = version;
-    (app as any)._help = help;
+    await expect(app.run(['-v'])).resolves.toMatchInlineSnapshot(`
+      "cli/unknown
 
-    await expect(app.run(['-v'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
-    await expect(app.run(['-h'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
+      Usage: cli [OPTIONS]
+      "
+    `);
+    await expect(app.run(['-h'])).resolves.toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS]
+      "
+    `);
   });
 
   it('invokes next when middleware does not call it', async () => {

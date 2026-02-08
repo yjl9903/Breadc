@@ -96,7 +96,7 @@ describe('parse behavior', () => {
     expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
       {
         "init": {
-          "description": undefined,
+          "description": "Print help",
         },
         "long": "help",
         "short": "H",
@@ -121,7 +121,7 @@ describe('parse behavior', () => {
     expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
       {
         "init": {
-          "description": undefined,
+          "description": "Print version",
         },
         "long": "version",
         "short": "V",
@@ -149,7 +149,7 @@ describe('parse behavior', () => {
     expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
       {
         "init": {
-          "description": undefined,
+          "description": "Print help",
         },
         "long": "help",
         "spec": "--help",
@@ -159,7 +159,7 @@ describe('parse behavior', () => {
     expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
       {
         "init": {
-          "description": undefined,
+          "description": "Print version",
         },
         "long": "version",
         "spec": "--version",
@@ -192,7 +192,37 @@ describe('parse behavior', () => {
     `);
   });
 
-  it.todo('matches default command aliases alongside sub-commands');
+  it('matches default command aliases alongside sub-commands', () => {
+    const app = breadc('cli');
+    app.command('build').alias('');
+    app.command('dev');
+
+    const result1 = app.parse(['dev']);
+    expect(result1.context.command?.spec).toMatchInlineSnapshot(`"dev"`);
+    expect(result1.context.pieces).toMatchInlineSnapshot(`
+      [
+        "dev",
+      ]
+    `);
+    expect(result1.args).toMatchInlineSnapshot(`[]`);
+    expect(result1['--']).toMatchInlineSnapshot(`[]`);
+
+    const result2 = app.parse([]);
+    expect(result2.context.command?.spec).toMatchInlineSnapshot(`"build"`);
+    expect(result2.context.pieces).toMatchInlineSnapshot(`[]`);
+    expect(result2.args).toMatchInlineSnapshot(`[]`);
+    expect(result2['--']).toMatchInlineSnapshot(`[]`);
+
+    const result3 = app.parse(['build']);
+    expect(result3.context.command?.spec).toMatchInlineSnapshot(`"build"`);
+    expect(result3.context.pieces).toMatchInlineSnapshot(`[]`);
+    expect(result3.args).toMatchInlineSnapshot(`[]`);
+    expect(result3['--']).toMatchInlineSnapshot(`
+      [
+        "build",
+      ]
+    `);
+  });
 });
 
 describe('argument matching', () => {
@@ -343,7 +373,44 @@ describe('argument matching', () => {
     `);
   });
 
-  it.todo('respects manual argument default/initial values when omitted');
+  it('respects manual argument default/initial values when omitted', () => {
+    const app = breadc('cli');
+    app
+      .command('echo')
+      .argument('[name]', { initial: 'seed' })
+      .argument('[...rest]', { default: ['fallback'] });
+
+    const result1 = app.parse(['echo']);
+    expect(result1.args).toMatchInlineSnapshot(`
+      [
+        "seed",
+        [
+          "fallback",
+        ],
+      ]
+    `);
+
+    const result2 = app.parse(['echo', 'alice']);
+    expect(result2.args).toMatchInlineSnapshot(`
+      [
+        "alice",
+        [
+          "fallback",
+        ],
+      ]
+    `);
+
+    const result3 = app.parse(['echo', 'alice', 'x', 'y']);
+    expect(result3.args).toMatchInlineSnapshot(`
+      [
+        "alice",
+        [
+          "x",
+          "y",
+        ],
+      ]
+    `);
+  });
 });
 
 describe('options behavior', () => {
@@ -371,7 +438,31 @@ describe('options behavior', () => {
     expect(read('-f=f')).toMatchInlineSnapshot(`false`);
   });
 
-  it.todo('parses required option values');
+  it('parses required option values', () => {
+    const app = breadc('cli');
+    app.option('-o, --output <value>');
+
+    expect(app.parse([]).options).toMatchInlineSnapshot(`
+      {
+        "output": "",
+      }
+    `);
+    expect(app.parse(['-o']).options).toMatchInlineSnapshot(`
+      {
+        "output": "",
+      }
+    `);
+    expect(app.parse(['-o=file']).options).toMatchInlineSnapshot(`
+      {
+        "output": "file",
+      }
+    `);
+    expect(app.parse(['-o', 'file']).options).toMatchInlineSnapshot(`
+      {
+        "output": "file",
+      }
+    `);
+  });
 
   it('parses optional option values', () => {
     const app = breadc('cli');
@@ -583,6 +674,31 @@ describe('options behavior', () => {
 });
 
 describe('unknown options', () => {
+  it('allows unknown options', () => {
+    const app = breadc('cli').allowUnknownOption();
+
+    const result1 = app.parse(['--flag']);
+    expect(result1.options).toMatchInlineSnapshot(`
+      {
+        "flag": true,
+      }
+    `);
+
+    const result2 = app.parse(['--test', 'foo']);
+    expect(result2.options).toMatchInlineSnapshot(`
+      {
+        "test": "foo",
+      }
+    `);
+
+    const result3 = app.parse(['-x', 'foo']);
+    expect(result3.options).toMatchInlineSnapshot(`
+      {
+        "x": "foo",
+      }
+    `);
+  });
+
   it('allows unknown options at app level', () => {
     const app = breadc('cli').allowUnknownOption();
 
@@ -767,7 +883,7 @@ describe('other parsing rules', () => {
     `);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "number": undefined,
+        "number": "",
       }
     `);
   });
@@ -798,8 +914,6 @@ describe('parse errors', () => {
     expect(() => app.parse(['echo'])).toThrowError(RuntimeError);
   });
 
-  it.todo('throws on unknown sub-commands');
-
   it('throws on duplicated default command', () => {
     const app = breadc('cli');
     app.command('<one>');
@@ -823,6 +937,4 @@ describe('parse errors', () => {
 
     expect(() => app.parse(['dev'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
   });
-
-  it.todo('throws on other parse-time error paths');
 });

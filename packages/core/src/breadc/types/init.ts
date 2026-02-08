@@ -16,7 +16,7 @@ export type BreadcInit = {
    *
    * @default 'en'
    */
-  // i18n?: 'en' | 'zh' | I18nFn;
+  i18n?: 'en' | 'zh';
 
   /**
    * Logger
