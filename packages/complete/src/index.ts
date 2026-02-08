@@ -1,5 +1,3 @@
-import { complete } from './complete';
+import { complete } from './complete.ts';
 
 export { complete };
-
-export default complete;

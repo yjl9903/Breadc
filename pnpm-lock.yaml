@@ -80,6 +80,15 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
+      '@breadc/core':
+        specifier: workspace:*
+        version: link:../core
+      '@breadc/death':
+        specifier: workspace:*
+        version: link:../death
+      '@breadc/tui':
+        specifier: workspace:*
+        version: link:../tui
 
   packages/color: {}
 
@@ -88,9 +97,9 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
-      breadc:
+      '@breadc/core':
         specifier: workspace:*
-        version: link:../breadc
+        version: link:../core
       omelette:
         specifier: ^0.4.17
         version: 0.4.17

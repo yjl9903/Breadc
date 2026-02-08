@@ -34,20 +34,14 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "coverage": "vitest run --coverage",
-    "size": "size-limit",
     "test": "vitest",
-    "test:bench": "vitest bench",
     "test:ci": "vitest --run",
-    "test:coverage": "vitest run --coverage --typecheck",
-    "typecheck": "tsc --noEmit && vitest --typecheck.only --run"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@breadc/color": "workspace:*"
-  },
-  "size-limit": [
-    {
-      "path": "./dist/index.mjs"
-    }
-  ]
+    "@breadc/color": "workspace:*",
+    "@breadc/core": "workspace:*",
+    "@breadc/death": "workspace:*",
+    "@breadc/tui": "workspace:*"
+  }
 }

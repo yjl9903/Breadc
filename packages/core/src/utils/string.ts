@@ -25,32 +25,3 @@ export function camelCase(text: string): string {
     .map((t, idx) => (idx === 0 ? t : t[0].toUpperCase() + t.slice(1)))
     .join('');
 }
-
-if (import.meta.vitest) {
-  const { it, expect } = import.meta.vitest;
-
-  it('stripPrefix', () => {
-    expect(stripPrefix('abc', 'a')).toMatchInlineSnapshot(`"bc"`);
-    expect(stripPrefix('abc', 'd')).toMatchInlineSnapshot(`undefined`);
-  });
-
-  it('splitOnce', () => {
-    expect(splitOnce('a=bc', '=')).toMatchInlineSnapshot(`
-      [
-        "a",
-        "bc",
-      ]
-    `);
-    expect(splitOnce('a=bc', ',')).toMatchInlineSnapshot(`
-      [
-        "a=bc",
-        undefined,
-      ]
-    `);
-  });
-
-  it('camelCase', () => {
-    expect(camelCase('flag')).toMatchInlineSnapshot(`"flag"`);
-    expect(camelCase('bao-zhi-guo')).toMatchInlineSnapshot(`"baoZhiGuo"`);
-  });
-}

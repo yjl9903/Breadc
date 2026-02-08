@@ -35,8 +35,8 @@
   ],
   "scripts": {
     "build": "tsdown",
-    "test": "vitest",
     "test:ci": "vitest --run",
+    "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -44,6 +44,6 @@
   },
   "peerDependencies": {
     "@breadc/color": "workspace:*",
-    "breadc": "workspace:*"
+    "@breadc/core": "workspace:*"
   }
 }
