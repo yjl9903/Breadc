@@ -20,8 +20,8 @@ import type {
 } from './types/index.ts';
 
 import { group as makeGroup } from './group.ts';
-import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
+import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
 
 export function breadc(name: string, init: BreadcInit = {}): Breadc {
   const commands: (InternalGroup | InternalCommand)[] = [];
@@ -47,11 +47,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       Initial extends InferOptionInitialType<Spec>,
       Init extends OptionInit<Spec, Initial, unknown>
     >(spec: Spec | Option<Spec>, description?: string, init?: Init) {
-      const option =
-        typeof spec === 'string'
-          ? makeOption(spec, description, init as unknown as OptionInit<Spec, InferOptionInitialType<Spec>, unknown>)
-          : spec;
-      options.push(option as unknown as InternalOption);
+      options.push(resolveOptionInput(spec, description, init));
       return app;
     },
 
@@ -82,10 +78,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
       } else {
-        unknownOptionMiddlewares.push((_ctx, key, value) => ({
-          name: key,
-          value
-        }));
+        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware());
       }
       return app;
     },

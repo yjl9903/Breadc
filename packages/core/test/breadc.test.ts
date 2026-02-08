@@ -14,8 +14,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('builtin version command', () => {
-  it('should print unknown version', async () => {
+describe('breadc/builtin: version', () => {
+  it('print unknown version', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli');
@@ -25,7 +25,7 @@ describe('builtin version command', () => {
     expect(log).toHaveBeenCalledWith('cli/unknown');
   });
 
-  it('should print passed version', async () => {
+  it('print passed version', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli', { version: '1.0.0' });
@@ -36,8 +36,8 @@ describe('builtin version command', () => {
   });
 });
 
-describe('builtin help command', () => {
-  it('should print default help', async () => {
+describe('breadc/builtin: help', () => {
+  it('print default help', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli');
@@ -56,7 +56,7 @@ describe('builtin help command', () => {
     expect(log).toHaveBeenCalledWith(output);
   });
 
-  it('should print help when no commands matched', async () => {
+  it('print help when no commands matched', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli');
@@ -80,7 +80,7 @@ describe('builtin help command', () => {
     expect(log).toHaveBeenCalledWith(output);
   });
 
-  it('should generate rich help message output', async () => {
+  it('generate rich help message output', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli', {
@@ -109,7 +109,7 @@ describe('builtin help command', () => {
     `);
   });
 
-  it('should support custom builtin spec/description', async () => {
+  it('support custom builtin spec/description', async () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli', {
@@ -325,8 +325,8 @@ describe('builtin help command', () => {
   });
 });
 
-describe('builtin i18n', () => {
-  it('should print chinese help', async () => {
+describe('breadc/builtin: i18n', () => {
+  it('print chinese help', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     const app = breadc('cli', { i18n: 'zh' });
@@ -345,7 +345,7 @@ describe('builtin i18n', () => {
     expect(log).toHaveBeenCalledWith(output);
   });
 
-  it('should fallback for unknown translation keys', async () => {
+  it('fallback for unknown translation keys', async () => {
     const app = breadc('cli', {
       i18n: 'zh',
       version: '1.0.0',

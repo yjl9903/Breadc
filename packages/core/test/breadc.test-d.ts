@@ -13,55 +13,55 @@ import {
   argument
 } from '../src';
 
-describe('command types', () => {
-  it('should infer default command with no arguments', () => {
+describe('types/command', () => {
+  it('infer default command with no arguments', () => {
     const cmd = command('');
     expectTypeOf<(options: { '--': string[] }) => unknown>().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  it('should infer default command with one required argument', () => {
+  it('infer default command with one required argument', () => {
     const cmd = command('<arg>');
     expectTypeOf<(arg: string, options: { '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer default command with one optional argument', () => {
+  it('infer default command with one optional argument', () => {
     const cmd = command('[arg]');
     expectTypeOf<(arg: string | undefined, options: { '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer default command with one spread argument', () => {
+  it('infer default command with one spread argument', () => {
     const cmd = command('[...arg]');
     expectTypeOf<(arg: string[], options: { '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer default command with one required argument and one optional argument', () => {
+  it('infer default command with one required argument and one optional argument', () => {
     const cmd = command('<arg> [arg]');
     expectTypeOf<(arg1: string, arg2: string | undefined, options: { '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer default command with one required argument and spread argument', () => {
+  it('infer default command with one required argument and spread argument', () => {
     const cmd = command('<arg> [...arg]');
     expectTypeOf<(arg1: string, arg2: string[], options: { '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer default command with one required argument and one optional argument and spread argument', () => {
+  it('infer default command with one required argument and one optional argument and spread argument', () => {
     const cmd = command('<arg> [arg] [...arg]');
     expectTypeOf<
       (arg1: string, arg2: string | undefined, arg3: string[], options: { '--': string[] }) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  it('should infer sub-command with arguments', () => {
+  it('infer sub-command with arguments', () => {
     const cmd1 = command('dev').action(() => {});
     expectTypeOf<(options: { '--': string[] }) => unknown>().toEqualTypeOf<Parameters<(typeof cmd1)['action']>[0]>();
 
@@ -71,7 +71,7 @@ describe('command types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd2)['action']>[0]>();
   });
 
-  it('should infer sub-sub-command with arguments', () => {
+  it('infer sub-sub-command with arguments', () => {
     const cmd1 = command('dev run').action(() => {});
     expectTypeOf<(options: { '--': string[] }) => unknown>().toEqualTypeOf<Parameters<(typeof cmd1)['action']>[0]>();
 
@@ -81,7 +81,7 @@ describe('command types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd2)['action']>[0]>();
   });
 
-  it('should infer manual arguments', () => {
+  it('infer manual arguments', () => {
     const cmd1 = command('dev <arg0>')
       .argument('<arg1>')
       .argument('[arg2]')
@@ -147,7 +147,7 @@ describe('command types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd4)['action']>[0]>();
   });
 
-  it('should infer return type', () => {
+  it('infer return type', () => {
     const cmd1 = command('').action(() => 1);
     expectTypeOf<Promise<number>>().toEqualTypeOf<ReturnType<typeof cmd1>>();
 
@@ -159,36 +159,36 @@ describe('command types', () => {
   });
 });
 
-describe('option types', () => {
-  it('should infer boolean option type from command', () => {
+describe('types/option', () => {
+  it('infer boolean option type from command', () => {
     const cmd = command('').option('--flag');
     expectTypeOf<(options: { flag: boolean; '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer string option type from command', () => {
+  it('infer string option type from command', () => {
     const cmd = command('').option('--flag <arg>');
     expectTypeOf<(options: { flag: string | undefined; '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer string boolean option type from command', () => {
+  it('infer string boolean option type from command', () => {
     const cmd = command('').option('--flag [arg]');
     expectTypeOf<(options: { flag: string | boolean; '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer spread option type from command', () => {
+  it('infer spread option type from command', () => {
     const cmd = command('').option('--flag [...arg]');
     expectTypeOf<(options: { flag: string[]; '--': string[] }) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
-  it('should infer string option type with transform from command', () => {
+  it('infer string option type with transform from command', () => {
     const cmd = command('')
       .option('--flag1 <arg>', '')
       .option('--flag2 <arg>', '', { default: 'default' })
@@ -216,7 +216,7 @@ describe('option types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  it('should infer boolean option type with transform from command', () => {
+  it('infer boolean option type with transform from command', () => {
     const cmd = command('')
       .option('--flag1 [arg]', '')
       .option('--flag2 [arg]', '', { default: 'test' })
@@ -244,7 +244,7 @@ describe('option types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  it('should infer spread option type with transform from command', () => {
+  it('infer spread option type with transform from command', () => {
     const cmd = command('')
       .option('--flag1 [...arg]', '')
       .option('--flag2 [...arg]', '', { default: ['default'] })
@@ -271,7 +271,7 @@ describe('option types', () => {
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
-  // it('should infer boolean option type from group', () => {
+  // it('infer boolean option type from group', () => {
   //   const grp = group('group').option('--flag');
   //   const cmd = grp.command('');
   //   expectTypeOf<
@@ -279,7 +279,7 @@ describe('option types', () => {
   //   >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   // });
 
-  // it('should infer string option type from group', () => {
+  // it('infer string option type from group', () => {
   //   const grp = group('group').option('--flag <arg>');
   //   const cmd = grp.command('');
   //   expectTypeOf<
@@ -287,7 +287,7 @@ describe('option types', () => {
   //   >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   // });
 
-  // it('should infer string option type with default from group', () => {
+  // it('infer string option type with default from group', () => {
   //   // const grp = group('group').option('--flag <arg>', { default: 'default' });
   //   // const cmd = grp.command('');
   //   // expectTypeOf<
@@ -295,7 +295,7 @@ describe('option types', () => {
   //   // >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   // });
 
-  // it('should infer boolean option type from breadc', () => {
+  // it('infer boolean option type from breadc', () => {
   //   const grp = group('group').option('--flag');
   //   const cmd = grp.command('');
   //   expectTypeOf<
@@ -303,7 +303,7 @@ describe('option types', () => {
   //   >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   // });
 
-  // it('should infer string option type from breadc', () => {
+  // it('infer string option type from breadc', () => {
   //   const grp = group('group').option('--flag <arg>');
   //   const cmd = grp.command('');
   //   expectTypeOf<
@@ -311,7 +311,7 @@ describe('option types', () => {
   //   >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   // });
 
-  // it('should infer string option type with default from breadc', () => {
+  // it('infer string option type with default from breadc', () => {
   //   // const grp = group('group').option('--flag <arg>', { default: 'default' });
   //   // const cmd = grp.command('');
   //   // expectTypeOf<
@@ -319,9 +319,9 @@ describe('option types', () => {
   //   // >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   // });
 
-  // it('should infer options inherited from breadc and group and command', () => {});
+  // it('infer options inherited from breadc and group and command', () => {});
 
-  it('should infer camel case option type', () => {
+  it('infer camel case option type', () => {
     const cmd = breadc('cli')
       .option('--flag-breadc-top')
       .group('group')
@@ -339,8 +339,8 @@ describe('option types', () => {
   });
 });
 
-describe('middleware types', () => {
-  it('should infer middleware chain', () => {
+describe('types/middleware', () => {
+  it('infer middleware chain', () => {
     const app = breadc('cli').use((_ctx, next) => next({ data: { count: 1 } }));
     const grp = app.group('group').use((context, next) => next({ data: { ...context.data, group: 'world' } }));
     const cmd = grp.command('').use(async (context, next) => {

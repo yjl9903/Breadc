@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { option } from '../src/breadc/index.ts';
 import { resolveOption } from '../src/runtime/builder.ts';
 
-describe('option', () => {
-  it('should resolve boolean option', () => {
+describe('runtime/builder: option', () => {
+  it('resolve boolean option', () => {
     const opt = option('--flag');
     resolveOption(opt);
 
@@ -20,7 +20,7 @@ describe('option', () => {
     `);
   });
 
-  it('should resolve short and required option', () => {
+  it('resolve short and required option', () => {
     const opt = option('-f, --flag <value>');
     resolveOption(opt);
 
@@ -38,7 +38,7 @@ describe('option', () => {
     `);
   });
 
-  it('should resolve optional option', () => {
+  it('resolve optional option', () => {
     const opt = option('-o, --output [value]');
     resolveOption(opt);
 
@@ -56,7 +56,7 @@ describe('option', () => {
     `);
   });
 
-  it('should resolve spread option', () => {
+  it('resolve spread option', () => {
     const opt = option('--include [...value]');
     resolveOption(opt);
 
@@ -73,7 +73,7 @@ describe('option', () => {
     `);
   });
 
-  it('should resolve --no-* boolean option', () => {
+  it('resolve --no-* boolean option', () => {
     const opt = option('--no-open');
     resolveOption(opt);
 
@@ -91,14 +91,14 @@ describe('option', () => {
     `);
   });
 
-  it('should reject --no-* with argument', () => {
+  it('reject --no-* with argument', () => {
     expect(() => {
       const opt = option('--no-open <value>');
       resolveOption(opt);
     }).toThrowErrorMatchingInlineSnapshot(`[Error: Resolving invalid option at the option "--no-open <value>"]`);
   });
 
-  it('should reject invalid option spec', () => {
+  it('reject invalid option spec', () => {
     expect(() => {
       const opt = option('invalid');
       resolveOption(opt);

@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { resolveCommand } from '../src/runtime/builder.ts';
 import { type InternalCommand, breadc, command, argument, option } from '../src/breadc/index.ts';
 
-describe('command', () => {
-  it('should resolve const pieces', () => {
+describe('breadc/command', () => {
+  it('resolve const pieces', () => {
     const cmd = command('submodule add <abc> [def] [...rest]') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -40,7 +40,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve const pieces with spaces', () => {
+  it('resolve const pieces with spaces', () => {
     const cmd = command('   submodule    add    <abc>   [def] [...rest]') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -76,7 +76,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve after the second time', () => {
+  it('resolve after the second time', () => {
     const cmd = command('submodule add <abc> [def] [...rest]') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -112,7 +112,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve duplicated spaces', () => {
+  it('resolve duplicated spaces', () => {
     const cmd = command('submodule     add     <abc>     [def]     [...rest]') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -148,7 +148,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve alias command format', () => {
+  it('resolve alias command format', () => {
     const cmd = command('submodule add <abc> [def] [...rest]').alias('sub   add') as unknown as InternalCommand;
     resolveCommand(cmd);
     expect(cmd._pieces).toMatchInlineSnapshot(`
@@ -187,7 +187,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve default command', () => {
+  it('resolve default command', () => {
     const cmd = command('<abc> [def]') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -215,7 +215,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve multi-level sub-commands', () => {
+  it('resolve multi-level sub-commands', () => {
     const cmd = command('dev run <target>') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -239,7 +239,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve valid aliases without arguments', () => {
+  it('resolve valid aliases without arguments', () => {
     const cmd = command('dev run').alias('d r').alias('dr') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -260,7 +260,7 @@ describe('command', () => {
     `);
   });
 
-  it('should resolve custom arguments', () => {
+  it('resolve custom arguments', () => {
     const cmd = command('dev')
       .argument(argument('<arg>'))
       .argument(argument('[opt]'))
@@ -291,7 +291,7 @@ describe('command', () => {
     `);
   });
 
-  it('should allow alias to become default command', () => {
+  it('allow alias to become default command', () => {
     const cmd = command('build').alias('') as unknown as InternalCommand;
     resolveCommand(cmd);
 
@@ -306,13 +306,13 @@ describe('command', () => {
     `);
   });
 
-  it('should reject invalid argument format', () => {
+  it('reject invalid argument format', () => {
     expect(() => argument('arg')).toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving invalid argument at the command "arg", position -1]`
     );
   });
 
-  it('should accept option instances', () => {
+  it('accept option instances', () => {
     const app = breadc('cli');
     app.command('echo').option(option('--flag'));
 
@@ -324,7 +324,7 @@ describe('command', () => {
     `);
   });
 
-  it('should allow unknown options with default handler', () => {
+  it('allow unknown options with default handler', () => {
     const app = breadc('cli');
     app.command('echo').allowUnknownOption();
 
@@ -336,7 +336,7 @@ describe('command', () => {
     `);
   });
 
-  it('should register command middlewares', () => {
+  it('register command middlewares', () => {
     const cmd = command('echo') as unknown as InternalCommand;
     cmd.use((_ctx, next) => next());
     cmd.use((_ctx, next) => next());
@@ -347,7 +347,7 @@ describe('command', () => {
     expect(cmd._unknownOptionMiddlewares?.length).toMatchInlineSnapshot(`2`);
   });
 
-  it('should reject invalid custom argument ordering', async () => {
+  it('reject invalid custom argument ordering', async () => {
     await expect(async () => {
       const cmd = command('dev [opt]').argument('<req>') as unknown as InternalCommand;
       resolveCommand(cmd);
@@ -370,7 +370,7 @@ describe('command', () => {
     );
   });
 
-  it('should find invalid required arguments', async () => {
+  it('find invalid required arguments', async () => {
     await expect(async () => {
       const cmd = command('submodule add <') as unknown as InternalCommand;
       resolveCommand(cmd);
@@ -442,7 +442,7 @@ describe('command', () => {
     );
   });
 
-  it('should find invalid optional arguments', async () => {
+  it('find invalid optional arguments', async () => {
     await expect(async () => {
       const cmd = command('submodule add [') as unknown as InternalCommand;
       resolveCommand(cmd);
@@ -494,7 +494,7 @@ describe('command', () => {
     );
   });
 
-  it('should find invalid spread arguments', async () => {
+  it('find invalid spread arguments', async () => {
     await expect(async () => {
       const cmd = command('submodule add [...') as unknown as InternalCommand;
       resolveCommand(cmd);

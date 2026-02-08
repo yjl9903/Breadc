@@ -4,8 +4,8 @@ import { resolveGroup } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { type InternalGroup, breadc, group, command, option } from '../src/breadc/index.ts';
 
-describe('group', () => {
-  it('should resolve pieces', () => {
+describe('breadc/group', () => {
+  it('resolve pieces', () => {
     const grp = group(' dev   tools ') as unknown as InternalGroup;
     resolveGroup(grp);
 
@@ -19,7 +19,7 @@ describe('group', () => {
     `);
   });
 
-  it('should reuse resolved pieces and allow unknown options by default', () => {
+  it('reuse resolved pieces and allow unknown options by default', () => {
     const grp = group('dev tools') as unknown as InternalGroup;
     grp.allowUnknownOption();
 
@@ -43,20 +43,20 @@ describe('group', () => {
     `);
   });
 
-  it('should reject empty spec', () => {
+  it('reject empty spec', () => {
     expect(() => group('')).toThrowErrorMatchingInlineSnapshot(
       `[Error: Group spec should not be empty at the command "", position 0]`
     );
   });
 
-  it('should reject arguments in group spec', () => {
+  it('reject arguments in group spec', () => {
     const grp = group('dev <path>') as unknown as InternalGroup;
     expect(() => resolveGroup(grp)).toThrowErrorMatchingInlineSnapshot(
       `[Error: Resolving argument in group spec at the command "dev <path>", position 4]`
     );
   });
 
-  it('should register existing group and command instances', () => {
+  it('register existing group and command instances', () => {
     const app = breadc('cli');
     const grp = group('store');
     const cmd = command('echo');
@@ -68,7 +68,7 @@ describe('group', () => {
     expect(Object.is(registeredCommand, cmd as unknown)).toMatchInlineSnapshot(`true`);
   });
 
-  it('should accept option and command instances', () => {
+  it('accept option and command instances', () => {
     const grp = group('store') as unknown as InternalGroup;
     const opt = option('--flag');
     const cmd = command('echo');

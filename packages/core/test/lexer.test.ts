@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 
 import { TokenStream } from '../src/runtime/lexer.ts';
 
-describe('token stream', () => {
-  it('should list all arguments', () => {
+describe('runtime/lexer: token stream', () => {
+  it('list all arguments', () => {
     const lexer = new TokenStream(['a', 'b', 'c']);
     expect([...lexer]).toMatchInlineSnapshot(`
       [
@@ -79,7 +79,7 @@ describe('token stream', () => {
     `);
   });
 
-  it('should treat token as string', () => {
+  it('treat token as string', () => {
     const lexer = new TokenStream(['abc', 'bc', 'c']);
     const token = lexer.next()!;
     expect(token.length).toMatchInlineSnapshot(`3`);

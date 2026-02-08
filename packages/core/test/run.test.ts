@@ -9,7 +9,7 @@ beforeAll(() => {
   colorOptions.enabled = false;
 });
 
-describe('runtime', () => {
+describe('runtime/run', () => {
   it('passes arguments to action and returns result', async () => {
     const app = breadc('cli');
     app.command('echo <first> [second]').action((first, second, options) => [first, second, options]);

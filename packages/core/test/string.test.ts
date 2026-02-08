@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { camelCase, splitOnce, stripPrefix } from '../src/utils/string';
 
-describe('string', () => {
+describe('utils/string', () => {
   it('stripPrefix', () => {
     expect(stripPrefix('abc', 'a')).toMatchInlineSnapshot(`"bc"`);
     expect(stripPrefix('abc', 'd')).toMatchInlineSnapshot(`undefined`);

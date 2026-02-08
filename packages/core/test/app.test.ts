@@ -6,8 +6,8 @@ import { resolveCommand } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { breadc, group, command, option } from '../src/breadc/index.ts';
 
-describe('app', () => {
-  it('should accept option instances', () => {
+describe('breadc/app', () => {
+  it('accept option instances', () => {
     const opt = option('--flag');
     const app = breadc('cli').option(opt);
     const result = app.parse(['--flag']);
@@ -18,7 +18,7 @@ describe('app', () => {
     `);
   });
 
-  it('should register default unknown option middleware', () => {
+  it('register default unknown option middleware', () => {
     const app = breadc('cli');
     app.allowUnknownOption();
 
@@ -39,7 +39,7 @@ describe('app', () => {
     `);
   });
 
-  it('should pass description into command init', () => {
+  it('pass description into command init', () => {
     const app = breadc('cli');
     const cmd = app.command('ping', 'Ping command');
 
@@ -52,7 +52,7 @@ describe('app', () => {
     `);
   });
 
-  it('should accept prebuilt group and command', () => {
+  it('accept prebuilt group and command', () => {
     const app = breadc('cli');
     const grp = group('store');
     const cmd = command('echo');

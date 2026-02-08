@@ -5,7 +5,7 @@ import type { InternalBreadc } from '../src/breadc/index.ts';
 import { breadc } from '../src/breadc/app.ts';
 import { BreadcAppError, RuntimeError } from '../src/error.ts';
 
-describe('parse behavior', () => {
+describe('runtime/parser: command matching', () => {
   it('matches a single default command', () => {
     const app = breadc('cli');
     app.command('<name>');
@@ -225,7 +225,7 @@ describe('parse behavior', () => {
   });
 });
 
-describe('argument matching', () => {
+describe('runtime/parser: arguments', () => {
   it('matches required/optional arguments and leaves remaining args', () => {
     const app = breadc('cli');
     app.command('echo <first> [second]');
@@ -413,7 +413,7 @@ describe('argument matching', () => {
   });
 });
 
-describe('options behavior', () => {
+describe('runtime/parser: options', () => {
   it('parses short boolean options', () => {
     const app = breadc('cli');
     app.option('-f, --flag');
@@ -604,7 +604,7 @@ describe('options behavior', () => {
     `);
   });
 
-  it('should parse long options', () => {
+  it('parse long options', () => {
     const app = breadc('cli').option('--flag').option('--mode [value]');
     app.command('echo');
 
@@ -673,7 +673,7 @@ describe('options behavior', () => {
   });
 });
 
-describe('unknown options', () => {
+describe('runtime/parser: unknown options', () => {
   it('allows unknown options', () => {
     const app = breadc('cli').allowUnknownOption();
 
@@ -803,7 +803,7 @@ describe('unknown options', () => {
   });
 });
 
-describe('option layering', () => {
+describe('runtime/parser: option layering', () => {
   it('prefers command options over group and app options', () => {
     const app = breadc('cli');
     app.option('-f, --flag', '', { cast: () => 'app' });
@@ -870,7 +870,7 @@ describe('option layering', () => {
   });
 });
 
-describe('other parsing rules', () => {
+describe('runtime/parser: other rules', () => {
   it('treats negative numbers as arguments, not short options', () => {
     const app = breadc('cli').option('-n, --number <value>');
     app.command('calc <value>');
@@ -906,7 +906,7 @@ describe('other parsing rules', () => {
   });
 });
 
-describe('parse errors', () => {
+describe('runtime/parser: errors', () => {
   it('throws on missing required arguments', () => {
     const app = breadc('cli');
     app.command('echo <name>');

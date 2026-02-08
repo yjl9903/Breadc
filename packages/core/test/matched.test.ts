@@ -8,7 +8,7 @@ import { resolveOption } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
 
-describe('matched argument', () => {
+describe('runtime/matched: argument', () => {
   it('uses default when not dirty and applies cast when dirty', () => {
     const app = breadc('cli');
     const ctx = makeContext(app, []);
@@ -92,7 +92,7 @@ describe('matched argument', () => {
   });
 });
 
-describe('matched option', () => {
+describe('runtime/matched: option', () => {
   it('reads optional value from next token', () => {
     const app = breadc('cli');
     const opt = option('-o, --output [value]');

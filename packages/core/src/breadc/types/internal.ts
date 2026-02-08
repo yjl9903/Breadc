@@ -131,7 +131,7 @@ export type InternalCommand = Command & {
   /**
    * @internal
    */
-  _actionFn?: Function;
+  _actionFn?: (...args: any[]) => unknown;
 };
 
 export type OptionType = 'boolean' | 'required' | 'optional' | 'spread';

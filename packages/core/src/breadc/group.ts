@@ -3,7 +3,6 @@ import { ResolveGroupError } from '../error.ts';
 import type {
   ActionMiddleware,
   UnknownOptionMiddleware,
-  InternalBreadc,
   Option,
   OptionInit,
   InternalOption,
@@ -16,8 +15,8 @@ import type {
   InternalCommand
 } from './types/index.ts';
 
-import { option as makeOption } from './option.ts';
 import { command as makeCommand } from './command.ts';
+import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
 
 export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: I): Group<S, I, {}, {}> {
   if (!spec) {
@@ -44,11 +43,7 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
       description?: string,
       init?: I
     ) {
-      const option =
-        typeof spec === 'string'
-          ? makeOption(spec, description, init as unknown as OptionInit<Spec, InferOptionInitialType<Spec>, unknown>)
-          : spec;
-      options.push(option as unknown as InternalOption);
+      options.push(resolveOptionInput(spec, description, init));
       return group;
     },
 
@@ -68,10 +63,7 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
       } else {
-        unknownOptionMiddlewares.push((_ctx, key, value) => ({
-          name: key,
-          value
-        }));
+        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware());
       }
       return group;
     }

@@ -19,7 +19,7 @@ import type {
   InferArgumentRawType
 } from './types/index.ts';
 
-import { option as makeOption } from './option.ts';
+import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
 
 export function command<S extends string, I extends CommandInit<S>>(
   spec: S,
@@ -64,11 +64,7 @@ export function command<S extends string, I extends CommandInit<S>>(
     description?: string,
     init?: I
   ) => {
-    const option =
-      typeof spec === 'string'
-        ? makeOption(spec, description, init as unknown as OptionInit<Spec, InferOptionInitialType<Spec>, unknown>)
-        : spec;
-    options.push(option as unknown as InternalOption);
+    options.push(resolveOptionInput(spec, description, init));
     return run;
   };
 
@@ -87,15 +83,12 @@ export function command<S extends string, I extends CommandInit<S>>(
     if (typeof middleware === 'function') {
       run._unknownOptionMiddlewares.push(middleware);
     } else {
-      run._unknownOptionMiddlewares.push((_ctx, key, value) => ({
-        name: key,
-        value
-      }));
+      run._unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware());
     }
     return run;
   };
 
-  run.action = (fn: Function) => {
+  run.action = (fn: (...args: any[]) => unknown) => {
     run._actionFn = fn;
     return run as any;
   };

@@ -80,9 +80,9 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
   ): Breadc<InferMiddlewareData<Middleware>, Options>;
 
   /**
-   * Allow unknown option middleware
+   * Unknown command middleware
    */
-  onUnknownCommand(middleware?: boolean | UnknownCommandMiddleware<Data>): Breadc<Data, Options>;
+  onUnknownCommand(middleware?: UnknownCommandMiddleware<Data>): Breadc<Data, Options>;
 
   /**
    * Allow unknown option middleware
@@ -151,7 +151,7 @@ export type Group<
     init?: I
   ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
   command<S extends string, I extends CommandInit<S>>(
-    command: Command<S, I, Options>
+    command: Command<S, I, Data, Options>
   ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
 
   /**
@@ -171,7 +171,7 @@ export type Command<
   Spec extends string = string,
   Init extends CommandInit<Spec> = CommandInit<Spec>,
   Data extends {} = {},
-  Options extends Record<never, never> = {},
+  Options extends Record<never, never> = Record<never, never>,
   Arguments extends unknown[] = InferArgumentsType<Spec>,
   Return extends unknown = unknown
 > = {
