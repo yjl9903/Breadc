@@ -1,8 +1,18 @@
-# @breadc/core
+# 🥪 Breadc
 
-[![version](https://img.shields.io/npm/v/breadc?label=Breadc)](https://www.npmjs.com/package/breadc) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/yjl9903/Breadc/branch/main/graph/badge.svg?token=F7PGOG62EF)](https://codecov.io/gh/yjl9903/Breadc)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yjl9903/Breadc)
+[![version](https://img.shields.io/npm/v/breadc?label=Breadc)](https://www.npmjs.com/package/breadc)
+[![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/yjl9903/Breadc/branch/main/graph/badge.svg?token=F7PGOG62EF)](https://codecov.io/gh/yjl9903/Breadc)
 
-Yet another Command Line Application Framework with fully strong **[TypeScript](https://www.typescriptlang.org/) support**.
+Yet another **Command Line Application Framework** desgined for **[TypeScript](https://www.typescriptlang.org/)**.
+
+- **TypeScript Infer**: infer command arguments, option values, and action signatures in IDE automatically
+- **Command**: support default command, command alias, and nested sub-commands like `git remote add <name> <url>`
+- **Group**: organize commands by modules and build large multi-command CLI applications with clear structure
+- **Option**: support boolean, required, optional, spread options, `--no-*` negation, and `--` passthrough arguments
+- **Middleware**: support middleware pipeline and unknown option handling
+- **Builtin CLI Features**: provide common help / version options and i18n support out of the box
 
 ![vscode](https://raw.githubusercontent.com/yjl9903/Breadc/v1.0.0-beta.1/assets/typescript.png)
 
@@ -39,8 +49,9 @@ If you are using IDEs that support TypeScript (like [Visual Studio Code](https:/
 
 ## Inspiration
 
-+ [cac](https://github.com/cacjs/cac): Simple yet powerful framework for building command-line apps.
-+ [TypeScript: Documentation - Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+- [cac](https://github.com/cacjs/cac): Simple yet powerful framework for building command-line apps.
+- [Commander.js](https://github.com/tj/commander.js): Node.js command-line interfaces made easy.
+- [TypeScript: Documentation - Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
 
 ## License
 
