@@ -1,8 +1,12 @@
 import { beforeEach, afterEach, vi, describe, it, expect } from 'vitest';
 
+import { options as colorOptions } from '@breadc/color';
+
 import { breadc } from '../src/breadc/index.ts';
 
 beforeEach(() => {
+  colorOptions.enabled = false;
+
   vi.spyOn(console, 'log').mockImplementation(() => {});
 });
 
