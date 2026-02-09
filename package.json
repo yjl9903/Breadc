@@ -32,5 +32,5 @@
     "vitepress": "^1.6.4",
     "vitest": "^4.0.18"
   },
-  "packageManager": "pnpm@10.29.1"
+  "packageManager": "pnpm@10.29.2"
 }
