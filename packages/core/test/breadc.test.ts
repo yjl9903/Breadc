@@ -159,8 +159,6 @@ describe('breadc/builtin: help', () => {
       Options:
             --host <addr>  Host address
             --region <id>  Region
-            --long         Long list
-            --force        Force remove
         -h, --help         Print help
         -v, --version      Print version
       "
@@ -244,8 +242,6 @@ describe('breadc/builtin: help', () => {
 
       Options:
             --host <addr>  Host address
-            --watch        Watch mode
-            --coverage     Enable coverage
         -h, --help         Print help
         -v, --version      Print version
       "
@@ -297,6 +293,56 @@ describe('breadc/builtin: help', () => {
     `);
   });
 
+  it('collects default command options when printing root help', async () => {
+    const app = breadc('cli').option('--host <addr>', 'Host address');
+    app.command('[entry]', 'Run app').option('--watch', 'Watch mode');
+    app.command('build test', 'Build test').option('--coverage', 'Coverage report');
+
+    const output = await app.run<string>(['-h']);
+    expect(output).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS] [COMMAND]
+
+      Commands:
+        cli             Run app
+        cli build test  Build test
+
+      Options:
+            --host <addr>  Host address
+            --watch        Watch mode
+        -h, --help         Print help
+        -v, --version      Print version
+      "
+    `);
+  });
+
+  it('collects matched group command options when printing group help', async () => {
+    const app = breadc('cli').option('--host <addr>', 'Host address');
+    const store = app.group('store').option('--region <id>', 'Region');
+    store.command('[path]', 'List files').option('--long', 'Long list');
+    store.command('rm', 'Remove files').option('--force', 'Force remove');
+
+    const output = await app.run<string>(['store', '-h']);
+    expect(output).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS] <COMMAND>
+
+      Commands:
+        cli store [path]  
+        cli store rm      
+
+      Options:
+            --host <addr>  Host address
+            --region <id>  Region
+            --long         Long list
+        -h, --help         Print help
+        -v, --version      Print version
+      "
+    `);
+  });
+
   it('ignores unmatched group options/commands when showing non-group help', async () => {
     const app = breadc('cli').option('--host <addr>', 'Host address');
     const store = app.group('store').option('--region <id>', 'Region');
@@ -315,7 +361,6 @@ describe('breadc/builtin: help', () => {
 
       Options:
             --host <addr>  Host address
-            --watch        Watch mode
         -h, --help         Print help
         -v, --version      Print version
       "

@@ -69,7 +69,7 @@ function formatCommand(command: InternalCommand) {
   return pieces && args ? `${pieces} ${args}` : pieces;
 }
 
-function commandMatched(command: InternalGroup | InternalCommand, prefix: string[]) {
+function commandStartsWith(command: InternalGroup | InternalCommand, prefix: string[]) {
   if (prefix.length === 0) {
     return true;
   }
@@ -81,6 +81,28 @@ function commandMatched(command: InternalGroup | InternalCommand, prefix: string
 
     let ok = true;
     for (let i = 0; i < prefix.length; i++) {
+      if (pieces[i] !== prefix[i]) {
+        ok = false;
+        break;
+      }
+    }
+
+    if (ok) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function commandIncludes(command: InternalGroup | InternalCommand, prefix: string[]) {
+  for (const pieces of command._pieces) {
+    if (pieces.length > prefix.length) {
+      continue;
+    }
+
+    let ok = true;
+    for (let i = 0; i < pieces.length; i++) {
       if (pieces[i] !== prefix[i]) {
         ok = false;
         break;
@@ -116,17 +138,20 @@ function collect(context: Context, pieces: string[]) {
       buildGroup(group);
       allCommands.push(...group._commands);
 
-      if (commandMatched(group, pieces)) {
+      if (commandIncludes(group, pieces)) {
         for (const option of group._options) {
           append(option);
         }
       }
 
       for (const command of group._commands) {
-        if (commandMatched(command, pieces)) {
+        if (commandStartsWith(command, pieces)) {
           commands.push(command);
-          for (const option of command._options) {
-            append(option);
+
+          if (commandIncludes(command, pieces)) {
+            for (const option of command._options) {
+              append(option);
+            }
           }
         }
       }
@@ -134,10 +159,13 @@ function collect(context: Context, pieces: string[]) {
       resolveCommand(command);
       allCommands.push(command);
 
-      if (commandMatched(command, pieces)) {
+      if (commandStartsWith(command, pieces)) {
         commands.push(command);
-        for (const option of command._options) {
-          append(option);
+
+        if (commandIncludes(command, pieces)) {
+          for (const option of command._options) {
+            append(option);
+          }
         }
       }
     }
