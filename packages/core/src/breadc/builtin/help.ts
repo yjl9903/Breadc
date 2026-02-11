@@ -198,12 +198,12 @@ export function printHelp(context: Context) {
 
   const usage =
     allCommands.length === 0
-      ? '[OPTIONS]'
+      ? `[${i18n(context, 'OPTIONS')}]`
       : allCommands.length === 1
-        ? `[OPTIONS] ${formatCommand(allCommands[0])}`
+        ? `[${i18n(context, 'OPTIONS')}] ${formatCommand(allCommands[0])}`
         : allCommands.some((command) => command._default)
-          ? '[OPTIONS] [COMMAND]'
-          : '[OPTIONS] <COMMAND>';
+          ? `[${i18n(context, 'OPTIONS')}] [${i18n(context, 'COMMAND')}]`
+          : `[${i18n(context, 'OPTIONS')}] <${i18n(context, 'COMMAND')}>`;
 
   const output: HelpMessage = [
     `${breadc.name}/${breadc._init.version ?? 'unknown'}`,

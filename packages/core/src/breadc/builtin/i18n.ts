@@ -1,6 +1,8 @@
 import type { Context } from '../../runtime/context';
 
 export const en: Record<string, string> = {
+  OPTIONS: 'OPTIONS',
+  COMMAND: 'COMMAND',
   'Usage:': 'Usage:',
   'Commands:': 'Commands:',
   'Options:': 'Options:',
@@ -9,7 +11,9 @@ export const en: Record<string, string> = {
 };
 
 export const zh: Record<string, string> = {
-  'Usage:': '使用:',
+  OPTIONS: '选项',
+  COMMAND: '子命令',
+  'Usage:': '用法:',
   'Commands:': '命令:',
   'Options:': '选项:',
   'Print help': '显示帮助信息',

@@ -380,7 +380,7 @@ describe('breadc/builtin: i18n', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      使用: cli [OPTIONS]
+      用法: cli [选项]
 
       选项:
         -h, --help     显示帮助信息
@@ -404,7 +404,7 @@ describe('breadc/builtin: i18n', () => {
 
       This is a cli app.
 
-      使用: cli [OPTIONS] <COMMAND>
+      用法: cli [选项] <子命令>
 
       命令:
         cli dev    Start dev server
