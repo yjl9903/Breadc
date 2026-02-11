@@ -12,9 +12,7 @@ export function resolveOptionInput<Spec extends string, Init extends OptionInit<
   return resolved as unknown as InternalOption;
 }
 
-export function defaultUnknownOptionMiddleware<Data extends {} = {}>(): UnknownOptionMiddleware<Data> {
-  return (_ctx, key, value) => ({
-    name: key,
-    value
-  });
-}
+export const defaultUnknownOptionMiddleware: UnknownOptionMiddleware<any> = (_ctx, key, value) => ({
+  name: key,
+  value
+});

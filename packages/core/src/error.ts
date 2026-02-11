@@ -18,6 +18,8 @@ type RuntimeErrorInput = RuntimeErrorCause & {
 };
 
 export class RuntimeError extends BreadcError {
+  static UNEXPECTED_ARGUMENTS = 'Detect unexpected redundant arguments';
+
   static REQUIRED_ARGUMENT_MISSING = 'Missing required argument';
 
   static OPTIONAL_ARGUMENT_ACCEPT_ONCE = 'Optional argument can only be assigned once';
@@ -48,6 +50,7 @@ export class RuntimeError extends BreadcError {
 }
 
 type BreadcAppErrorCause = {
+  group?: InternalGroup;
   command?: InternalCommand;
   commands?: (InternalCommand | InternalGroup)[];
 };
@@ -58,6 +61,8 @@ type BreadcAppErrorInput = BreadcAppErrorCause & {
 
 export class BreadcAppError extends BreadcError {
   static DUPLICATED_DEFAULT_COMMAND = `Find duplicated default commands`;
+
+  static DUPLICATED_DEFAULT_GROUP_COMMAND = `Find duplicated default group commands`;
 
   static DUPLICATED_GROUP = `Find duplicated groups`;
 

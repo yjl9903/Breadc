@@ -30,14 +30,19 @@ export function parse(app: Breadc, argv: string[]) {
   const onlyDefaultCommand = defaultCommand !== undefined && context.breadc._commands.length === 1;
 
   // 3. Parse without default command
-  doParse(context, onlyDefaultCommand ? defaultCommand : undefined);
+  doParse(context, undefined, onlyDefaultCommand ? defaultCommand : undefined);
 
   if (context.command || isVersion(context) || isHelp(context)) {
     // 4.1. Parse ok
-  } else if (defaultCommand) {
-    // 4.2. Parse with default command
+  } else if (context.group) {
+    // 4.2. Parse with group default command
+    const matchedGroup = context.group;
     reset(context);
-    doParse(context, defaultCommand);
+    doParse(context, matchedGroup, undefined);
+  } else if (defaultCommand) {
+    // 4.3. Parse with default command
+    reset(context);
+    doParse(context, undefined, defaultCommand);
   }
 
   return context;
@@ -72,7 +77,11 @@ export function isVersion(context: Context<any>) {
   }
 }
 
-function doParse(context: Context, defaultCommand: InternalCommand | undefined) {
+function doParse(
+  context: Context,
+  defaultGroup: InternalGroup | undefined,
+  defaultCommand: InternalCommand | undefined
+) {
   const { breadc, tokens, options: matchedOptions } = context;
 
   let index = 0;
@@ -130,12 +139,8 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   if (defaultCommand) {
     matchedCommand = defaultCommand;
 
-    for (const command of breadc._commands) {
-      if (command._default) {
-        buildCommand(command);
-        addPendingOptions(command._options);
-      }
-    }
+    buildCommand(defaultCommand);
+    addPendingOptions(defaultCommand._options);
   } else {
     for (const command of breadc._commands) {
       if (!command._default) {
@@ -178,9 +183,33 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
 
             buildGroup(group);
             addPendingOptions(group._options);
-            for (const command of group._commands) {
-              for (let alias = 0; alias < command._pieces.length; alias++) {
-                addPendingCommand(command, alias);
+
+            if (matchedGroup && matchedGroup === defaultGroup) {
+              // Match group default command
+              const defaultCommands = matchedGroup._commands.filter((command) =>
+                command._pieces.some((p) => p.length === index)
+              );
+              if (defaultCommands.length === 1) {
+                const defaultCommand = defaultCommands[0];
+                matchedCommand = defaultCommand;
+                buildCommand(defaultCommand);
+                addPendingOptions(defaultCommand._options);
+              } else if (defaultCommands.length > 1) {
+                throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_GROUP_COMMAND, {
+                  context,
+                  group: matchedGroup,
+                  commands: defaultCommands
+                });
+              }
+            } else {
+              for (const command of group._commands) {
+                for (let alias = 0; alias < command._pieces.length; alias++) {
+                  // Skip group default command
+                  if (command._pieces[alias].length === index) {
+                    continue;
+                  }
+                  addPendingCommand(command, alias);
+                }
               }
             }
           } else {
@@ -245,8 +274,12 @@ function doParse(context: Context, defaultCommand: InternalCommand | undefined) 
   context.group = matchedGroup;
   context.command = matchedCommand;
 
-  // Fulfill the matched arguments
   if (matchedCommand) {
+    if (unknown.length > 0) {
+      throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });
+    }
+
+    // Fulfill the matched arguments
     let i = 0;
     for (; i < matchedCommand._arguments.length; i++) {
       const argument = matchedCommand._arguments[i];

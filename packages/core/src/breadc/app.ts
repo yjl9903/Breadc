@@ -78,7 +78,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
       } else {
-        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware());
+        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware);
       }
       return app;
     },

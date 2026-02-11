@@ -81,6 +81,47 @@ describe('runtime/parser: command matching', () => {
     `);
   });
 
+  it('matches default command inside a matched group', () => {
+    const app = breadc('cli');
+    const store = app.group('store');
+    store.command('<name>');
+    store.command('ls');
+
+    const result = app.parse(['store', 'readme.md']);
+    expect(result.context.group?.spec).toMatchInlineSnapshot(`"store"`);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"<name>"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "store",
+      ]
+    `);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "readme.md",
+      ]
+    `);
+  });
+
+  it('keeps group unmatched when it has no default command', () => {
+    const app = breadc('cli');
+    const store = app.group('store');
+    store.command('ls');
+
+    const result = app.parse(['store', 'readme.md']);
+    expect(result.context.group?.spec).toMatchInlineSnapshot(`"store"`);
+    expect(result.context.command).toBeUndefined();
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "store",
+      ]
+    `);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "readme.md",
+      ]
+    `);
+  });
+
   it('registers builtin help option when custom spec is provided', () => {
     const app = breadc('cli', {
       builtin: {
@@ -936,5 +977,23 @@ describe('runtime/parser: errors', () => {
     app.command('dev');
 
     expect(() => app.parse(['dev'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
+  });
+
+  it('throws on duplicated default commands inside a matched group', () => {
+    const app = breadc('cli');
+    const store = app.group('store');
+    store.command('<one>');
+    store.command('<two>');
+
+    expect(() => app.parse(['store', 'value'])).toThrowError(BreadcAppError.DUPLICATED_DEFAULT_GROUP_COMMAND);
+  });
+
+  it('throws when unknown arguments appear before matched group default command', () => {
+    const app = breadc('cli');
+    const store = app.group('store');
+    store.command('<name>');
+    store.command('ls');
+
+    expect(() => app.parse(['unknown', 'store', 'readme.md'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 });

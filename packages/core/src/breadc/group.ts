@@ -47,8 +47,9 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
       return group;
     },
 
-    command<S extends string, I extends CommandInit<S>>(spec: S | Command<S>, init?: I) {
-      const command = typeof spec === 'string' ? makeCommand(spec, init) : spec;
+    command<S extends string, I extends CommandInit<S>>(spec: S | Command<S>, description?: string, init?: I) {
+      const command =
+        typeof spec === 'string' ? makeCommand(spec, description || init ? { description, ...init } : undefined) : spec;
       (command as unknown as InternalCommand)._group = group;
       commands.push(command as unknown as InternalCommand);
       return command;
@@ -63,7 +64,7 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
       if (typeof middleware === 'function') {
         unknownOptionMiddlewares.push(middleware);
       } else {
-        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware());
+        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware);
       }
       return group;
     }

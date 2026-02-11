@@ -83,7 +83,7 @@ export function command<S extends string, I extends CommandInit<S>>(
     if (typeof middleware === 'function') {
       run._unknownOptionMiddlewares.push(middleware);
     } else {
-      run._unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware());
+      run._unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware);
     }
     return run;
   };

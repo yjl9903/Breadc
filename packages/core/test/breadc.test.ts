@@ -153,8 +153,8 @@ describe('breadc/builtin: help', () => {
       Usage: cli [OPTIONS] <COMMAND>
 
       Commands:
-        cli store ls  
-        cli store rm  
+        cli store ls  List files
+        cli store rm  Remove files
 
       Options:
             --host <addr>  Host address
@@ -330,8 +330,8 @@ describe('breadc/builtin: help', () => {
       Usage: cli [OPTIONS] <COMMAND>
 
       Commands:
-        cli store [path]  
-        cli store rm      
+        cli store [path]  List files
+        cli store rm      Remove files
 
       Options:
             --host <addr>  Host address
