@@ -33,9 +33,6 @@
       "@breadc/death": [
         "./packages/death/src/index.ts"
       ],
-      "@breadc/logger": [
-        "./packages/logger/src/index.ts"
-      ],
       "@breadc/tui": [
         "./packages/tui/src/index.ts"
       ],

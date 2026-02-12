@@ -112,15 +112,6 @@ importers:
 
   packages/death: {}
 
-  packages/logger:
-    dependencies:
-      '@breadc/color':
-        specifier: workspace:*
-        version: link:../color
-      std-env:
-        specifier: ^3.10.0
-        version: 3.10.0
-
   packages/tui:
     dependencies:
       '@breadc/color':

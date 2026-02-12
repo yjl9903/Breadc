@@ -4,7 +4,7 @@
 
 Breadc is a command-line application framework with fully strong TypeScript support.
 
-Breadc is a pnpm/turbo monorepo. Core libraries live under `packages/*`. `packages/core` is the working-in-progress framework runtime code, while `packages/breadc` is the legacy framework code which is planned to be deprecated. Other CLI utilities sit in sibling packages like `logger`, and `spinner`.
+Breadc is a pnpm/turbo monorepo. Core libraries live under `packages/*`. `packages/core` is the working-in-progress framework runtime code, while `packages/breadc` is the legacy framework code which is planned to be deprecated. Other CLI utilities sit in sibling packages like `complete`, `death`, and `tui`.
 
 Related CLI toolchains reside in `apps/*`, which is also working-in-progess.
 
@@ -34,4 +34,4 @@ Vitest powers the test suite. Store spec files in `test/` with `.test.ts` suffix
 
 ## Commit & Pull Request Guidelines
 
-Adopt conventional commits as seen in history (`feat(core):`, `chore:`). Scope changes to the affected package (`feat(logger):`) or domain (`docs:`). Before pushing, run `pnpm build` and `pnpm test:ci` to catch regressions. Pull requests should summarize intent, link issues, call out doc updates, and add CLI output or screenshots when UX shifts. Request review once CI succeeds and any release notes or changelog updates are ready.
+Adopt conventional commits as seen in history (`feat(core):`, `chore:`). Scope changes to the affected package (`feat(core):`) or domain (`docs:`). Before pushing, run `pnpm build` and `pnpm test:ci` to catch regressions. Pull requests should summarize intent, link issues, call out doc updates, and add CLI output or screenshots when UX shifts. Request review once CI succeeds and any release notes or changelog updates are ready.
