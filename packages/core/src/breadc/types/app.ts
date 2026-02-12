@@ -256,7 +256,7 @@ export type Command<
    * Bind action function
    */
   action<R extends unknown>(
-    fn: (...args: [...Arguments, Prettify<Options & { '--': string[] }>]) => Promise<R> | R
+    fn: (...args: [...Arguments, Prettify<Options & { '--': string[] }>, Context<Data>]) => Promise<R> | R
   ): Command<Spec, Init, Data, Options, Arguments, R>;
 
   /**

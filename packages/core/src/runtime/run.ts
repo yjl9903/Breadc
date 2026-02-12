@@ -50,7 +50,7 @@ export async function run(app: Breadc, argv: string[]) {
   if (context.command._actionFn) {
     const actionFn = context.command._actionFn;
     if (actionMiddlewares.length === 0) {
-      const output = await actionFn(...args, options);
+      const output = await actionFn(...args, options, context);
       return output;
     } else {
       const invoked: boolean[] = [];
@@ -61,7 +61,7 @@ export async function run(app: Breadc, argv: string[]) {
           }
           invoked[index] = true;
           if (index === actionMiddlewares.length) {
-            context.output = await actionFn(...args, options);
+            context.output = await actionFn(...args, options, context);
           } else {
             const next = makeNextFn(index + 1);
             await actionMiddlewares[index](context, next);
