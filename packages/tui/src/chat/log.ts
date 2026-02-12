@@ -16,12 +16,24 @@ const LOG_LEVEL_COLOR: Record<LogLevel, (text: string) => string> = {
   error: red
 };
 
-export function defaultLogFormatter(entry: LogEntry): string {
-  if (entry.level === 'log') {
-    return entry.message;
-  }
+export interface LogFormatterOptions {
+  tag?: string;
 
-  const color = LOG_LEVEL_COLOR[entry.level];
-  const prefix = color(`[${LOG_LEVEL_PREFIX[entry.level]}]`);
-  return `${prefix} ${entry.message}`;
+  columns: number;
+
+  isTTY: boolean;
+}
+
+export function defaultLogFormatter(entry: LogEntry, options: LogFormatterOptions): string {
+  if (options.isTTY) {
+    if (entry.level === 'log') {
+      return entry.message;
+    }
+
+    const color = LOG_LEVEL_COLOR[entry.level];
+    const prefix = color(`[${LOG_LEVEL_PREFIX[entry.level]}]`);
+    return `${prefix} ${entry.message}`;
+  } else {
+    return `[${LOG_LEVEL_PREFIX[entry.level]}] ${entry.message}`;
+  }
 }
