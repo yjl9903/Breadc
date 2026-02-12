@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { progress } from '../src';
+import { progress } from '../src/progress/index.ts';
 
 describe('Progress', () => {
   it('should print progress', () => {

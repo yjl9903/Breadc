@@ -10,74 +10,99 @@ import {
   group,
   option,
   command,
-  argument
+  argument,
+  Context
 } from '../src';
 
 describe('types/command', () => {
   it('infer default command with no arguments', () => {
     const cmd = command('');
-    expectTypeOf<(options: { '--': string[] }) => unknown>().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
+    expectTypeOf<(options: { '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
+      Parameters<(typeof cmd)['action']>[0]
+    >();
   });
 
   it('infer default command with one required argument', () => {
     const cmd = command('<arg>');
-    expectTypeOf<(arg: string, options: { '--': string[] }) => unknown>().toEqualTypeOf<
+    expectTypeOf<(arg: string, options: { '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
   it('infer default command with one optional argument', () => {
     const cmd = command('[arg]');
-    expectTypeOf<(arg: string | undefined, options: { '--': string[] }) => unknown>().toEqualTypeOf<
-      Parameters<(typeof cmd)['action']>[0]
-    >();
+    expectTypeOf<
+      (arg: string | undefined, options: { '--': string[] }, context: Context<{}>) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
   it('infer default command with one spread argument', () => {
     const cmd = command('[...arg]');
-    expectTypeOf<(arg: string[], options: { '--': string[] }) => unknown>().toEqualTypeOf<
+    expectTypeOf<(arg: string[], options: { '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
   it('infer default command with one required argument and one optional argument', () => {
     const cmd = command('<arg> [arg]');
-    expectTypeOf<(arg1: string, arg2: string | undefined, options: { '--': string[] }) => unknown>().toEqualTypeOf<
-      Parameters<(typeof cmd)['action']>[0]
-    >();
+    expectTypeOf<
+      (arg1: string, arg2: string | undefined, options: { '--': string[] }, context: Context<{}>) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
   it('infer default command with one required argument and spread argument', () => {
     const cmd = command('<arg> [...arg]');
-    expectTypeOf<(arg1: string, arg2: string[], options: { '--': string[] }) => unknown>().toEqualTypeOf<
-      Parameters<(typeof cmd)['action']>[0]
-    >();
+    expectTypeOf<
+      (arg1: string, arg2: string[], options: { '--': string[] }, context: Context<{}>) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
   it('infer default command with one required argument and one optional argument and spread argument', () => {
     const cmd = command('<arg> [arg] [...arg]');
     expectTypeOf<
-      (arg1: string, arg2: string | undefined, arg3: string[], options: { '--': string[] }) => unknown
+      (
+        arg1: string,
+        arg2: string | undefined,
+        arg3: string[],
+        options: { '--': string[] },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
   it('infer sub-command with arguments', () => {
     const cmd1 = command('dev').action(() => {});
-    expectTypeOf<(options: { '--': string[] }) => unknown>().toEqualTypeOf<Parameters<(typeof cmd1)['action']>[0]>();
+    expectTypeOf<(options: { '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
+      Parameters<(typeof cmd1)['action']>[0]
+    >();
 
     const cmd2 = command('dev <arg> [arg] [...arg]');
     expectTypeOf<
-      (arg1: string, arg2: string | undefined, arg3: string[], options: { '--': string[] }) => unknown
+      (
+        arg1: string,
+        arg2: string | undefined,
+        arg3: string[],
+        options: { '--': string[] },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd2)['action']>[0]>();
   });
 
   it('infer sub-sub-command with arguments', () => {
     const cmd1 = command('dev run').action(() => {});
-    expectTypeOf<(options: { '--': string[] }) => unknown>().toEqualTypeOf<Parameters<(typeof cmd1)['action']>[0]>();
+    expectTypeOf<(options: { '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
+      Parameters<(typeof cmd1)['action']>[0]
+    >();
 
     const cmd2 = command('dev run <arg> [arg] [...arg]');
     expectTypeOf<
-      (arg1: string, arg2: string | undefined, arg3: string[], options: { '--': string[] }) => unknown
+      (
+        arg1: string,
+        arg2: string | undefined,
+        arg3: string[],
+        options: { '--': string[] },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd2)['action']>[0]>();
   });
 
@@ -88,7 +113,14 @@ describe('types/command', () => {
       .argument('[...arg3]')
       .action(() => 1);
     expectTypeOf<
-      (arg0: string, arg1: string, arg2: string | undefined, arg3: string[], options: { '--': string[] }) => unknown
+      (
+        arg0: string,
+        arg1: string,
+        arg2: string | undefined,
+        arg3: string[],
+        options: { '--': string[] },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd1)['action']>[0]>();
 
     const cmd2 = command('dev <arg0>')
@@ -97,7 +129,14 @@ describe('types/command', () => {
       .argument(argument('[...arg3]'))
       .action(() => 1);
     expectTypeOf<
-      (arg0: string, arg1: string, arg2: string | undefined, arg3: string[], options: { '--': string[] }) => unknown
+      (
+        arg0: string,
+        arg1: string,
+        arg2: string | undefined,
+        arg3: string[],
+        options: { '--': string[] },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd2)['action']>[0]>();
 
     const cmd3 = command('dev <arg0>')
@@ -119,7 +158,8 @@ describe('types/command', () => {
         arg5: string,
         arg6: number,
         arg7: string[],
-        options: { '--': string[] }
+        options: { '--': string[] },
+        context: Context<{}>
       ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd3)['action']>[0]>();
 
@@ -142,7 +182,8 @@ describe('types/command', () => {
         arg5: string,
         arg6: number,
         arg7: string[],
-        options: { '--': string[] }
+        options: { '--': string[] },
+        context: Context<{}>
       ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd4)['action']>[0]>();
   });
@@ -162,28 +203,28 @@ describe('types/command', () => {
 describe('types/option', () => {
   it('infer boolean option type from command', () => {
     const cmd = command('').option('--flag');
-    expectTypeOf<(options: { flag: boolean; '--': string[] }) => unknown>().toEqualTypeOf<
+    expectTypeOf<(options: { flag: boolean; '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
 
   it('infer string option type from command', () => {
     const cmd = command('').option('--flag <arg>');
-    expectTypeOf<(options: { flag: string | undefined; '--': string[] }) => unknown>().toEqualTypeOf<
-      Parameters<(typeof cmd)['action']>[0]
-    >();
+    expectTypeOf<
+      (options: { flag: string | undefined; '--': string[] }, context: Context<{}>) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
   it('infer string boolean option type from command', () => {
     const cmd = command('').option('--flag [arg]');
-    expectTypeOf<(options: { flag: string | boolean; '--': string[] }) => unknown>().toEqualTypeOf<
-      Parameters<(typeof cmd)['action']>[0]
-    >();
+    expectTypeOf<
+      (options: { flag: string | boolean; '--': string[] }, context: Context<{}>) => unknown
+    >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
   it('infer spread option type from command', () => {
     const cmd = command('').option('--flag [...arg]');
-    expectTypeOf<(options: { flag: string[]; '--': string[] }) => unknown>().toEqualTypeOf<
+    expectTypeOf<(options: { flag: string[]; '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
   });
@@ -205,14 +246,17 @@ describe('types/option', () => {
       })
       .action((options) => options);
     expectTypeOf<
-      (options: {
-        flag1: string | undefined;
-        flag2: string;
-        flag3: number;
-        flag4: number;
-        flag5: number;
-        '--': string[];
-      }) => unknown
+      (
+        options: {
+          flag1: string | undefined;
+          flag2: string;
+          flag3: number;
+          flag4: number;
+          flag5: number;
+          '--': string[];
+        },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
@@ -233,14 +277,17 @@ describe('types/option', () => {
       })
       .action((options) => options);
     expectTypeOf<
-      (options: {
-        flag1: boolean | string;
-        flag2: string;
-        flag3: number;
-        flag4: number;
-        flag5: number;
-        '--': string[];
-      }) => unknown
+      (
+        options: {
+          flag1: boolean | string;
+          flag2: string;
+          flag3: number;
+          flag4: number;
+          flag5: number;
+          '--': string[];
+        },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
@@ -260,14 +307,17 @@ describe('types/option', () => {
         cast: (t) => t.join(',')
       });
     expectTypeOf<
-      (options: {
-        flag1: string[];
-        flag2: string[];
-        flag3: string;
-        flag4: string;
-        flag5: string;
-        '--': string[];
-      }) => unknown
+      (
+        options: {
+          flag1: string[];
+          flag2: string[];
+          flag3: string;
+          flag4: string;
+          flag5: string;
+          '--': string[];
+        },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 
@@ -329,12 +379,15 @@ describe('types/option', () => {
       .command('')
       .option('--flag-command-bottom');
     expectTypeOf<
-      (options: {
-        flagBreadcTop: boolean;
-        flagGroupMedium: boolean;
-        flagCommandBottom: boolean;
-        '--': string[];
-      }) => unknown
+      (
+        options: {
+          flagBreadcTop: boolean;
+          flagGroupMedium: boolean;
+          flagCommandBottom: boolean;
+          '--': string[];
+        },
+        context: Context<{}>
+      ) => unknown
     >().toEqualTypeOf<Parameters<(typeof cmd)['action']>[0]>();
   });
 });
