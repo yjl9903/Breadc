@@ -106,7 +106,7 @@ export class MatchedOption {
           break;
         }
         case 'required': {
-          this.raw = '';
+          this.raw = undefined;
           break;
         }
         case 'spread': {
@@ -213,7 +213,7 @@ export class MatchedOption {
               value
             });
           }
-          this.raw = value ?? this.option.init.initial ?? '';
+          this.raw = value ?? this.option.init.initial ?? undefined;
         } else {
           this.raw.push(value ?? '');
         }

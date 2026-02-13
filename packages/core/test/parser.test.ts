@@ -485,12 +485,12 @@ describe('runtime/parser: options', () => {
 
     expect(app.parse([]).options).toMatchInlineSnapshot(`
       {
-        "output": "",
+        "output": undefined,
       }
     `);
     expect(app.parse(['-o']).options).toMatchInlineSnapshot(`
       {
-        "output": "",
+        "output": undefined,
       }
     `);
     expect(app.parse(['-o=file']).options).toMatchInlineSnapshot(`
@@ -924,7 +924,7 @@ describe('runtime/parser: other rules', () => {
     `);
     expect(result.options).toMatchInlineSnapshot(`
       {
-        "number": "",
+        "number": undefined,
       }
     `);
   });
