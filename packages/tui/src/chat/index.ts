@@ -1,3 +1,3 @@
 export type * from './types.ts';
 
-export { chat } from './chat.ts';
+export { type Chat, type ChatOptions, chat } from './chat.ts';
