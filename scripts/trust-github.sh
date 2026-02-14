@@ -5,6 +5,7 @@ WORKFLOW_FILE="${WORKFLOW_FILE:-release.yml}"
 REPO="${REPO:-}"
 SLEEP_SECONDS="${SLEEP_SECONDS:-2}"
 DRY_RUN=false
+NPM_CMD=(mise exec npm@^11.10.0 -- npm)
 
 while (($# > 0)); do
   case "$1" in
@@ -88,13 +89,59 @@ echo "Repo: $REPO"
 echo "Workflow file: $WORKFLOW_FILE"
 echo "Workspace packages: ${#PACKAGES[@]}"
 
+print_cmd() {
+  printf '  %q' "$@"
+  printf '\n'
+}
+
+get_trust_ids() {
+  local pkg="$1"
+  "${NPM_CMD[@]}" trust list "$pkg" --json --loglevel=error \
+    | node -e '
+      let data = "";
+      process.stdin.on("data", (chunk) => (data += chunk));
+      process.stdin.on("end", () => {
+        try {
+          const parsed = JSON.parse(data.trim());
+          const list = Array.isArray(parsed) ? parsed : [parsed];
+          for (const entry of list) {
+            if (entry && typeof entry.id === "string" && entry.id.length > 0) {
+              console.log(entry.id);
+            }
+          }
+        } catch (err) {
+          // Ignore JSON parsing errors and return no IDs.
+        }
+      });
+    '
+}
+
 for pkg in "${PACKAGES[@]}"; do
-  cmd=(mise exec npm@latest -- npm trust github "$pkg" --repo "$REPO" --file "$WORKFLOW_FILE" --yes)
+  echo ""
+  echo "Config trust for $pkg"
+
+  trust_ids=()
+  while IFS= read -r trust_id; do
+    [[ -n "$trust_id" ]] && trust_ids+=("$trust_id")
+  done < <(get_trust_ids "$pkg")
+
+  if [[ "${#trust_ids[@]}" -gt 0 ]]; then
+    echo "  existing trust config found (${#trust_ids[@]}), revoking..."
+    for trust_id in "${trust_ids[@]}"; do
+      revoke_cmd=("${NPM_CMD[@]}" trust revoke "$pkg" --id "$trust_id")
+      if [[ "$DRY_RUN" == true ]]; then
+        print_cmd "${revoke_cmd[@]}"
+      else
+        "${revoke_cmd[@]}"
+      fi
+    done
+  fi
+
+  cmd=("${NPM_CMD[@]}" trust github "$pkg" --repo "$REPO" --file "$WORKFLOW_FILE" --yes)
   if [[ "$DRY_RUN" == true ]]; then
-    printf ' %q' "${cmd[@]}"
-    printf '\n'
+    print_cmd "${cmd[@]}"
   else
-    "${cmd[@]}" || true
+    "${cmd[@]}"
     sleep "$SLEEP_SECONDS"
   fi
 done
