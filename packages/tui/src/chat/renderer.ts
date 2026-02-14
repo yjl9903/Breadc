@@ -66,6 +66,8 @@ export class Renderer {
 
   private lastNonTTYRender = 0;
 
+  private cursorHidden = false;
+
   constructor(options: RendererOptions) {
     this.stream = options.stream;
     this.isTTY = options.isTTY;
@@ -247,6 +249,7 @@ export class Renderer {
 
     if (this.isTTY) {
       this.clearBottomTTY();
+      this.showCursorTTY();
     }
   }
 
@@ -320,9 +323,12 @@ export class Renderer {
   private drawBottomTTY() {
     const lines = this.renderWidgets();
     if (lines.length === 0) {
+      this.showCursorTTY();
       this.prevBottomCount = 0;
       return;
     }
+
+    this.hideCursorTTY();
 
     for (let i = 0; i < lines.length; i += 1) {
       this.stream.write(lines[i]);
@@ -332,6 +338,24 @@ export class Renderer {
     }
 
     this.prevBottomCount = lines.length;
+  }
+
+  private hideCursorTTY() {
+    if (!this.isTTY || this.cursorHidden) {
+      return;
+    }
+
+    this.stream.write('\x1B[?25l');
+    this.cursorHidden = true;
+  }
+
+  private showCursorTTY() {
+    if (!this.isTTY || !this.cursorHidden) {
+      return;
+    }
+
+    this.stream.write('\x1B[?25h');
+    this.cursorHidden = false;
   }
 
   private drawBottomNonTTY(force: boolean) {

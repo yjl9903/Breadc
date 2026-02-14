@@ -106,6 +106,34 @@ describe('chat ui', () => {
     ui.dispose();
   });
 
+  it('hides cursor while rendering and restores it on cleanup', async () => {
+    vi.useFakeTimers();
+    const stream = new MemoryStream(true);
+    const ui = chat({ stream, tickInterval: 20 });
+
+    const widget = ui.progress('build', { total: 10, value: 1 });
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    expect(stream.output()).toContain('\x1B[?25l');
+    expect(stream.output()).not.toContain('\x1B[?25h');
+
+    stream.reset();
+    widget.remove();
+    await Promise.resolve();
+    expect(stream.output()).toContain('\x1B[?25h');
+
+    stream.reset();
+    ui.progress('build-2', { total: 10, value: 2 });
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+    expect(stream.output()).toContain('\x1B[?25l');
+
+    stream.reset();
+    ui.dispose();
+    expect(stream.output()).toContain('\x1B[?25h');
+  });
+
   it('supports custom fields for templates', async () => {
     vi.useFakeTimers();
     const stream = new MemoryStream(true);
