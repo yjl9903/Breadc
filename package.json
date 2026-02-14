@@ -13,8 +13,7 @@
     "test:ci": "turbo run test:ci",
     "test:coverage": "turbo run test:coverage",
     "typecheck": "turbo run typecheck",
-    "preversion": "turbo run test:ci",
-    "postversion": "turbo run build"
+    "preversion": "turbo run test:ci"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^12.0.0",
