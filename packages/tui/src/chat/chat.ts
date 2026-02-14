@@ -8,12 +8,12 @@ import { defaultLogFormatter, LogFormatterOptions } from './log.ts';
 import type { AnyState, LogEntry, LogLevel } from './types.ts';
 
 import type {
-  ProgressWidgetOptions,
-  ProgressWidgetState,
+  WidgetSpec,
+  WidgetHandle,
   SpinnerWidgetOptions,
   SpinnerWidgetState,
-  WidgetHandle,
-  WidgetSpec
+  ProgressWidgetOptions,
+  ProgressWidgetState
 } from './widget.ts';
 
 const DEFAULT_TICK_INTERVAL = 80;
@@ -37,6 +37,12 @@ export interface ChatOptions {
 }
 
 export interface Chat {
+  readonly renderer: Renderer;
+
+  readonly stream: Writable & { isTTY?: boolean; columns?: number };
+
+  readonly options: ChatOptions;
+
   log(...args: unknown[]): void;
 
   info(...args: unknown[]): void;
@@ -65,7 +71,7 @@ export interface Chat {
 }
 
 export function chat(options: ChatOptions = {}): Chat {
-  const stream = options.stream ?? process.stderr;
+  const stream = options.stream ?? process.stdout;
   const isTTY = !!stream.isTTY;
   const tickInterval = Math.max(1, options.tickInterval ?? DEFAULT_TICK_INTERVAL);
   const nonTTYInterval = Math.max(0, options.nonTTYInterval ?? DEFAULT_NON_TTY_INTERVAL);
@@ -92,6 +98,9 @@ export function chat(options: ChatOptions = {}): Chat {
   };
 
   return {
+    renderer,
+    stream,
+    options,
     log(...args: unknown[]) {
       writeLog('log', args);
     },

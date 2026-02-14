@@ -29,6 +29,7 @@ interface RenderWidget<S extends AnyState = AnyState> {
 }
 
 const DEFAULT_SPINNER_FRAMES = ['-', '\\', '|', '/'];
+
 const DEFAULT_PROGRESS_WIDTH = 24;
 
 export interface RendererOptions {
@@ -39,9 +40,9 @@ export interface RendererOptions {
 }
 
 export class Renderer {
-  private readonly stream: OutputStream;
+  public readonly stream: OutputStream;
 
-  private readonly isTTY: boolean;
+  public readonly isTTY: boolean;
 
   private readonly tickInterval: number;
 
