@@ -200,10 +200,10 @@ export function printHelp(context: Context) {
     allCommands.length === 0
       ? `[${i18n(context, 'OPTIONS')}]`
       : allCommands.length === 1
-        ? `[${i18n(context, 'OPTIONS')}] ${formatCommand(allCommands[0])}`
+        ? `${formatCommand(allCommands[0])} [${i18n(context, 'OPTIONS')}]`
         : allCommands.some((command) => command._default)
-          ? `[${i18n(context, 'OPTIONS')}] [${i18n(context, 'COMMAND')}]`
-          : `[${i18n(context, 'OPTIONS')}] <${i18n(context, 'COMMAND')}>`;
+          ? `[${i18n(context, 'COMMAND')}] [${i18n(context, 'OPTIONS')}]`
+          : `<${i18n(context, 'COMMAND')}> [${i18n(context, 'OPTIONS')}]`;
 
   const output: HelpMessage = [
     `${breadc.name}/${breadc._init.version ?? 'unknown'}`,

@@ -67,7 +67,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] ping
+      Usage: cli ping [OPTIONS]
 
       Commands:
         cli ping  
@@ -96,7 +96,7 @@ describe('breadc/builtin: help', () => {
 
       This is a cli app.
 
-      Usage: cli [OPTIONS] <COMMAND>
+      Usage: cli <COMMAND> [OPTIONS]
 
       Commands:
         cli dev [root]    Start dev server
@@ -150,7 +150,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] <COMMAND>
+      Usage: cli <COMMAND> [OPTIONS]
 
       Commands:
         cli store ls  List files
@@ -171,7 +171,7 @@ describe('breadc/builtin: help', () => {
     app.command('build');
 
     const output = await app.run<string>(['--help']);
-    expect(output).toContain('Usage: cli [OPTIONS] [COMMAND]');
+    expect(output).toContain('Usage: cli [COMMAND] [OPTIONS]');
   });
 
   it('omits options section when no options are available', async () => {
@@ -234,7 +234,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] <COMMAND>
+      Usage: cli <COMMAND> [OPTIONS]
 
       Commands:
         cli build run   Build and run
@@ -258,7 +258,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] deploy <env> [...files]
+      Usage: cli deploy <env> [...files] [OPTIONS]
 
       Commands:
         cli deploy <env> [...files]  
@@ -281,7 +281,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] <COMMAND>
+      Usage: cli <COMMAND> [OPTIONS]
 
       Commands:
         cli store ls detail  Show detail
@@ -302,7 +302,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] [COMMAND]
+      Usage: cli [COMMAND] [OPTIONS]
 
       Commands:
         cli             Run app
@@ -327,7 +327,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] <COMMAND>
+      Usage: cli <COMMAND> [OPTIONS]
 
       Commands:
         cli store [path]  List files
@@ -354,7 +354,7 @@ describe('breadc/builtin: help', () => {
     expect(output).toMatchInlineSnapshot(`
       "cli/unknown
 
-      Usage: cli [OPTIONS] <COMMAND>
+      Usage: cli <COMMAND> [OPTIONS]
 
       Commands:
         cli build run  Build app
@@ -404,7 +404,7 @@ describe('breadc/builtin: i18n', () => {
 
       This is a cli app.
 
-      用法: cli [选项] <子命令>
+      用法: cli <子命令> [选项]
 
       命令:
         cli dev    Start dev server
