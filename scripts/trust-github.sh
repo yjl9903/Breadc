@@ -89,12 +89,12 @@ echo "Workflow file: $WORKFLOW_FILE"
 echo "Workspace packages: ${#PACKAGES[@]}"
 
 for pkg in "${PACKAGES[@]}"; do
-  cmd=(mise exec npm@^11.10.0 -- npm trust github "$pkg" --repo "$REPO" --file "$WORKFLOW_FILE" --yes)
+  cmd=(mise exec npm@latest -- npm trust github "$pkg" --repo "$REPO" --file "$WORKFLOW_FILE" --yes)
   if [[ "$DRY_RUN" == true ]]; then
     printf ' %q' "${cmd[@]}"
     printf '\n'
   else
-    "${cmd[@]}"
+    "${cmd[@]}" || true
     sleep "$SLEEP_SECONDS"
   fi
 done
