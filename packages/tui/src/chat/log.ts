@@ -25,11 +25,10 @@ export interface LogFormatterOptions {
 }
 
 export function defaultLogFormatter(entry: LogEntry, options: LogFormatterOptions): string {
+  if (entry.level === 'log') {
+    return entry.message;
+  }
   if (options.isTTY) {
-    if (entry.level === 'log') {
-      return entry.message;
-    }
-
     const color = LOG_LEVEL_COLOR[entry.level];
     const prefix = color(`[${LOG_LEVEL_PREFIX[entry.level]}]`);
     return `${prefix} ${entry.message}`;
