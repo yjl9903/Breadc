@@ -61,8 +61,9 @@ export function resolveOptions(context: Context<any>) {
 
 export function isHelp(context: Context<any>) {
   const help = context.breadc._help;
-  if (help && context.options.get(help.long)?.value<boolean>()) {
-    return true;
+  if (help) {
+    const matched = context.options.get(help.long);
+    return matched?.option === help && matched.value<boolean>();
   } else {
     return false;
   }
@@ -70,8 +71,9 @@ export function isHelp(context: Context<any>) {
 
 export function isVersion(context: Context<any>) {
   const version = context.breadc._version;
-  if (version && context.options.get(version.long)?.value<boolean>()) {
-    return true;
+  if (version) {
+    const matched = context.options.get(version.long);
+    return matched?.option === version && matched.value<boolean>();
   } else {
     return false;
   }

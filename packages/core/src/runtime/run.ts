@@ -12,17 +12,18 @@ export async function run(app: Breadc, argv: string[]) {
   // 1. Parse arguments
   const context = parse(app, argv);
 
-  // 2. Check whether there is a matched command
+  // 2. Check builtin version and help command
+  if (isVersion(context)) {
+    return printVersion(context);
+  }
+
+  if (isHelp(context)) {
+    return printHelp(context);
+  }
+
+  // 3. Check whether there is a matched command
   if (!context.command) {
     const { breadc } = context;
-
-    if (isVersion(context)) {
-      return printVersion(context);
-    }
-
-    if (isHelp(context)) {
-      return printHelp(context);
-    }
 
     if (breadc._unknownCommandMiddlewares.length > 0) {
       let res: any;
@@ -35,14 +36,14 @@ export async function run(app: Breadc, argv: string[]) {
     }
   }
 
-  // 3. Collect middlewares
+  // 4. Collect middlewares
   const actionMiddlewares: ActionMiddleware[] = [
     ...context.breadc._actionMiddlewares,
     ...(context.group?._actionMiddlewares ?? []),
     ...(context.command?._actionMiddlewares ?? [])
   ];
 
-  // 4. Run
+  // 5. Run
   const args = resolveArgs(context);
   const options = resolveOptions(context);
   options['--'] = context.remaining;

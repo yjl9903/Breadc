@@ -188,4 +188,29 @@ describe('runtime/run', () => {
     `
     );
   });
+
+  it('prioritizes builtin help/version over matched command action', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const app = breadc('cli');
+    const action = vi.fn(() => 'pong');
+    app.command('ping').action(action);
+
+    await expect(app.run(['ping', '--help'])).resolves.toContain('Usage: cli ping [OPTIONS]');
+    await expect(app.run(['ping', '--version'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
+    expect(action).not.toHaveBeenCalled();
+  });
+
+  it('does not treat command-scoped help/version options as builtin flags', async () => {
+    const app = breadc('cli');
+    const action = vi.fn((options: { help: boolean; version: boolean }) =>
+      options.help ? 'command-help' : 'command-version'
+    );
+
+    app.command('ping').option('--help').option('--version').action(action);
+
+    await expect(app.run(['ping', '--help'])).resolves.toMatchInlineSnapshot(`"command-help"`);
+    await expect(app.run(['ping', '--version'])).resolves.toMatchInlineSnapshot(`"command-version"`);
+    expect(action).toHaveBeenCalledTimes(2);
+  });
 });
