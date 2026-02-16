@@ -44,13 +44,13 @@ export async function run(app: Breadc, argv: string[]) {
   ];
 
   // 5. Run
-  const args = resolveArgs(context);
-  const options = resolveOptions(context);
-  options['--'] = context.remaining;
 
   if (context.command._actionFn) {
     const actionFn = context.command._actionFn;
     if (actionMiddlewares.length === 0) {
+      const args = resolveArgs(context);
+      const options = resolveOptions(context);
+      options['--'] = context.remaining;
       const output = await actionFn(...args, options, context);
       return output;
     } else {
@@ -62,6 +62,9 @@ export async function run(app: Breadc, argv: string[]) {
           }
           invoked[index] = true;
           if (index === actionMiddlewares.length) {
+            const args = resolveArgs(context);
+            const options = resolveOptions(context);
+            options['--'] = context.remaining;
             context.output = await actionFn(...args, options, context);
           } else {
             const next = makeNextFn(index + 1);
