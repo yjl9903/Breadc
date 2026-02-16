@@ -1,6 +1,6 @@
 {
   "name": "@breadc/death",
-  "version": "1.0.0-beta.8",
+  "version": "1.0.0-beta.9",
   "description": "Easily register termination signals callbacks.",
   "keywords": [
     "breadc",
