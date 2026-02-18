@@ -155,6 +155,77 @@ describe('chat ui', () => {
     ui.dispose();
   });
 
+  it('supports fixed bottom widget as singleton status', async () => {
+    vi.useFakeTimers();
+    const stream = new MemoryStream(true);
+    const ui = chat({ stream, tickInterval: 20 });
+
+    const first = ui.widget(
+      {
+        state: { text: 'status-1' },
+        template: '{text}'
+      },
+      { fixedBottom: true }
+    );
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    stream.reset();
+    ui.widget(
+      {
+        state: { text: 'status-2' },
+        template: '{text}'
+      },
+      { fixedBottom: true }
+    );
+    await Promise.resolve();
+
+    let output = stream.output();
+    expect(output).toContain('status-2');
+    expect(output).not.toContain('status-1');
+
+    stream.reset();
+    first.setState({ text: 'status-old' });
+    await Promise.resolve();
+    expect(stream.output()).toBe('');
+
+    stream.reset();
+    ui.progress('job', { total: 10, value: 1 });
+    await Promise.resolve();
+    output = stream.output();
+    const jobIndex = output.indexOf('job');
+    const statusIndex = output.lastIndexOf('status-2');
+    expect(jobIndex).toBeGreaterThanOrEqual(0);
+    expect(statusIndex).toBeGreaterThan(jobIndex);
+
+    ui.dispose();
+  });
+
+  it('supports fixedBottom option in spinner and progress', async () => {
+    vi.useFakeTimers();
+    const stream = new MemoryStream(true);
+    const ui = chat({ stream, tickInterval: 20 });
+
+    const first = ui.spinner('status-spin', { frames: ['s'], fixedBottom: true });
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    stream.reset();
+    ui.progress('status-progress', { total: 10, value: 3, fixedBottom: true });
+    await Promise.resolve();
+
+    const output = stream.output();
+    expect(output).toContain('status-progress');
+    expect(output).not.toContain('status-spin');
+
+    stream.reset();
+    first.setState({ message: 'status-spin-2' });
+    await Promise.resolve();
+    expect(stream.output()).toBe('');
+
+    ui.dispose();
+  });
+
   it('renders multiple widgets in creation order', async () => {
     vi.useFakeTimers();
     const stream = new MemoryStream(true);

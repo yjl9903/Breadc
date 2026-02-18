@@ -8,6 +8,7 @@ import { defaultLogFormatter, LogFormatterOptions } from './log.ts';
 import type { AnyState, LogEntry, LogLevel } from './types.ts';
 
 import type {
+  CreateWidgetOptions,
   WidgetSpec,
   WidgetHandle,
   SpinnerWidgetOptions,
@@ -51,7 +52,7 @@ export interface Chat {
 
   error(...args: unknown[]): void;
 
-  widget<S extends AnyState>(spec: WidgetSpec<S>): WidgetHandle<S>;
+  widget<S extends AnyState>(spec: WidgetSpec<S>, options?: CreateWidgetOptions): WidgetHandle<S>;
 
   spinner<S extends AnyState = AnyState>(
     message: string,
@@ -113,7 +114,7 @@ export function chat(options: ChatOptions = {}): Chat {
     error(...args: unknown[]) {
       writeLog('error', args);
     },
-    widget: (spec) => renderer.createWidget(spec),
+    widget: (spec, widgetOptions) => renderer.createWidget(spec, widgetOptions),
     spinner: (message, spinnerOptions) => renderer.createSpinnerWidget(message, spinnerOptions),
     progress: (message, progressOptions) => renderer.createProgressWidget(message, progressOptions),
     render: (force) => renderer.render(force),

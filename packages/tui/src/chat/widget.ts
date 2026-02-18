@@ -27,6 +27,10 @@ export interface WidgetSpec<S extends AnyState = AnyState> {
   fields?: WidgetFields<S>;
 }
 
+export interface CreateWidgetOptions {
+  fixedBottom?: boolean;
+}
+
 export interface WidgetHandle<S extends AnyState = AnyState> {
   readonly id: string;
   setState(next: Partial<S> | ((previous: S) => Partial<S> | S)): WidgetHandle<S>;
@@ -40,6 +44,7 @@ export interface SpinnerWidgetState {
 }
 
 export interface SpinnerWidgetOptions<S extends AnyState = AnyState> {
+  fixedBottom?: boolean;
   frames?: string[];
   template?: WidgetTemplate<SpinnerWidgetState & S>;
   state?: S;
@@ -53,6 +58,7 @@ export interface ProgressWidgetState {
 }
 
 export interface ProgressWidgetOptions<S extends AnyState = AnyState> {
+  fixedBottom?: boolean;
   value?: number;
   total?: number;
   width?: number;

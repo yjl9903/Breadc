@@ -10,6 +10,7 @@ import {
 
 import type { AnyState, OutputStream } from './types.ts';
 import type {
+  CreateWidgetOptions,
   ProgressWidgetOptions,
   ProgressWidgetState,
   RenderContext,
@@ -49,6 +50,7 @@ export class Renderer {
   private readonly nonTTYInterval: number;
 
   private readonly widgets: RenderWidget[] = [];
+  private bottomWidget: RenderWidget | undefined;
 
   private tick = 0;
 
@@ -91,7 +93,7 @@ export class Renderer {
     }
   }
 
-  createWidget<S extends AnyState>(spec: WidgetSpec<S>): WidgetHandle<S> {
+  createWidget<S extends AnyState>(spec: WidgetSpec<S>, options: CreateWidgetOptions = {}): WidgetHandle<S> {
     const widget: RenderWidget<S> = {
       id: this.createId(),
       state: { ...spec.state },
@@ -99,14 +101,19 @@ export class Renderer {
       fields: { ...(spec.fields ?? {}) }
     };
 
-    this.widgets.push(widget as RenderWidget);
+    if (options.fixedBottom) {
+      this.bottomWidget = widget as RenderWidget;
+    } else {
+      this.widgets.push(widget as RenderWidget);
+    }
+
     this.ensureTicker();
     this.scheduleRender(true);
 
     const handle: WidgetHandle<S> = {
       id: widget.id,
       setState: (next) => {
-        if (this.disposed || !this.widgets.includes(widget as RenderWidget)) {
+        if (this.disposed || !this.hasWidget(widget as RenderWidget)) {
           return handle;
         }
 
@@ -116,7 +123,7 @@ export class Renderer {
         return handle;
       },
       setTemplate: (template) => {
-        if (this.disposed || !this.widgets.includes(widget as RenderWidget)) {
+        if (this.disposed || !this.hasWidget(widget as RenderWidget)) {
           return handle;
         }
 
@@ -125,7 +132,7 @@ export class Renderer {
         return handle;
       },
       setFields: (fields) => {
-        if (this.disposed || !this.widgets.includes(widget as RenderWidget)) {
+        if (this.disposed || !this.hasWidget(widget as RenderWidget)) {
           return handle;
         }
 
@@ -138,16 +145,7 @@ export class Renderer {
           return;
         }
 
-        const index = this.widgets.indexOf(widget as RenderWidget);
-        if (index === -1) {
-          return;
-        }
-
-        this.widgets.splice(index, 1);
-        if (this.widgets.length === 0) {
-          this.stopTicker();
-        }
-        this.scheduleRender(true);
+        this.removeWidget(widget as RenderWidget);
       }
     };
 
@@ -171,14 +169,17 @@ export class Renderer {
       ...(options.fields ?? {})
     };
 
-    return this.createWidget<SpinnerWidgetState & S>({
-      state: {
-        message,
-        ...(options.state ?? ({} as S))
+    return this.createWidget<SpinnerWidgetState & S>(
+      {
+        state: {
+          message,
+          ...(options.state ?? ({} as S))
+        },
+        template,
+        fields
       },
-      template,
-      fields
-    });
+      { fixedBottom: options.fixedBottom }
+    );
   }
 
   createProgressWidget<S extends AnyState = AnyState>(
@@ -205,16 +206,19 @@ export class Renderer {
       ...(options.fields ?? {})
     };
 
-    return this.createWidget<ProgressWidgetState & S>({
-      state: {
-        message,
-        value: options.value ?? 0,
-        total: options.total ?? 100,
-        ...(options.state ?? ({} as S))
+    return this.createWidget<ProgressWidgetState & S>(
+      {
+        state: {
+          message,
+          value: options.value ?? 0,
+          total: options.total ?? 100,
+          ...(options.state ?? ({} as S))
+        },
+        template,
+        fields
       },
-      template,
-      fields
-    });
+      { fixedBottom: options.fixedBottom }
+    );
   }
 
   render(force = false) {
@@ -246,6 +250,7 @@ export class Renderer {
     this.disposed = true;
     this.stopTicker();
     this.widgets.length = 0;
+    this.bottomWidget = undefined;
 
     if (this.isTTY) {
       this.clearBottomTTY();
@@ -267,12 +272,12 @@ export class Renderer {
   }
 
   private ensureTicker() {
-    if (this.ticker || this.disposed || this.widgets.length === 0) {
+    if (this.ticker || this.disposed || !this.hasAnyWidget()) {
       return;
     }
 
     this.ticker = setInterval(() => {
-      if (this.disposed || this.widgets.length === 0) {
+      if (this.disposed || !this.hasAnyWidget()) {
         this.stopTicker();
         return;
       }
@@ -317,7 +322,51 @@ export class Renderer {
 
       lines.push(...renderTemplateLines(widget.template, context, resolvedValues));
     }
+
+    if (this.bottomWidget) {
+      const context: RenderContext<any> = {
+        tick: this.tick,
+        state: this.bottomWidget.state,
+        fields: {}
+      };
+
+      const resolvedValues: Record<string, unknown> = {
+        ...this.bottomWidget.state,
+        tick: this.tick
+      };
+
+      for (const [key, resolver] of Object.entries(this.bottomWidget.fields)) {
+        resolvedValues[key] = resolver(context);
+      }
+
+      lines.push(...renderTemplateLines(this.bottomWidget.template, context, resolvedValues));
+    }
+
     return lines;
+  }
+
+  private hasAnyWidget() {
+    return this.widgets.length > 0 || this.bottomWidget !== undefined;
+  }
+
+  private hasWidget(widget: RenderWidget) {
+    return this.bottomWidget === widget || this.widgets.includes(widget);
+  }
+
+  private removeWidget(widget: RenderWidget) {
+    const index = this.widgets.indexOf(widget);
+    if (index !== -1) {
+      this.widgets.splice(index, 1);
+    } else if (this.bottomWidget === widget) {
+      this.bottomWidget = undefined;
+    } else {
+      return;
+    }
+
+    if (!this.hasAnyWidget()) {
+      this.stopTicker();
+    }
+    this.scheduleRender(true);
   }
 
   private drawBottomTTY() {
