@@ -40,6 +40,6 @@
   "dependencies": {
     "@breadc/color": "workspace:*",
     "std-env": "^3.10.0",
-    "string-width": "^8.1.1"
+    "string-width": "^8.2.0"
   }
 }
