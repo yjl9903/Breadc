@@ -2,11 +2,7 @@ import type { Writable } from 'node:stream';
 
 import { format } from 'node:util';
 
-import { Renderer } from './renderer.ts';
-import { defaultLogFormatter, LogFormatterOptions } from './log.ts';
-
 import type { AnyState, LogEntry, LogLevel } from './types.ts';
-
 import type {
   CreateWidgetOptions,
   WidgetSpec,
@@ -16,6 +12,9 @@ import type {
   ProgressWidgetOptions,
   ProgressWidgetState
 } from './widget.ts';
+
+import { Renderer } from './renderer.ts';
+import { defaultLogFormatter, LogFormatterOptions } from './log.ts';
 
 const DEFAULT_TICK_INTERVAL = 80;
 

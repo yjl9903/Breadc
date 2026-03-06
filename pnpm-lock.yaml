@@ -117,12 +117,15 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
+      get-east-asian-width:
+        specifier: ^1.5.0
+        version: 1.5.0
       std-env:
         specifier: ^3.10.0
         version: 3.10.0
-      string-width:
-        specifier: ^8.2.0
-        version: 8.2.0
+      strip-ansi:
+        specifier: ^7.2.0
+        version: 7.2.0
 
 packages:
 
@@ -1512,10 +1515,6 @@ packages:
 
   std-env@3.10.0:
     resolution: {integrity: sha512-5GS12FdOZNliM5mAOxFRg7Ir0pWz8MdpYm6AY6VPkGpbA7ZzmbzNcBJQ0GPvvyWgcY7QAhCgf9Uy89I03faLkg==}
-
-  string-width@8.2.0:
-    resolution: {integrity: sha512-6hJPQ8N0V0P3SNmP6h2J99RLuzrWz2gvT7VnK5tKvrNqJoyS9W4/Fb8mo31UiPvy00z7DQXkP2hnKBVav76thw==}
-    engines: {node: '>=20'}
 
   stringify-entities@4.0.4:
     resolution: {integrity: sha512-IwfBptatlO+QCJUo19AqvrPNqlVMpW9YEL2LIVY+Rpv2qsjCGxaDLNRgeGsQWJhfItebuJhsGSLjaBbNSQ+ieg==}
@@ -3072,11 +3071,6 @@ snapshots:
   stackback@0.0.2: {}
 
   std-env@3.10.0: {}
-
-  string-width@8.2.0:
-    dependencies:
-      get-east-asian-width: 1.5.0
-      strip-ansi: 7.2.0
 
   stringify-entities@4.0.4:
     dependencies:

@@ -1,5 +1,10 @@
 import readline from 'node:readline';
 
+import type { OutputStream } from '../render/types.ts';
+
+import { Frame } from '../render/frame.ts';
+import { applyFramePatchTTY } from '../render/patch.ts';
+
 import {
   normalizeProgressValue,
   numericOrDefault,
@@ -8,7 +13,7 @@ import {
   renderTemplateLines
 } from './helpers.ts';
 
-import type { AnyState, OutputStream } from './types.ts';
+import type { AnyState } from './types.ts';
 import type {
   CreateWidgetOptions,
   ProgressWidgetOptions,
@@ -58,7 +63,7 @@ export class Renderer {
 
   private idCounter = 0;
 
-  private prevBottomCount = 0;
+  private prevFrame: Frame | undefined;
 
   private scheduled = false;
 
@@ -89,7 +94,7 @@ export class Renderer {
     this.stream.write(`${line}\n`);
 
     if (this.isTTY) {
-      this.drawBottomTTY();
+      this.drawBottomTTY(true);
     }
   }
 
@@ -227,8 +232,7 @@ export class Renderer {
     }
 
     if (this.isTTY) {
-      this.clearBottomTTY();
-      this.drawBottomTTY();
+      this.drawBottomTTY(force);
       return;
     }
 
@@ -288,18 +292,31 @@ export class Renderer {
   }
 
   private clearBottomTTY() {
-    if (!this.isTTY || this.prevBottomCount === 0) {
+    const rows = this.prevFrame?.rows.length ?? 0;
+    if (!this.isTTY || rows === 0) {
       return;
     }
 
     const output = this.stream as NodeJS.WriteStream;
-    if (this.prevBottomCount > 1) {
-      readline.moveCursor(output, 0, -(this.prevBottomCount - 1));
+    if (rows > 1) {
+      readline.moveCursor(output, 0, -(rows - 1));
+    }
+
+    for (let i = 0; i < rows; i += 1) {
+      readline.cursorTo(output, 0);
+      readline.clearLine(output, 0);
+
+      if (i < rows - 1) {
+        readline.moveCursor(output, 0, 1);
+      }
+    }
+
+    if (rows > 1) {
+      readline.moveCursor(output, 0, -(rows - 1));
     }
 
     readline.cursorTo(output, 0);
-    readline.clearScreenDown(output);
-    this.prevBottomCount = 0;
+    this.prevFrame = undefined;
   }
 
   private renderWidgets() {
@@ -369,24 +386,34 @@ export class Renderer {
     this.scheduleRender(true);
   }
 
-  private drawBottomTTY() {
-    const lines = this.renderWidgets();
-    if (lines.length === 0) {
+  private drawBottomTTY(force = false) {
+    const nextFrame = Frame.from(this.renderWidgets(), this.stream.columns, this.prevFrame);
+
+    if (nextFrame.rows.length === 0) {
+      this.clearBottomTTY();
       this.showCursorTTY();
-      this.prevBottomCount = 0;
+      this.prevFrame = nextFrame;
+      return;
+    }
+
+    if (force || !this.prevFrame) {
+      this.clearBottomTTY();
+      this.hideCursorTTY();
+
+      for (let i = 0; i < nextFrame.rows.length; i += 1) {
+        this.stream.write(nextFrame.rows[i]);
+        if (i < nextFrame.rows.length - 1) {
+          this.stream.write('\n');
+        }
+      }
+
+      this.prevFrame = nextFrame;
       return;
     }
 
     this.hideCursorTTY();
-
-    for (let i = 0; i < lines.length; i += 1) {
-      this.stream.write(lines[i]);
-      if (i < lines.length - 1) {
-        this.stream.write('\n');
-      }
-    }
-
-    this.prevBottomCount = lines.length;
+    applyFramePatchTTY(this.stream, this.prevFrame, nextFrame);
+    this.prevFrame = nextFrame;
   }
 
   private hideCursorTTY() {

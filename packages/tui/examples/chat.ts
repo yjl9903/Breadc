@@ -25,11 +25,12 @@ setTimeout(() => {
 }, 2000);
 
 let value = 0;
+const total = 1000;
 const ev = setInterval(() => {
-  if (value === 100) {
+  if (value === total) {
     clearInterval(ev);
     handler3.remove();
   } else {
-    handler3.setState({ value: ++value, total: 100 });
+    handler3.setState({ value: ++value, total });
   }
-}, 20);
+}, 10);

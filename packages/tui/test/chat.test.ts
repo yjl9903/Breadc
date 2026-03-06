@@ -1,6 +1,6 @@
 import { Writable } from 'node:stream';
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, vi, describe, it, expect } from 'vitest';
 
 import { chat } from '../src/chat/index.ts';
 
@@ -270,6 +270,24 @@ describe('chat ui', () => {
 
     ui.render(true);
     expect(stream.output()).toContain('spin-2');
+
+    ui.dispose();
+  });
+
+  it('avoids redundant tty writes when content is unchanged', async () => {
+    vi.useFakeTimers();
+    const stream = new MemoryStream(true);
+    const ui = chat({ stream, tickInterval: 20 });
+
+    ui.progress('build', { total: 10, value: 3 });
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    stream.reset();
+    await vi.advanceTimersByTimeAsync(200);
+    await Promise.resolve();
+
+    expect(stream.output()).toBe('');
 
     ui.dispose();
   });

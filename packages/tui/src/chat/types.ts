@@ -8,8 +8,3 @@ export interface LogEntry {
   message: string;
   createdAt: Date;
 }
-
-export interface OutputStream {
-  write(chunk: string): boolean;
-  isTTY?: boolean;
-}
