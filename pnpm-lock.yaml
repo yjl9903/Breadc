@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@size-limit/preset-small-lib':
         specifier: ^12.0.1
-        version: 12.0.1(size-limit@12.0.0(jiti@2.6.1))
+        version: 12.0.1(size-limit@12.0.1(jiti@2.6.1))
       '@types/node':
         specifier: ^24.12.0
         version: 24.12.0
@@ -30,8 +30,8 @@ importers:
         specifier: ^3.8.1
         version: 3.8.1
       size-limit:
-        specifier: ^12.0.0
-        version: 12.0.0(jiti@2.6.1)
+        specifier: ^12.0.1
+        version: 12.0.1(jiti@2.6.1)
       tsdown:
         specifier: ^0.21.0
         version: 0.21.0(typescript@5.9.3)
@@ -1489,8 +1489,8 @@ packages:
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
 
-  size-limit@12.0.0:
-    resolution: {integrity: sha512-JBG8dioIs0m2kHOhs9jD6E/tZKD08vmbf2bfqj/rJyNWqJxk/ZcakixjhYtsqdbi+AKVbfPkt3g2RRZiKaizYA==}
+  size-limit@12.0.1:
+    resolution: {integrity: sha512-vuFj+6lDOoBJQu6OLhcMQv7jnbXjuoEn4WsQHlSLOV/8EFfOka/tfjtLQ/rZig5Gagi3R0GnU/0kd4EY/y2etg==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
     hasBin: true
     peerDependencies:
@@ -2336,21 +2336,21 @@ snapshots:
 
   '@shikijs/vscode-textmate@10.0.2': {}
 
-  '@size-limit/esbuild@12.0.1(size-limit@12.0.0(jiti@2.6.1))':
+  '@size-limit/esbuild@12.0.1(size-limit@12.0.1(jiti@2.6.1))':
     dependencies:
       esbuild: 0.27.3
       nanoid: 5.1.6
-      size-limit: 12.0.0(jiti@2.6.1)
+      size-limit: 12.0.1(jiti@2.6.1)
 
-  '@size-limit/file@12.0.1(size-limit@12.0.0(jiti@2.6.1))':
+  '@size-limit/file@12.0.1(size-limit@12.0.1(jiti@2.6.1))':
     dependencies:
-      size-limit: 12.0.0(jiti@2.6.1)
+      size-limit: 12.0.1(jiti@2.6.1)
 
-  '@size-limit/preset-small-lib@12.0.1(size-limit@12.0.0(jiti@2.6.1))':
+  '@size-limit/preset-small-lib@12.0.1(size-limit@12.0.1(jiti@2.6.1))':
     dependencies:
-      '@size-limit/esbuild': 12.0.1(size-limit@12.0.0(jiti@2.6.1))
-      '@size-limit/file': 12.0.1(size-limit@12.0.0(jiti@2.6.1))
-      size-limit: 12.0.0(jiti@2.6.1)
+      '@size-limit/esbuild': 12.0.1(size-limit@12.0.1(jiti@2.6.1))
+      '@size-limit/file': 12.0.1(size-limit@12.0.1(jiti@2.6.1))
+      size-limit: 12.0.1(jiti@2.6.1)
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -3052,7 +3052,7 @@ snapshots:
 
   siginfo@2.0.0: {}
 
-  size-limit@12.0.0(jiti@2.6.1):
+  size-limit@12.0.1(jiti@2.6.1):
     dependencies:
       bytes-iec: 3.1.1
       lilconfig: 3.1.3
