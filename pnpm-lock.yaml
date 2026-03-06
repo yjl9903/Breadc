@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@size-limit/preset-small-lib':
-        specifier: ^12.0.0
-        version: 12.0.0(size-limit@12.0.0(jiti@2.6.1))
+        specifier: ^12.0.1
+        version: 12.0.1(size-limit@12.0.0(jiti@2.6.1))
       '@types/node':
         specifier: ^24.12.0
         version: 24.12.0
@@ -861,22 +861,22 @@ packages:
   '@shikijs/vscode-textmate@10.0.2':
     resolution: {integrity: sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg==}
 
-  '@size-limit/esbuild@12.0.0':
-    resolution: {integrity: sha512-r9i+HrtunIu7wAPtqD3t4DqfYin3kxPoMAv8cidkzlCS69IYCe3EG2UbQa10AdvQyaHTEK+MPkr9ifUd3W29og==}
+  '@size-limit/esbuild@12.0.1':
+    resolution: {integrity: sha512-Z6km06//90REJ30+WmMWvngG9dZnY52z3bhGxkoOwyXaAwPuQgx6ZdD1edNDABXIZMatbeMejigBPNEl4OaFsQ==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
     peerDependencies:
-      size-limit: 12.0.0
+      size-limit: 12.0.1
 
-  '@size-limit/file@12.0.0':
-    resolution: {integrity: sha512-OzKYpDzWJ2jo6cAIzVsaPuvzZTmMLDoVCViEvsctmImxpXzwJZcuBEpPohFKKdgVdZuNTU8WstmvywPq55Njdw==}
+  '@size-limit/file@12.0.1':
+    resolution: {integrity: sha512-Kvbnz46iV7WeHaANf1HmWjXBVMU2KkCU+0xJ78FzIjZwlVKKEqy+QCZprdBMfIWrzrvYeqP4cfuzKG8z6xVivg==}
     engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
     peerDependencies:
-      size-limit: 12.0.0
+      size-limit: 12.0.1
 
-  '@size-limit/preset-small-lib@12.0.0':
-    resolution: {integrity: sha512-HHHVQjZmj+8vg7qsHs1dd3Hmn8ygUsE5O2CfxnbCbHOGyUw7VodZGERh/+5ogVrF2DYza/DIo2PnCJZZETdTRA==}
+  '@size-limit/preset-small-lib@12.0.1':
+    resolution: {integrity: sha512-WqA87RAzGgYOWk0K7WPbgWKlT98eDf5I0DHFD+CNwOck+Cfcchp+rh3QQNTdW5WKDjSZLqGd+rK2ZSca7DPJCg==}
     peerDependencies:
-      size-limit: 12.0.0
+      size-limit: 12.0.1
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -2336,20 +2336,20 @@ snapshots:
 
   '@shikijs/vscode-textmate@10.0.2': {}
 
-  '@size-limit/esbuild@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
+  '@size-limit/esbuild@12.0.1(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
       esbuild: 0.27.3
       nanoid: 5.1.6
       size-limit: 12.0.0(jiti@2.6.1)
 
-  '@size-limit/file@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
+  '@size-limit/file@12.0.1(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
       size-limit: 12.0.0(jiti@2.6.1)
 
-  '@size-limit/preset-small-lib@12.0.0(size-limit@12.0.0(jiti@2.6.1))':
+  '@size-limit/preset-small-lib@12.0.1(size-limit@12.0.0(jiti@2.6.1))':
     dependencies:
-      '@size-limit/esbuild': 12.0.0(size-limit@12.0.0(jiti@2.6.1))
-      '@size-limit/file': 12.0.0(size-limit@12.0.0(jiti@2.6.1))
+      '@size-limit/esbuild': 12.0.1(size-limit@12.0.0(jiti@2.6.1))
+      '@size-limit/file': 12.0.1(size-limit@12.0.0(jiti@2.6.1))
       size-limit: 12.0.0(jiti@2.6.1)
 
   '@standard-schema/spec@1.1.0': {}
