@@ -19,7 +19,7 @@ importers:
         version: 4.1.0(vitest@4.1.0(@types/node@24.12.0)(vite@8.0.0(@types/node@24.12.0)(esbuild@0.27.4)(jiti@2.6.1)(yaml@2.8.2)))
       bumpp:
         specifier: latest
-        version: 11.0.0
+        version: 11.0.1
       cac:
         specifier: ^7.0.0
         version: 7.0.0
@@ -33,8 +33,8 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1(jiti@2.6.1)
       tsdown:
-        specifier: ^0.21.3
-        version: 0.21.3(typescript@5.9.3)
+        specifier: ^0.21.4
+        version: 0.21.4(typescript@5.9.3)
       turbo:
         specifier: ^2.8.17
         version: 2.8.17
@@ -1092,8 +1092,8 @@ packages:
   birpc@4.0.0:
     resolution: {integrity: sha512-LShSxJP0KTmd101b6DRyGBj57LZxSDYWKitQNW/mi8GRMvZb078Uf9+pveax1DrVL89vm7mWe+TovdI/UDOuPw==}
 
-  bumpp@11.0.0:
-    resolution: {integrity: sha512-rxW8H4VIB+KvnNDZ87y4tyktHydN4wzmXHYJ8CfzhWl8yKd6yuQMPcV78Hrz47udmBssjrN5wQo+JLmyU94gaA==}
+  bumpp@11.0.1:
+    resolution: {integrity: sha512-X0ti27I/ewsx/u0EJSyl0IZWWOE95q+wIpAG/60kc5gqMNR4a23YJdd3lL7JsBN11TgLbCM4KpfGMuFfdigb4g==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -1570,14 +1570,14 @@ packages:
   trim-lines@3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}
 
-  tsdown@0.21.3:
-    resolution: {integrity: sha512-oKKeMC8+IgNsB+81hvF5VBsqhqL/nr0g9vse+ujbK40vv0i3ReFI6gUts7hQH7J53ylQNjMgf2Vu6n0+P/uddA==}
+  tsdown@0.21.4:
+    resolution: {integrity: sha512-Q/kBi8SXkr4X6JI/NAZKZY1UuiEcbuXtIskL4tZCsgpDiEPM/2W6lC+OonNA31S+V3KsWedFvbFDBs23hvt+Aw==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
       '@arethetypeswrong/core': ^0.18.1
-      '@tsdown/css': 0.21.3
-      '@tsdown/exe': 0.21.3
+      '@tsdown/css': 0.21.4
+      '@tsdown/exe': 0.21.4
       '@vitejs/devtools': '*'
       publint: ^0.3.0
       typescript: ^5.0.0
@@ -2620,7 +2620,7 @@ snapshots:
 
   birpc@4.0.0: {}
 
-  bumpp@11.0.0:
+  bumpp@11.0.1:
     dependencies:
       args-tokenizer: 0.3.0
       cac: 7.0.0
@@ -3105,7 +3105,7 @@ snapshots:
 
   trim-lines@3.0.1: {}
 
-  tsdown@0.21.3(typescript@5.9.3):
+  tsdown@0.21.4(typescript@5.9.3):
     dependencies:
       ansis: 4.2.0
       cac: 7.0.0
