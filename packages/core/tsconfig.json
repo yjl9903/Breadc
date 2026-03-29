@@ -10,7 +10,7 @@
     "types": [
       "vitest/importMeta"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
     "strictNullChecks": true,

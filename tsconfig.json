@@ -6,7 +6,7 @@
     "lib": [
       "ESNext"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
     "strictNullChecks": true,
