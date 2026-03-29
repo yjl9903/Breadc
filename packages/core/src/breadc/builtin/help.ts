@@ -66,7 +66,7 @@ function formatCommand(command: InternalCommand) {
   resolveCommand(command);
   const pieces = command._pieces[0].join(' ');
   const args = formatArgument(command).join(' ');
-  return pieces && args ? `${pieces} ${args}` : pieces;
+  return [pieces, args].filter(Boolean).join(' ');
 }
 
 function commandStartsWith(command: InternalGroup | InternalCommand, prefix: string[]) {

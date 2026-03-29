@@ -174,6 +174,50 @@ describe('breadc/builtin: help', () => {
     expect(output).toContain('Usage: cli [COMMAND] [OPTIONS]');
   });
 
+  it('formats default command args in help output', async () => {
+    const app = breadc('cli');
+    app.command('[...files]');
+
+    const output = await app.run<string>(['--help']);
+
+    expect(output).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [...files] [OPTIONS]
+
+      Commands:
+        cli [...files]  
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
+
+  it('keeps usage as [COMMAND] when spread default command coexists with sub-commands', async () => {
+    const app = breadc('cli');
+    app.command('[...files]');
+    app.command('github [...files]');
+
+    const output = await app.run<string>(['--help']);
+
+    expect(output).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [COMMAND] [OPTIONS]
+
+      Commands:
+        cli [...files]         
+        cli github [...files]  
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
+
   it('omits options section when no options are available', async () => {
     const app = breadc('cli', {
       builtin: {
@@ -305,7 +349,7 @@ describe('breadc/builtin: help', () => {
       Usage: cli [COMMAND] [OPTIONS]
 
       Commands:
-        cli             Run app
+        cli [entry]     Run app
         cli build test  Build test
 
       Options:
