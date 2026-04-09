@@ -78,7 +78,7 @@ export class MatchedArgument {
       }
       /* v8 ignore next -- @preserve */
       default: {
-        // c8 ignore
+        /* v8 ignore next -- @preserve */
         return this;
       }
     }

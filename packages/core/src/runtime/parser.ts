@@ -89,6 +89,9 @@ function doParse(
   let index = 0;
   let matchedGroup: InternalGroup | undefined = undefined;
   let matchedCommand: InternalCommand | undefined = defaultCommand;
+  let candidateCommand: InternalCommand | undefined = undefined;
+  let candidateCommandIndex = -1;
+  let candidateTailTokens: string[] = [];
 
   const pendingCommands: Map<string, Array<[InternalGroup | InternalCommand, number]>> = new Map();
   const pendingLongOptions: Map<string, InternalOption> = new Map();
@@ -118,6 +121,36 @@ function doParse(
       pendingCommands.set(piece, []);
     }
     pendingCommands.get(piece)!.push([command, alias]);
+  };
+  const setCandidateCommand = (command: InternalCommand) => {
+    if (candidateCommandIndex >= index) {
+      if (candidateCommand && candidateCommand !== command) {
+        throw new BreadcAppError(BreadcAppError.DUPLICATED_COMMAND, {
+          context,
+          commands: [candidateCommand, command]
+        });
+      }
+      return;
+    }
+
+    candidateCommand = command;
+    candidateCommandIndex = index;
+    candidateTailTokens = [];
+  };
+  const commitCandidateCommand = () => {
+    if (!candidateCommand) {
+      return;
+    }
+
+    matchedCommand = candidateCommand;
+    context.pieces.length = candidateCommandIndex;
+    buildCommand(candidateCommand);
+    addPendingOptions(candidateCommand._options);
+    args.push(...candidateTailTokens);
+
+    candidateCommand = undefined;
+    candidateCommandIndex = -1;
+    candidateTailTokens = [];
   };
 
   // 1. Prepare global options
@@ -158,11 +191,19 @@ function doParse(
     const token = tokens.next()!;
     const rawToken = token.toRaw();
 
+    // Commit candiate command
+    if (!matchedCommand && candidateCommand && !pendingCommands.has(rawToken)) {
+      commitCandidateCommand();
+    }
+
     if (token.isEscape) {
       // 1. `--` handle escape
       context.remaining.push(...tokens.remaining().map((t) => t.toRaw()));
     } else if (!matchedCommand && pendingCommands.has(rawToken)) {
       // 2. sub-command matched
+      if (candidateCommand) {
+        candidateTailTokens.push(rawToken);
+      }
       index += 1;
       context.pieces.push(rawToken);
 
@@ -193,9 +234,7 @@ function doParse(
               );
               if (defaultCommands.length === 1) {
                 const defaultCommand = defaultCommands[0];
-                matchedCommand = defaultCommand;
-                buildCommand(defaultCommand);
-                addPendingOptions(defaultCommand._options);
+                setCandidateCommand(defaultCommand);
               } else if (defaultCommands.length > 1) {
                 throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_GROUP_COMMAND, {
                   context,
@@ -215,17 +254,7 @@ function doParse(
               }
             }
           } else {
-            if (!matchedCommand || matchedCommand === command) {
-              matchedCommand = command;
-            } else {
-              throw new BreadcAppError(BreadcAppError.DUPLICATED_COMMAND, {
-                context,
-                commands: [matchedCommand, command]
-              });
-            }
-
-            buildCommand(command);
-            addPendingOptions(command._options);
+            setCandidateCommand(command);
           }
         } else {
           addPendingCommand(command, alias);
@@ -271,6 +300,10 @@ function doParse(
         unknown.push(rawToken);
       }
     }
+  }
+
+  if (!matchedCommand) {
+    commitCandidateCommand();
   }
 
   context.group = matchedGroup;

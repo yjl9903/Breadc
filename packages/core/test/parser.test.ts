@@ -233,6 +233,116 @@ describe('runtime/parser: command matching', () => {
     `);
   });
 
+  it('prefers longer literal sub-commands over earlier argument fallback', () => {
+    const app = breadc('cli');
+    app.command('subject <subject_id>');
+    app.command('subject revision <subject_id>');
+    app.command('subject revision list <subject_id>');
+    app.command('subject revision disable <subject_id> <revision_id>');
+    app.command('subject revision enable <subject_id> <revision_id>');
+
+    const revision = app.parse(['subject', 'revision', '114514']);
+    expect(revision.context.command?.spec).toMatchInlineSnapshot(`"subject revision <subject_id>"`);
+    expect(revision.context.pieces).toMatchInlineSnapshot(`
+      [
+        "subject",
+        "revision",
+      ]
+    `);
+    expect(revision.args).toMatchInlineSnapshot(`
+      [
+        "114514",
+      ]
+    `);
+
+    const list = app.parse(['subject', 'revision', 'list', '114514']);
+    expect(list.context.command?.spec).toMatchInlineSnapshot(`"subject revision list <subject_id>"`);
+    expect(list.context.pieces).toMatchInlineSnapshot(`
+      [
+        "subject",
+        "revision",
+        "list",
+      ]
+    `);
+    expect(list.args).toMatchInlineSnapshot(`
+      [
+        "114514",
+      ]
+    `);
+
+    const disable = app.parse(['subject', 'revision', 'disable', '114514', '1919810']);
+    expect(disable.context.command?.spec).toMatchInlineSnapshot(
+      `"subject revision disable <subject_id> <revision_id>"`
+    );
+    expect(disable.context.pieces).toMatchInlineSnapshot(`
+      [
+        "subject",
+        "revision",
+        "disable",
+      ]
+    `);
+    expect(disable.args).toMatchInlineSnapshot(`
+      [
+        "114514",
+        "1919810",
+      ]
+    `);
+  });
+
+  it('rolls back consumed literal pieces when falling back to a shorter argument command', () => {
+    const app = breadc('cli');
+    app.command('subject <subject_id>');
+    app.command('subject revision list <subject_id>');
+
+    const result = app.parse(['subject', 'revision', '114514']);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"subject <subject_id>"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "subject",
+      ]
+    `);
+    expect(result.args).toMatchInlineSnapshot(`
+      [
+        "revision",
+      ]
+    `);
+    expect(result['--']).toMatchInlineSnapshot(`
+      [
+        "114514",
+      ]
+    `);
+  });
+
+  it('commits an exact longer literal match at end of input', () => {
+    const app = breadc('cli');
+    app.command('subject <subject_id>');
+    app.command('subject revision');
+
+    const result = app.parse(['subject', 'revision']);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"subject revision"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "subject",
+        "revision",
+      ]
+    `);
+    expect(result.args).toMatchInlineSnapshot(`[]`);
+  });
+
+  it('allows duplicated aliases on the same command while selecting candidates', () => {
+    const app = breadc('cli');
+    app.command('subject revision').alias('subject revision');
+
+    const result = app.parse(['subject', 'revision']);
+    expect(result.context.command?.spec).toMatchInlineSnapshot(`"subject revision"`);
+    expect(result.context.pieces).toMatchInlineSnapshot(`
+      [
+        "subject",
+        "revision",
+      ]
+    `);
+  });
+
   it('matches default command aliases alongside sub-commands', () => {
     const app = breadc('cli');
     app.command('build').alias('');
@@ -977,6 +1087,14 @@ describe('runtime/parser: errors', () => {
     app.command('dev');
 
     expect(() => app.parse(['dev'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
+  });
+
+  it('throws on duplicated candidate commands with shared literal prefix', () => {
+    const app = breadc('cli');
+    app.command('subject <one>');
+    app.command('subject <two>');
+
+    expect(() => app.parse(['subject', 'value'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
   });
 
   it('throws on duplicated default commands inside a matched group', () => {
