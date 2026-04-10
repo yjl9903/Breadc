@@ -27,8 +27,8 @@ importers:
         specifier: ^14.0.3
         version: 14.0.3
       prettier:
-        specifier: ^3.8.1
-        version: 3.8.1
+        specifier: ^3.8.2
+        version: 3.8.2
       size-limit:
         specifier: ^12.0.1
         version: 12.0.1(jiti@2.6.1)
@@ -1570,8 +1570,8 @@ packages:
   preact@10.29.1:
     resolution: {integrity: sha512-gQCLc/vWroE8lIpleXtdJhTFDogTdZG9AjMUpVkDf2iTCNwYNWA+u16dL41TqUDJO4gm2IgrcMv3uTpjd4Pwmg==}
 
-  prettier@3.8.1:
-    resolution: {integrity: sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==}
+  prettier@3.8.2:
+    resolution: {integrity: sha512-8c3mgTe0ASwWAJK+78dpviD+A8EqhndQPUBpNUIPt6+xWlIigCwfN01lWr9MAede4uqXGTEKeQWTvzb3vjia0Q==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3141,7 +3141,7 @@ snapshots:
 
   preact@10.29.1: {}
 
-  prettier@3.8.1: {}
+  prettier@3.8.2: {}
 
   property-information@7.1.0: {}
 
