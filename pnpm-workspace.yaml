@@ -2,5 +2,9 @@ packages:
   - apps/*
   - packages/*
 
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  esbuild: true
+
+ignoreWorkspaceRootCheck: true
+shamefullyHoist: true
+shellEmulator: true
