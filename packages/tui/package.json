@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@breadc/color": "workspace:*",
-    "get-east-asian-width": "^1.5.0",
+    "get-east-asian-width": "^1.6.0",
     "std-env": "^4.1.0",
     "strip-ansi": "^7.2.0"
   }
