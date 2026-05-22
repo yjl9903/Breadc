@@ -18,7 +18,7 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "^12.1.0",
     "@types/node": "^24.12.4",
-    "@vitest/coverage-v8": "^4.1.6",
+    "@vitest/coverage-v8": "^4.1.7",
     "bumpp": "latest",
     "cac": "^7.0.0",
     "commander": "^14.0.3",
@@ -29,7 +29,7 @@
     "typescript": "^6.0.3",
     "vite": "^8.0.13",
     "vitepress": "^1.6.4",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.7"
   },
   "packageManager": "pnpm@11.2.1"
 }
