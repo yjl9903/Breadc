@@ -309,6 +309,10 @@ function doParse(
   context.group = matchedGroup;
   context.command = matchedCommand;
 
+  if (isHelp(context) || isVersion(context)) {
+    return matchedCommand;
+  }
+
   if (matchedCommand) {
     if (unknown.length > 0) {
       throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });

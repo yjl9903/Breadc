@@ -201,6 +201,15 @@ describe('runtime/run', () => {
     expect(action).not.toHaveBeenCalled();
   });
 
+  it('prints builtin help before resolving required command args', async () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const app = breadc('cli');
+    app.command('sub-command <param>');
+
+    await expect(app.run(['sub-command', '-h'])).resolves.toContain('Usage: cli sub-command <param> [OPTIONS]');
+  });
+
   it('does not treat command-scoped help/version options as builtin flags', async () => {
     const app = breadc('cli');
     const action = vi.fn((options: { help: boolean; version: boolean }) =>
