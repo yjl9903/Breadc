@@ -20,9 +20,6 @@
   "author": "XLor",
   "sideEffects": false,
   "type": "module",
-  "engines": {
-    "node": ">=20"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
