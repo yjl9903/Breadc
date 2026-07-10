@@ -20,6 +20,9 @@
   "author": "XLor",
   "sideEffects": false,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
@@ -39,8 +42,7 @@
   },
   "dependencies": {
     "@breadc/color": "workspace:*",
-    "get-east-asian-width": "^1.6.0",
-    "std-env": "^4.2.0",
-    "strip-ansi": "^7.2.0"
+    "fast-string-width": "^3.0.2",
+    "std-env": "^4.2.0"
   }
 }
