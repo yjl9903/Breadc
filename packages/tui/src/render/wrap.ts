@@ -1,4 +1,4 @@
-import { stringWidth } from './string-width.ts';
+import stringWidth from 'fast-string-width';
 
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
