@@ -1,9 +1,9 @@
 import readline from 'node:readline';
 
+import stringWidth from 'fast-string-width';
+
 import type { Frame } from './frame.ts';
 import type { OutputStream } from './types.ts';
-
-import { stringWidth } from './string-width.ts';
 
 /**
  * 将上一帧到下一帧的变更应用到 TTY 底部区域。
