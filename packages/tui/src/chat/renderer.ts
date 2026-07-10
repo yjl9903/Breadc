@@ -1,5 +1,7 @@
 import readline from 'node:readline';
 
+import { onDeath } from '@breadc/death';
+
 import type { OutputStream } from '../render/types.ts';
 
 import { Frame } from '../render/frame.ts';
@@ -55,6 +57,7 @@ export class Renderer {
   private readonly nonTTYInterval: number;
 
   private readonly widgets: RenderWidget[] = [];
+
   private bottomWidget: RenderWidget | undefined;
 
   private tick = 0;
@@ -74,6 +77,10 @@ export class Renderer {
   private lastNonTTYRender = 0;
 
   private cursorHidden = false;
+
+  private cancelExitHandler: (() => void) | undefined;
+
+  private readonly exitHandler = () => this.dispose();
 
   constructor(options: RendererOptions) {
     this.stream = options.stream;
@@ -423,6 +430,8 @@ export class Renderer {
 
     this.stream.write('\x1B[?25l');
     this.cursorHidden = true;
+    this.cancelExitHandler = onDeath(this.exitHandler);
+    process.once('exit', this.exitHandler);
   }
 
   private showCursorTTY() {
@@ -432,6 +441,9 @@ export class Renderer {
 
     this.stream.write('\x1B[?25h');
     this.cursorHidden = false;
+    this.cancelExitHandler?.();
+    this.cancelExitHandler = undefined;
+    process.removeListener('exit', this.exitHandler);
   }
 
   private drawBottomNonTTY(force: boolean) {

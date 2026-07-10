@@ -117,6 +117,9 @@ importers:
       '@breadc/color':
         specifier: workspace:*
         version: link:../color
+      '@breadc/death':
+        specifier: workspace:*
+        version: link:../death
       fast-string-width:
         specifier: ^3.0.2
         version: 3.0.2

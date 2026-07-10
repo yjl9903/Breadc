@@ -4,6 +4,15 @@ import { afterEach, vi, describe, it, expect } from 'vitest';
 
 import { chat } from '../src/chat/index.ts';
 
+const deathCallbacks = vi.hoisted(() => new Set<() => void>());
+
+vi.mock('@breadc/death', () => ({
+  onDeath(callback: () => void) {
+    deathCallbacks.add(callback);
+    return () => deathCallbacks.delete(callback);
+  }
+}));
+
 class MemoryStream extends Writable {
   public readonly chunks: string[] = [];
 
@@ -32,6 +41,7 @@ class MemoryStream extends Writable {
 
 afterEach(() => {
   vi.useRealTimers();
+  deathCallbacks.clear();
 });
 
 describe('chat ui', () => {
@@ -132,6 +142,29 @@ describe('chat ui', () => {
     stream.reset();
     ui.dispose();
     expect(stream.output()).toContain('\x1B[?25h');
+  });
+
+  it('restores the cursor when the process terminates', async () => {
+    vi.useFakeTimers();
+    const stream = new MemoryStream(true);
+    const ui = chat({ stream, tickInterval: 20 });
+
+    const widget = ui.progress('build', { total: 10, value: 1 });
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    expect(deathCallbacks).toHaveLength(1);
+
+    stream.reset();
+    deathCallbacks.values().next().value?.();
+
+    expect(stream.output()).toContain('\x1B[?25h');
+    expect(deathCallbacks).toHaveLength(0);
+
+    stream.reset();
+    widget.setState({ value: 2 });
+    await Promise.resolve();
+    expect(stream.output()).toBe('');
   });
 
   it('supports custom fields for templates', async () => {

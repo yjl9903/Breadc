@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@breadc/color": "workspace:*",
+    "@breadc/death": "workspace:*",
     "fast-string-width": "^3.0.2",
     "std-env": "^4.2.0"
   }
