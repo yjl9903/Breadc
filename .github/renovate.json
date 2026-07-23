@@ -1,4 +1,18 @@
 {
   "extends": ["github>yjl9903/renovate-config"],
-  "baseBranches": ["deps"]
+  "baseBranchPatterns": ["deps", "main"],
+  "packageRules": [
+    {
+      "description": "Only update GitHub Actions on main",
+      "matchBaseBranches": ["main"],
+      "matchManagers": ["!github-actions"],
+      "enabled": false
+    },
+    {
+      "description": "Do not update GitHub Actions on deps",
+      "matchBaseBranches": ["deps"],
+      "matchManagers": ["github-actions"],
+      "enabled": false
+    }
+  ]
 }
