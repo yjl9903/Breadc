@@ -1,4 +1,4 @@
-name: Dependency rollup
+name: Renovate
 
 on:
   push:
@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: dependency-rollup
+  group: renovate
   queue: max
 
 env:
@@ -26,8 +26,11 @@ env:
 jobs:
   sync-deps:
     name: Rebase deps onto main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     steps:
       - name: Checkout deps
         uses: actions/checkout@v7
@@ -133,12 +136,15 @@ jobs:
 
   reset-deps:
     name: Reset deps after rollup merge
+
+    runs-on: ubuntu-latest
+
     if: >-
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'deps'
-    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout main
         uses: actions/checkout@v7
@@ -168,8 +174,11 @@ jobs:
 
   open-rollup-pr:
     name: Open deps to main pull request
-    if: github.event_name == 'push' && github.ref == 'refs/heads/deps'
+
     runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/deps'
+
     steps:
       - name: Checkout deps
         uses: actions/checkout@v7
