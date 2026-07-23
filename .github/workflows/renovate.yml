@@ -86,7 +86,9 @@ jobs:
               done
 
               if git diff --cached --quiet; then
-                git rebase --skip
+                if ! git rebase --skip; then
+                  rebase_in_progress || return 1
+                fi
               elif ! GIT_EDITOR=true git rebase --continue; then
                 rebase_in_progress || return 1
               fi
