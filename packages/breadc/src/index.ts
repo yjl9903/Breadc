@@ -9,6 +9,7 @@ export type {
   CommandInit,
   Argument,
   ArgumentInit,
+  Context,
   UnknownCommandMiddleware,
   UnknownOptionMiddleware,
   ActionMiddleware
@@ -20,6 +21,8 @@ export {
   option,
   command,
   argument,
+  printHelp,
+  printVersion,
   BreadcError,
   BreadcAppError,
   ResolveGroupError,
