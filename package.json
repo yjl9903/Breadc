@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^14.0.0",
-    "@types/node": "^24.13.5",
+    "@types/node": "^24.13.6",
     "@vitest/coverage-v8": "^5.0.1",
     "bumpp": "latest",
     "cac": "^7.0.0",
