@@ -4,9 +4,9 @@ const tui = chat();
 
 tui.log('hello');
 
-const handler1 = tui.spinner('working...');
-const handler2 = tui.spinner('sleeping...');
-const handler3 = tui.progress('progress', {
+const working = tui.spinner('working...');
+const sleeping = tui.spinner('sleeping...');
+const progress = tui.progress('progress', {
   template: ['{message}', '{bar} | {percent}%']
 });
 
@@ -15,22 +15,21 @@ setTimeout(() => {
 }, 500);
 
 setTimeout(() => {
-  tui.log('before destroy ...');
-  handler1.remove();
-  tui.log('after destroy ...');
+  working.remove();
 }, 1000);
 
 setTimeout(() => {
-  handler2.remove();
+  sleeping.remove();
 }, 2000);
 
 let value = 0;
 const total = 1000;
-const ev = setInterval(() => {
+const timer = setInterval(() => {
   if (value === total) {
-    clearInterval(ev);
-    handler3.remove();
+    clearInterval(timer);
+    progress.remove();
+    tui.dispose();
   } else {
-    handler3.setState({ value: ++value, total });
+    progress.setState({ value: ++value, total });
   }
 }, 10);

@@ -1,4 +1,4 @@
-import type { AnyState } from './types';
+import type { AnyState } from './types.ts';
 
 export interface ProgressBarRenderOptions {
   width: number;
@@ -13,9 +13,7 @@ export interface RenderContext<S extends AnyState = AnyState> {
 }
 
 export type WidgetTemplate<S extends AnyState = AnyState> =
-  | string
-  | string[]
-  | ((ctx: RenderContext<S>) => string | string[]);
+  string | string[] | ((ctx: RenderContext<S>) => string | string[]);
 
 export type WidgetFieldResolver<S extends AnyState = AnyState> = (ctx: RenderContext<S>) => unknown;
 

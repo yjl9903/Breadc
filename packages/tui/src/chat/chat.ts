@@ -2,28 +2,29 @@ import type { Writable } from 'node:stream';
 
 import { format } from 'node:util';
 
-import type { AnyState, LogEntry, LogLevel } from './types.ts';
 import type {
   CreateWidgetOptions,
-  WidgetSpec,
-  WidgetHandle,
+  ProgressWidgetOptions,
+  ProgressWidgetState,
   SpinnerWidgetOptions,
   SpinnerWidgetState,
-  ProgressWidgetOptions,
-  ProgressWidgetState
+  WidgetHandle,
+  WidgetSpec
 } from './widget.ts';
+import type { AnyState, LogEntry, LogLevel } from './types.ts';
 
 import { Renderer } from './renderer.ts';
-import { defaultLogFormatter, LogFormatterOptions } from './log.ts';
+import { defaultLogFormatter, type LogFormatterOptions } from './log.ts';
 
 const DEFAULT_TICK_INTERVAL = 80;
-
 const DEFAULT_NON_TTY_INTERVAL = 1000;
+
+type ChatStream = Writable & { isTTY?: boolean; columns?: number; rows?: number };
 
 export interface ChatOptions {
   renderer?: Renderer;
 
-  stream?: Writable & { isTTY?: boolean; columns?: number };
+  stream?: ChatStream;
 
   tickInterval?: number;
 
@@ -39,7 +40,7 @@ export interface ChatOptions {
 export interface Chat {
   readonly renderer: Renderer;
 
-  readonly stream: Writable & { isTTY?: boolean; columns?: number };
+  readonly stream: ChatStream;
 
   readonly options: ChatOptions;
 
@@ -75,7 +76,6 @@ export function chat(options: ChatOptions = {}): Chat {
   const isTTY = !!stream.isTTY;
   const tickInterval = Math.max(1, options.tickInterval ?? DEFAULT_TICK_INTERVAL);
   const nonTTYInterval = Math.max(0, options.nonTTYInterval ?? DEFAULT_NON_TTY_INTERVAL);
-
   const renderer =
     options.renderer ??
     new Renderer({
@@ -91,9 +91,14 @@ export function chat(options: ChatOptions = {}): Chat {
       message: format(...args),
       createdAt: new Date()
     };
-
-    const opt = { tag: options.log?.tag, columns: stream.columns || 80, isTTY: stream.isTTY || false };
-    const line = options.log?.format ? options.log.format(entry, opt) : defaultLogFormatter(entry, opt);
+    const formatterOptions = {
+      tag: options.log?.tag,
+      columns: stream.columns || 80,
+      isTTY
+    };
+    const line = options.log?.format
+      ? options.log.format(entry, formatterOptions)
+      : defaultLogFormatter(entry, formatterOptions);
     renderer.writeAboveBottom(line);
   };
 

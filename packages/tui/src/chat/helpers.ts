@@ -1,20 +1,24 @@
+import { clamp } from '../utils/number.ts';
+
 import type { AnyState } from './types.ts';
 import type { ProgressBarRenderOptions, RenderContext, WidgetTemplate } from './widget.ts';
 
 export function renderProgressBar(value: number, total: number, barOptions: ProgressBarRenderOptions) {
-  const width = Math.max(1, barOptions.width);
-  const complete = barOptions.complete ?? '=';
-  const incomplete = barOptions.incomplete ?? '-';
-  const ratio = total > 0 ? clamp(value / total, 0, 1) : 0;
+  const { width, complete, incomplete } = barOptions;
+  const ratio = progressRatio(value, total);
   const completeCount = Math.round(ratio * width);
   return complete.repeat(completeCount) + incomplete.repeat(width - completeCount);
 }
 
 export function renderPercent(value: number, total: number) {
-  if (total <= 0) {
-    return 0;
-  }
-  return Math.floor(clamp((value / total) * 100, 0, 100));
+  return Math.floor(progressRatio(value, total) * 100);
+}
+
+function progressRatio(value: number, total: number) {
+  const parsedValue = Number(value);
+  const parsedTotal = Number(total);
+  if (!Number.isFinite(parsedValue) || !Number.isFinite(parsedTotal) || parsedTotal <= 0) return 0;
+  return clamp(parsedValue / parsedTotal, 0, 1);
 }
 
 export function renderTemplateLines<S extends AnyState>(
@@ -59,20 +63,4 @@ export function stringifyValue(value: unknown): string {
   } catch {
     return String(value);
   }
-}
-
-export function numericOrDefault(value: unknown, fallback: number): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-export function normalizeProgressValue(value: number, total: number): number {
-  if (total <= 0) {
-    return 0;
-  }
-  return clamp(value, 0, total);
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
 }

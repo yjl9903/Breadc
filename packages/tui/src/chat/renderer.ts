@@ -1,19 +1,7 @@
-import readline from 'node:readline';
+import type { OutputStream, Span } from '../render/types.ts';
 
-import { onDeath } from '@breadc/death';
-
-import type { OutputStream } from '../render/types.ts';
-
-import { Frame } from '../render/frame.ts';
-import { applyFramePatchTTY } from '../render/patch.ts';
-
-import {
-  normalizeProgressValue,
-  numericOrDefault,
-  renderPercent,
-  renderProgressBar,
-  renderTemplateLines
-} from './helpers.ts';
+import { measureText } from '../render/buffer.ts';
+import { InlineRenderer } from '../render/renderer.ts';
 
 import type { AnyState } from './types.ts';
 import type {
@@ -29,6 +17,9 @@ import type {
   WidgetTemplate
 } from './widget.ts';
 
+import { ansiToSpans } from './ansi.ts';
+import { renderPercent, renderProgressBar, renderTemplateLines } from './helpers.ts';
+
 interface RenderWidget<S extends AnyState = AnyState> {
   id: string;
   state: S;
@@ -37,7 +28,6 @@ interface RenderWidget<S extends AnyState = AnyState> {
 }
 
 const DEFAULT_SPINNER_FRAMES = ['-', '\\', '|', '/'];
-
 const DEFAULT_PROGRESS_WIDTH = 24;
 
 export interface RendererOptions {
@@ -47,10 +37,13 @@ export interface RendererOptions {
   nonTTYInterval: number;
 }
 
+/** Widget state, animation scheduling, and composition over InlineRenderer. */
 export class Renderer {
   public readonly stream: OutputStream;
 
   public readonly isTTY: boolean;
+
+  public readonly surface: InlineRenderer;
 
   private readonly tickInterval: number;
 
@@ -66,8 +59,6 @@ export class Renderer {
 
   private idCounter = 0;
 
-  private prevFrame: Frame | undefined;
-
   private scheduled = false;
 
   private queuedForce = false;
@@ -76,17 +67,16 @@ export class Renderer {
 
   private lastNonTTYRender = 0;
 
-  private cursorHidden = false;
-
-  private cancelExitHandler: (() => void) | undefined;
-
-  private readonly exitHandler = () => this.dispose();
-
   constructor(options: RendererOptions) {
     this.stream = options.stream;
     this.isTTY = options.isTTY;
     this.tickInterval = options.tickInterval;
     this.nonTTYInterval = options.nonTTYInterval;
+    this.surface = new InlineRenderer({
+      stream: options.stream,
+      isTTY: options.isTTY,
+      onExit: () => this.dispose()
+    });
   }
 
   writeAboveBottom(line: string) {
@@ -94,15 +84,27 @@ export class Renderer {
       return;
     }
 
-    if (this.isTTY) {
-      this.clearBottomTTY();
+    if (!this.isTTY) {
+      this.stream.write(`${line}\n`);
+      return;
     }
 
-    this.stream.write(`${line}\n`);
-
-    if (this.isTTY) {
-      this.drawBottomTTY(true);
+    if (!this.hasAnyWidget()) {
+      this.drawBottomTTY(false);
+      this.stream.write(`${line}\n`);
+      return;
     }
+
+    this.surface.batch(() => {
+      this.surface.resize();
+      const spans = ansiToSpans(line);
+      if (spans.length === 0) {
+        this.surface.insertBefore(1, () => {});
+      } else {
+        this.surface.commit(spans);
+      }
+      this.drawBottomTTY(false);
+    });
   }
 
   createWidget<S extends AnyState>(spec: WidgetSpec<S>, options: CreateWidgetOptions = {}): WidgetHandle<S> {
@@ -110,7 +112,7 @@ export class Renderer {
       id: this.createId(),
       state: { ...spec.state },
       template: spec.template,
-      fields: { ...(spec.fields ?? {}) }
+      fields: { ...spec.fields }
     };
 
     if (options.fixedBottom) {
@@ -128,7 +130,6 @@ export class Renderer {
         if (this.disposed || !this.hasWidget(widget as RenderWidget)) {
           return handle;
         }
-
         const patch = typeof next === 'function' ? next({ ...widget.state }) : next;
         widget.state = { ...widget.state, ...patch };
         this.scheduleRender(false);
@@ -138,7 +139,6 @@ export class Renderer {
         if (this.disposed || !this.hasWidget(widget as RenderWidget)) {
           return handle;
         }
-
         widget.template = template;
         this.scheduleRender(false);
         return handle;
@@ -147,17 +147,14 @@ export class Renderer {
         if (this.disposed || !this.hasWidget(widget as RenderWidget)) {
           return handle;
         }
-
         widget.fields = { ...widget.fields, ...fields };
         this.scheduleRender(false);
         return handle;
       },
       remove: () => {
-        if (this.disposed) {
-          return;
+        if (!this.disposed) {
+          this.removeWidget(widget as RenderWidget);
         }
-
-        this.removeWidget(widget as RenderWidget);
       }
     };
 
@@ -169,25 +166,15 @@ export class Renderer {
     options: SpinnerWidgetOptions<S> = {}
   ): WidgetHandle<SpinnerWidgetState & S> {
     const frames = options.frames?.length ? options.frames : DEFAULT_SPINNER_FRAMES;
-    const template = options.template ?? '{frame} {message}';
-
     const fields: WidgetFields<SpinnerWidgetState & S> = {
-      frame: (ctx) => {
-        if (frames.length === 0) {
-          return '';
-        }
-        return frames[ctx.tick % frames.length];
-      },
-      ...(options.fields ?? {})
+      frame: (ctx) => frames[ctx.tick % frames.length],
+      ...options.fields
     };
 
     return this.createWidget<SpinnerWidgetState & S>(
       {
-        state: {
-          message,
-          ...(options.state ?? ({} as S))
-        },
-        template,
+        state: { message, ...(options.state ?? ({} as S)) },
+        template: options.template ?? '{frame} {message}',
         fields
       },
       { fixedBottom: options.fixedBottom }
@@ -198,24 +185,13 @@ export class Renderer {
     message: string,
     options: ProgressWidgetOptions<S> = {}
   ): WidgetHandle<ProgressWidgetState & S> {
-    const width = Math.max(1, options.width || DEFAULT_PROGRESS_WIDTH);
+    const width = Math.max(1, options.width ?? DEFAULT_PROGRESS_WIDTH);
     const complete = options.complete ?? '\u2588';
     const incomplete = options.incomplete ?? '\u2591';
-
-    const template = options.template ?? '{message} [{bar}] {percent}% {value}/{total}';
-
     const fields: WidgetFields<ProgressWidgetState & S> = {
-      bar: (ctx) => {
-        const total = numericOrDefault(ctx.state.total, 0);
-        const value = normalizeProgressValue(numericOrDefault(ctx.state.value, 0), total);
-        return renderProgressBar(value, total, { width, complete, incomplete });
-      },
-      percent: (ctx) => {
-        const total = numericOrDefault(ctx.state.total, 0);
-        const value = normalizeProgressValue(numericOrDefault(ctx.state.value, 0), total);
-        return renderPercent(value, total);
-      },
-      ...(options.fields ?? {})
+      bar: (ctx) => renderProgressBar(ctx.state.value, ctx.state.total, { width, complete, incomplete }),
+      percent: (ctx) => renderPercent(ctx.state.value, ctx.state.total),
+      ...options.fields
     };
 
     return this.createWidget<ProgressWidgetState & S>(
@@ -226,7 +202,7 @@ export class Renderer {
           total: options.total ?? 100,
           ...(options.state ?? ({} as S))
         },
-        template,
+        template: options.template ?? '{message} [{bar}] {percent}% {value}/{total}',
         fields
       },
       { fixedBottom: options.fixedBottom }
@@ -237,36 +213,28 @@ export class Renderer {
     if (this.disposed) {
       return;
     }
-
     if (this.isTTY) {
       this.drawBottomTTY(force);
-      return;
+    } else {
+      this.drawBottomNonTTY(force);
     }
-
-    this.drawBottomNonTTY(force);
   }
 
   clearBottom() {
-    if (this.disposed || !this.isTTY) {
-      return;
+    if (!this.disposed && this.isTTY) {
+      this.surface.release();
     }
-    this.clearBottomTTY();
   }
 
   dispose() {
     if (this.disposed) {
       return;
     }
-
     this.disposed = true;
     this.stopTicker();
     this.widgets.length = 0;
     this.bottomWidget = undefined;
-
-    if (this.isTTY) {
-      this.clearBottomTTY();
-      this.showCursorTTY();
-    }
+    this.surface.dispose();
   }
 
   private createId() {
@@ -274,99 +242,77 @@ export class Renderer {
     return `widget-${this.idCounter}`;
   }
 
-  private stopTicker() {
-    if (!this.ticker) {
-      return;
-    }
-    clearInterval(this.ticker);
-    this.ticker = undefined;
-  }
-
   private ensureTicker() {
-    if (this.ticker || this.disposed || !this.hasAnyWidget()) {
+    if (this.ticker || this.disposed) {
       return;
     }
-
     this.ticker = setInterval(() => {
-      if (this.disposed || !this.hasAnyWidget()) {
-        this.stopTicker();
-        return;
-      }
-
       this.tick += 1;
       this.scheduleRender(false);
     }, this.tickInterval);
   }
 
-  private clearBottomTTY() {
-    const rows = this.prevFrame?.rows.length ?? 0;
-    if (!this.isTTY || rows === 0) {
-      return;
+  private stopTicker() {
+    if (this.ticker) {
+      clearInterval(this.ticker);
+      this.ticker = undefined;
     }
-
-    const output = this.stream as NodeJS.WriteStream;
-    if (rows > 1) {
-      readline.moveCursor(output, 0, -(rows - 1));
-    }
-
-    for (let i = 0; i < rows; i += 1) {
-      readline.cursorTo(output, 0);
-      readline.clearLine(output, 0);
-
-      if (i < rows - 1) {
-        readline.moveCursor(output, 0, 1);
-      }
-    }
-
-    if (rows > 1) {
-      readline.moveCursor(output, 0, -(rows - 1));
-    }
-
-    readline.cursorTo(output, 0);
-    this.prevFrame = undefined;
   }
 
-  private renderWidgets() {
+  private renderWidgets(widgets = this.bottomWidget ? [...this.widgets, this.bottomWidget] : this.widgets) {
     const lines: string[] = [];
-    for (const widget of this.widgets) {
-      const context: RenderContext<any> = {
-        tick: this.tick,
-        state: widget.state,
-        fields: {}
-      };
-
-      const resolvedValues: Record<string, unknown> = {
-        ...widget.state,
-        tick: this.tick
-      };
-
+    for (const widget of widgets) {
+      const context: RenderContext = { tick: this.tick, state: widget.state, fields: {} };
+      const resolvedValues: Record<string, unknown> = { ...widget.state, tick: this.tick };
       for (const [key, resolver] of Object.entries(widget.fields)) {
         resolvedValues[key] = resolver(context);
       }
-
       lines.push(...renderTemplateLines(widget.template, context, resolvedValues));
     }
+    return lines;
+  }
 
-    if (this.bottomWidget) {
-      const context: RenderContext<any> = {
-        tick: this.tick,
-        state: this.bottomWidget.state,
-        fields: {}
-      };
-
-      const resolvedValues: Record<string, unknown> = {
-        ...this.bottomWidget.state,
-        tick: this.tick
-      };
-
-      for (const [key, resolver] of Object.entries(this.bottomWidget.fields)) {
-        resolvedValues[key] = resolver(context);
+  private drawBottomTTY(force: boolean) {
+    const lines = this.renderWidgets(this.widgets);
+    const bottomLines = this.bottomWidget ? this.renderWidgets([this.bottomWidget]) : [];
+    this.surface.batch(() => {
+      this.surface.resize();
+      if (lines.length === 0 && bottomLines.length === 0) {
+        this.surface.setViewportHeight(1);
+        this.surface.release();
+        return;
       }
 
-      lines.push(...renderTemplateLines(this.bottomWidget.template, context, resolvedValues));
-    }
+      const width = this.surface.area.width;
+      const content = ansiToSpans(lines.join('\n'));
+      const bottomContent = ansiToSpans(bottomLines.join('\n'));
+      const bottomHeight = measureLines(bottomLines, bottomContent, width);
+      const height = measureLines(lines, content, width) + bottomHeight;
+      if (force) {
+        this.surface.clear();
+      }
+      this.surface.setViewportHeight(height);
+      this.surface.render((frame) => {
+        const bottomStart = Math.max(0, frame.area.height - bottomHeight);
+        if (lines.length > 0) {
+          frame.write(content, { height: bottomStart });
+        }
+        if (bottomLines.length > 0) {
+          frame.write(bottomContent, { y: bottomStart, height: frame.area.height - bottomStart });
+        }
+      });
+    });
+  }
 
-    return lines;
+  private drawBottomNonTTY(force: boolean) {
+    const now = Date.now();
+    if (!force && now - this.lastNonTTYRender < this.nonTTYInterval) {
+      return;
+    }
+    for (const line of this.renderWidgets()) {
+      this.stream.write(`${line}\n`);
+    }
+    this.lastNonTTYRender = now;
   }
 
   private hasAnyWidget() {
@@ -386,94 +332,20 @@ export class Renderer {
     } else {
       return;
     }
-
     if (!this.hasAnyWidget()) {
       this.stopTicker();
     }
     this.scheduleRender(true);
   }
 
-  private drawBottomTTY(force = false) {
-    const nextFrame = Frame.from(this.renderWidgets(), this.stream.columns, this.prevFrame);
-
-    if (nextFrame.rows.length === 0) {
-      this.clearBottomTTY();
-      this.showCursorTTY();
-      this.prevFrame = nextFrame;
-      return;
-    }
-
-    if (force || !this.prevFrame) {
-      this.clearBottomTTY();
-      this.hideCursorTTY();
-
-      for (let i = 0; i < nextFrame.rows.length; i += 1) {
-        this.stream.write(nextFrame.rows[i]);
-        if (i < nextFrame.rows.length - 1) {
-          this.stream.write('\n');
-        }
-      }
-
-      this.prevFrame = nextFrame;
-      return;
-    }
-
-    this.hideCursorTTY();
-    applyFramePatchTTY(this.stream, this.prevFrame, nextFrame);
-    this.prevFrame = nextFrame;
-  }
-
-  private hideCursorTTY() {
-    if (!this.isTTY || this.cursorHidden) {
-      return;
-    }
-
-    this.stream.write('\x1B[?25l');
-    this.cursorHidden = true;
-    this.cancelExitHandler = onDeath(this.exitHandler);
-    process.once('exit', this.exitHandler);
-  }
-
-  private showCursorTTY() {
-    if (!this.isTTY || !this.cursorHidden) {
-      return;
-    }
-
-    this.stream.write('\x1B[?25h');
-    this.cursorHidden = false;
-    this.cancelExitHandler?.();
-    this.cancelExitHandler = undefined;
-    process.removeListener('exit', this.exitHandler);
-  }
-
-  private drawBottomNonTTY(force: boolean) {
-    const now = Date.now();
-    if (!force && now - this.lastNonTTYRender < this.nonTTYInterval) {
-      return;
-    }
-
-    const lines = this.renderWidgets();
-    if (lines.length === 0) {
-      return;
-    }
-
-    for (const line of lines) {
-      this.stream.write(`${line}\n`);
-    }
-
-    this.lastNonTTYRender = now;
-  }
-
-  private scheduleRender(force = false) {
+  private scheduleRender(force: boolean) {
     if (this.disposed) {
       return;
     }
-
     this.queuedForce = this.queuedForce || force;
     if (this.scheduled) {
       return;
     }
-
     this.scheduled = true;
     queueMicrotask(() => {
       this.scheduled = false;
@@ -482,4 +354,8 @@ export class Renderer {
       this.render(shouldForce);
     });
   }
+}
+
+function measureLines(lines: string[], content: Span[], width: number) {
+  return lines.length > 0 ? Math.max(1, measureText(content, width).rows) : 0;
 }

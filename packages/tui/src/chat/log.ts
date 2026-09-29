@@ -1,4 +1,4 @@
-import { gray, cyan, yellow, red } from '@breadc/color';
+import { cyan, gray, red, yellow } from '@breadc/color';
 
 import type { LogEntry, LogLevel } from './types.ts';
 
@@ -32,7 +32,6 @@ export function defaultLogFormatter(entry: LogEntry, options: LogFormatterOption
     const color = LOG_LEVEL_COLOR[entry.level];
     const prefix = color(`[${LOG_LEVEL_PREFIX[entry.level]}]`);
     return `${prefix} ${entry.message}`;
-  } else {
-    return `[${LOG_LEVEL_PREFIX[entry.level]}] ${entry.message}`;
   }
+  return `[${LOG_LEVEL_PREFIX[entry.level]}] ${entry.message}`;
 }

@@ -40,7 +40,9 @@
   "dependencies": {
     "@breadc/color": "workspace:*",
     "@breadc/death": "workspace:*",
-    "fast-string-width": "^3.0.2",
-    "std-env": "^4.2.0"
+    "fast-string-width": "^3.0.2"
+  },
+  "devDependencies": {
+    "@xterm/headless": "^6.0.0"
   }
 }
