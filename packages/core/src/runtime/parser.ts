@@ -11,6 +11,14 @@ import { buildApp, buildCommand, buildGroup, isGroup } from './builder.ts';
 import { buildHelpOption } from '../breadc/builtin/help.ts';
 import { buildVersionOption } from '../breadc/builtin/version.ts';
 
+type ParseFallback = { group: InternalGroup } | { command: InternalCommand };
+
+interface ParseResult {
+  args: string[];
+  unmatchedArgs: string[];
+  unknownOption?: { name: string; value: string | undefined };
+}
+
 export function parse(app: Breadc, argv: string[]) {
   const context = makeContext<any>(app as InternalBreadc, argv);
 
@@ -30,19 +38,77 @@ export function parse(app: Breadc, argv: string[]) {
   const onlyDefaultCommand = defaultCommand !== undefined && context.breadc._commands.length === 1;
 
   // 3. Parse without default command
-  doParse(context, undefined, onlyDefaultCommand ? defaultCommand : undefined);
+  let result = doParse(context, onlyDefaultCommand ? { command: defaultCommand } : undefined);
 
   if (context.command || isVersion(context) || isHelp(context)) {
-    // 4.1. Parse ok
+    // 4.1. No fallback needed
   } else if (context.group) {
     // 4.2. Parse with group default command
     const matchedGroup = context.group;
     reset(context);
-    doParse(context, matchedGroup, undefined);
+    result = doParse(context, { group: matchedGroup });
   } else if (defaultCommand) {
     // 4.3. Parse with default command
     reset(context);
-    doParse(context, undefined, defaultCommand);
+    result = doParse(context, { command: defaultCommand });
+  }
+
+  // 5. Validate the final pass and bind arguments
+  const { args, unmatchedArgs, unknownOption } = result;
+  const { command } = context;
+
+  if (unknownOption) {
+    throw new RuntimeError(`${RuntimeError.UNKNOWN_OPTION}: ${unknownOption.name}`, {
+      context,
+      ...unknownOption
+    });
+  }
+
+  if (isHelp(context) || isVersion(context)) {
+    return context;
+  }
+
+  if (command) {
+    if (unmatchedArgs.length > 0) {
+      throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });
+    }
+
+    // Fulfill the matched arguments
+    let i = 0;
+    for (; i < command._arguments.length; i++) {
+      const argument = command._arguments[i];
+      const matchedArgument = new MatchedArgument(argument);
+      const value: string | undefined = args[i];
+
+      if (argument.type === 'required') {
+        if (value === undefined) {
+          throw new RuntimeError(RuntimeError.REQUIRED_ARGUMENT_MISSING, {
+            context,
+            argument
+          });
+        }
+        matchedArgument.accept(context, value);
+        context.arguments.push(matchedArgument);
+      } else if (argument.type === 'optional') {
+        matchedArgument.accept(context, value);
+        context.arguments.push(matchedArgument);
+      } else {
+        for (; i < args.length; i++) {
+          matchedArgument.accept(context, args[i]);
+        }
+        context.arguments.push(matchedArgument);
+      }
+    }
+    if (i < args.length) {
+      context.remaining.unshift(...args.slice(i));
+    }
+  } else {
+    // Fill missing unknown arguments
+    context.arguments.push(
+      ...unmatchedArgs.map((arg, idx) =>
+        new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(context, arg)
+      )
+    );
   }
 
   return context;
@@ -106,12 +172,12 @@ function* parseShortOptions(
   }
 }
 
-function doParse(
-  context: Context,
-  defaultGroup: InternalGroup | undefined,
-  defaultCommand: InternalCommand | undefined
-) {
+// Match one pass into context. Defer unknown-option validation and argument binding
+// until the caller has selected the final pass, including any default-command fallback.
+function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   const { breadc, tokens, options: matchedOptions } = context;
+  const defaultGroup = fallback && 'group' in fallback ? fallback.group : undefined;
+  const defaultCommand = fallback && 'command' in fallback ? fallback.command : undefined;
 
   let index = 0;
   let matchedGroup: InternalGroup | undefined = undefined;
@@ -125,7 +191,8 @@ function doParse(
   const pendingNegateOptions: Map<string, InternalOption> = new Map();
   const pendingShortOptions: Map<string, InternalOption> = new Map();
   const args: string[] = [];
-  const unknown: string[] = [];
+  const unmatchedArgs: string[] = [];
+  let unknownOption: ParseResult['unknownOption'];
 
   const addPendingOptions = (options: InternalOption[]) => {
     for (const option of options) {
@@ -308,6 +375,7 @@ function doParse(
             ...(matchedGroup?._unknownOptionMiddlewares ?? []),
             ...(matchedCommand?._unknownOptionMiddlewares ?? [])
           ];
+          let accepted = false;
           for (const middleware of unknownOptionMiddlewares) {
             const result = middleware(context, key, value);
             if (result) {
@@ -316,8 +384,12 @@ function doParse(
                 rawOption(isLong ? `--${key}` : `-${key}`, result.type ?? 'optional', key, undefined, {})
               ).accept(context, key, value);
               matchedOptions.set(key, matched);
+              accepted = true;
               break;
             }
+          }
+          if (!accepted && !unknownOption) {
+            unknownOption = { name: isLong ? `--${key}` : `-${key}`, value };
           }
         }
       }
@@ -326,7 +398,7 @@ function doParse(
       if (matchedCommand) {
         args.push(rawToken);
       } else {
-        unknown.push(rawToken);
+        unmatchedArgs.push(rawToken);
       }
     }
   }
@@ -338,50 +410,5 @@ function doParse(
   context.group = matchedGroup;
   context.command = matchedCommand;
 
-  if (isHelp(context) || isVersion(context)) {
-    return matchedCommand;
-  }
-
-  if (matchedCommand) {
-    if (unknown.length > 0) {
-      throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });
-    }
-
-    // Fulfill the matched arguments
-    let i = 0;
-    for (; i < matchedCommand._arguments.length; i++) {
-      const argument = matchedCommand._arguments[i];
-      const matchedArgument = new MatchedArgument(argument);
-      const value: string | undefined = args[i];
-
-      if (argument.type === 'required') {
-        if (value === undefined) {
-          throw new RuntimeError(RuntimeError.REQUIRED_ARGUMENT_MISSING, {
-            context,
-            argument
-          });
-        }
-        matchedArgument.accept(context, value);
-        context.arguments.push(matchedArgument);
-      } else if (argument.type === 'optional') {
-        matchedArgument.accept(context, value);
-        context.arguments.push(matchedArgument);
-      } else {
-        for (; i < args.length; i++) {
-          matchedArgument.accept(context, args[i]);
-        }
-        context.arguments.push(matchedArgument);
-      }
-    }
-    if (i < args.length) {
-      context.remaining.unshift(...args.slice(i));
-    }
-  } else {
-    // Fill missing unknown arguments
-    context.arguments.push(
-      ...unknown.map((arg, idx) => new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(context, arg))
-    );
-  }
-
-  return matchedCommand;
+  return { args, unmatchedArgs, unknownOption };
 }

@@ -18,6 +18,8 @@ type RuntimeErrorInput = RuntimeErrorCause & {
 };
 
 export class RuntimeError extends BreadcError {
+  static UNKNOWN_OPTION = 'Unknown option';
+
   static UNEXPECTED_ARGUMENTS = 'Detect unexpected redundant arguments';
 
   static REQUIRED_ARGUMENT_MISSING = 'Missing required argument';

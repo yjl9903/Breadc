@@ -825,6 +825,96 @@ describe('runtime/parser: options', () => {
 });
 
 describe('runtime/parser: unknown options', () => {
+  it.each(['--typo', '--typo=x', '-x', '-x=value', '--no-typo'])('rejects unknown option %s by default', (option) => {
+    const app = breadc('cli');
+    const name = option.split('=')[0];
+    expect(() => app.parse([option])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+  });
+
+  it('rejects unknown options before matching positional arguments', () => {
+    const app = breadc('cli');
+    app.command('echo <message>');
+
+    for (const argv of [
+      ['echo', '--typo', 'x'],
+      ['echo', '--typo']
+    ]) {
+      expect(() => app.parse(argv)).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    }
+  });
+
+  it('includes the option and matched command in the runtime error', () => {
+    const app = breadc('cli');
+    const command = app.group('tool').command('echo');
+
+    expect(() => app.parse(['tool', 'echo', '--typo=x'])).toThrowError(
+      expect.objectContaining({
+        cause: { name: '--typo', value: 'x' },
+        context: expect.objectContaining({ command })
+      })
+    );
+  });
+
+  it.each([false, true])('validates options after resolving a default command (group: %s)', (grouped) => {
+    const app = breadc('cli');
+    const parent = grouped ? app.group('tool') : app;
+    const prefix = grouped ? ['tool'] : [];
+    parent.command('[message]').option('--output <file>');
+    parent.command('other');
+
+    const result = app.parse([...prefix, '--output', 'file', 'hello']);
+    expect(result.options).toEqual({ output: 'file' });
+    expect(result.args).toEqual(['hello']);
+    expect(() => app.parse([...prefix, '--typo', 'x'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+  });
+
+  it.each([false, true])('honors default command unknown-option middleware (group: %s)', (grouped) => {
+    const app = breadc('cli');
+    const parent = grouped ? app.group('tool') : app;
+    parent.command('[message]').allowUnknownOption();
+    parent.command('other');
+
+    const result = app.parse([...(grouped ? ['tool'] : []), '--typo', 'x', 'hello']);
+    expect(result.options).toEqual({ typo: 'x' });
+    expect(result.args).toEqual(['hello']);
+  });
+
+  it.each([false, true])('validates only the final fallback result (group: %s)', (grouped) => {
+    const app = breadc('cli');
+    const parent = grouped ? app.group('tool') : app;
+    const prefix = grouped ? ['tool'] : [];
+    const command = parent.command('<message>').option('--output <file>');
+    parent.command('other');
+
+    // --output is unknown on the first pass, but declared by the fallback command.
+    expect(() => app.parse([...prefix, '--output=file', '--typo=x'])).toThrowError(
+      expect.objectContaining({
+        message: `${RuntimeError.UNKNOWN_OPTION}: --typo`,
+        cause: { name: '--typo', value: 'x' },
+        context: expect.objectContaining({ command, arguments: [] })
+      })
+    );
+    expect(() => app.parse([...prefix, '--output=file'])).toThrowError(RuntimeError.REQUIRED_ARGUMENT_MISSING);
+  });
+
+  it('rejects unknown options when no group command matches', () => {
+    const app = breadc('cli');
+    app.group('tool').command('run');
+    expect(() => app.parse(['tool', '--typo'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+  });
+
+  it('preserves escaped options, negative numbers and stdio arguments', () => {
+    const app = breadc('cli');
+    app.command('echo [...args]');
+    const result = app.parse(['echo', '-1', '-', '--', '--typo', 'x']);
+    expect(result.args).toEqual([['-1', '-']]);
+    expect(result['--']).toEqual(['--typo', 'x']);
+  });
+
+  it.each(['--help', '--version'])('rejects unknown options alongside %s', (builtin) => {
+    expect(() => breadc('cli').parse(['--typo', builtin])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+  });
+
   it('allows unknown options', () => {
     const app = breadc('cli').allowUnknownOption();
 
@@ -890,11 +980,22 @@ describe('runtime/parser: unknown options', () => {
     `);
   });
 
-  it('ignores unknown options when middleware returns nothing', () => {
-    const app = breadc('cli').allowUnknownOption(() => undefined);
+  it.each([null, undefined])('rejects unknown options when middleware returns %s', (result) => {
+    const app = breadc('cli').allowUnknownOption(() => result);
+    expect(() => app.parse(['-x', 'foo'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -x`);
+  });
 
-    const result = app.parse(['-x', 'foo']);
-    expect(result.options).toMatchInlineSnapshot(`{}`);
+  it('continues through middleware until an unknown option is accepted', () => {
+    const app = breadc('cli').allowUnknownOption(() => undefined);
+    app
+      .group('tool')
+      .allowUnknownOption(() => null)
+      .command('echo [message]')
+      .allowUnknownOption();
+
+    const result = app.parse(['tool', 'echo', '--typo', 'x', 'hello']);
+    expect(result.options).toEqual({ typo: 'x' });
+    expect(result.args).toEqual(['hello']);
   });
 
   it('allows unknown options at group level', () => {

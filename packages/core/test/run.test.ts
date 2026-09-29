@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeAll } from 'vitest';
 import { options as colorOptions } from '@breadc/color';
 
 import { breadc } from '../src/breadc/index.ts';
-import { BreadcAppError } from '../src/error.ts';
+import { BreadcAppError, RuntimeError } from '../src/error.ts';
 
 beforeAll(() => {
   colorOptions.enabled = false;
@@ -25,23 +25,20 @@ describe('runtime/run', () => {
     `);
   });
 
-  it('returns builtin version/help when configured', async () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-
+  it('rejects disabled builtin options', async () => {
     const app = breadc('cli', { builtin: { version: false, help: false } });
 
-    await expect(app.run(['-v'])).resolves.toMatchInlineSnapshot(`
-      "cli/unknown
+    await expect(app.run(['-v'])).rejects.toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -v`);
+    await expect(app.run(['-h'])).rejects.toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -h`);
+  });
 
-      Usage: cli [OPTIONS]
-      "
-    `);
-    await expect(app.run(['-h'])).resolves.toMatchInlineSnapshot(`
-      "cli/unknown
+  it('rejects unknown options without invoking the action', async () => {
+    const app = breadc('cli');
+    const action = vi.fn();
+    app.command('echo <message>').action(action);
 
-      Usage: cli [OPTIONS]
-      "
-    `);
+    await expect(app.run(['echo', '--typo', 'x'])).rejects.toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    expect(action).not.toHaveBeenCalled();
   });
 
   it('invokes next when middleware does not call it', async () => {

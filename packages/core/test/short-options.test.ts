@@ -184,11 +184,9 @@ describe('runtime/parser: unknown options in short combinations', () => {
     expect(result.args).toEqual(['value']);
   });
 
-  it('ignores an unknown suffix when no middleware accepts it', () => {
+  it('rejects an unknown suffix when no middleware accepts it', () => {
     const app = breadc('cli').option('-a, --all').option('-z, --last');
     app.command('[rest]');
-    const result = app.parse(['-axyz', 'value']);
-    expect(result.options).toEqual({ all: true, last: false });
-    expect(result.args).toEqual(['value']);
+    expect(() => app.parse(['-axyz', 'value'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -xyz`);
   });
 });

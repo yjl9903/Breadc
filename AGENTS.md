@@ -32,6 +32,8 @@ TypeScript ESM is the default. Prefer named exports and colocate CLI handlers in
 
 Vitest powers the test suite. Store spec files in `test/` with `.test.ts` suffixes that reflect their target (`command.test.ts`). Type assertion tests belong in `.test-d.ts`, while opt-in benchmarks use `.bench.ts`. Maintain or improve the existing coverage in `coverage/` and run `pnpm -C packages/core test` when iterating locally. Snapshot tests are acceptable only when deterministic and stable across platforms.
 
+For changes to `packages/core`, run `pnpm -C packages/core test:coverage` and review test coverage, not just test results.
+
 ## Commit & Pull Request Guidelines
 
 Adopt conventional commits as seen in history (`feat(core):`, `chore:`). Scope changes to the affected package (`feat(core):`) or domain (`docs:`). Before pushing, run `pnpm build` and `pnpm test:ci` to catch regressions. Pull requests should summarize intent, link issues, call out doc updates, and add CLI output or screenshots when UX shifts. Request review once CI succeeds and any release notes or changelog updates are ready.
