@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import { breadc } from '../src/breadc/app.ts';
 import { option } from '../src/breadc/option.ts';
@@ -9,16 +9,26 @@ import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
 
 describe('runtime/matched: argument', () => {
-  it('uses default when not dirty and applies cast when dirty', () => {
+  it.each([undefined, '3'])('uses default before input and casts accepted input with initial %j', (initial) => {
     const app = breadc('cli');
     const ctx = makeContext(app, []);
 
-    const arg = argument('[count]', { default: '1', cast: (t) => Number(t) });
+    const cast = vi.fn((t: string | undefined) => Number(t));
+    const arg = argument('[count]', { initial, default: '1', cast });
     const matched = new MatchedArgument(arg);
+    expect(matched.dirty).toBe(false);
     expect(matched.value()).toMatchInlineSnapshot(`"1"`);
+    expect(cast).not.toHaveBeenCalled();
 
     matched.accept(ctx, '2');
+    expect(matched.dirty).toBe(true);
     expect(matched.value()).toMatchInlineSnapshot(`2`);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('2');
+
+    const withEmpty = new MatchedArgument(arg).accept(ctx, '');
+    expect(withEmpty.dirty).toBe(true);
+    expect(withEmpty.value()).toBe(0);
+    expect(cast).toHaveBeenLastCalledWith('');
   });
 
   it('uses initial value when provided', () => {

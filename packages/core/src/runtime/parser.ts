@@ -92,7 +92,9 @@ export function parse(app: Breadc, argv: string[]) {
         matchedArgument.accept(context, value);
         context.arguments.push(matchedArgument);
       } else if (argument.type === 'optional') {
-        matchedArgument.accept(context, value);
+        if (value !== undefined) {
+          matchedArgument.accept(context, value);
+        }
         context.arguments.push(matchedArgument);
       } else {
         for (; i < args.length; i++) {

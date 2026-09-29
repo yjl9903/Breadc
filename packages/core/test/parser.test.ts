@@ -371,6 +371,39 @@ describe('runtime/parser: command matching', () => {
 });
 
 describe('runtime/parser: arguments', () => {
+  it.each(['fallback', '', 0, false])('uses default %j for an omitted optional argument', (fallback) => {
+    const app = breadc('cli');
+    app.command('echo').argument('[file]', { default: fallback });
+
+    const result = app.parse(['echo']);
+    expect(result.args).toEqual([fallback]);
+    expect(result.context.arguments[0].dirty).toBe(false);
+    expect(app.parse(['echo', 'readme.md']).args).toEqual(['readme.md']);
+    expect(app.parse(['echo', '']).args).toEqual(['']);
+  });
+
+  it.each([undefined, 'seed'])('skips cast for an omitted optional argument with default and initial %j', (initial) => {
+    const app = breadc('cli');
+    const cast = vi.fn((value: string | undefined) => value?.toUpperCase());
+    app.command('echo').argument('[file]', { initial, default: 'fallback', cast });
+
+    expect(app.parse(['echo']).args).toEqual(['fallback']);
+    expect(cast).not.toHaveBeenCalled();
+    expect(app.parse(['echo', 'readme.md']).args).toEqual(['README.MD']);
+    expect(cast).toHaveBeenLastCalledWith('readme.md');
+    expect(app.parse(['echo', '']).args).toEqual(['']);
+    expect(cast).toHaveBeenLastCalledWith('');
+  });
+
+  it.each([undefined, 'seed'])('casts initial %j for an omitted optional argument without default', (initial) => {
+    const app = breadc('cli');
+    const cast = vi.fn((value: string | undefined) => value?.toUpperCase() ?? 'missing');
+    app.command('echo').argument('[file]', { initial, cast });
+
+    expect(app.parse(['echo']).args).toEqual([initial === undefined ? 'missing' : 'SEED']);
+    expect(cast).toHaveBeenCalledWith(initial);
+  });
+
   it('matches required/optional arguments and preserves explicit passthrough args', () => {
     const app = breadc('cli');
     app.command('echo <first> [second]');
@@ -390,17 +423,13 @@ describe('runtime/parser: arguments', () => {
     `);
   });
 
-  it('matches optional arguments when omitted', () => {
+  it.each([undefined, 'fallback'])('matches omitted optional arguments with default %j', (fallback) => {
     const app = breadc('cli');
-    app.command('echo <first> [second]');
+    app.command('echo <first>').argument('[second]', { default: fallback });
 
     const result1 = app.parse(['echo', 'a']);
-    expect(result1.args).toMatchInlineSnapshot(`
-      [
-        "a",
-        undefined,
-      ]
-    `);
+    expect(result1.args).toEqual(['a', fallback]);
+    expect(result1.context.arguments.map((arg) => arg.dirty)).toEqual([true, false]);
     expect(result1['--']).toMatchInlineSnapshot(`[]`);
 
     const result2 = app.parse(['echo', 'a', 'b']);
@@ -410,7 +439,12 @@ describe('runtime/parser: arguments', () => {
         "b",
       ]
     `);
+    expect(result2.context.arguments.map((arg) => arg.dirty)).toEqual([true, true]);
     expect(result2['--']).toMatchInlineSnapshot(`[]`);
+
+    const result3 = app.parse(['echo', 'a', '']);
+    expect(result3.args).toEqual(['a', '']);
+    expect(result3.context.arguments.map((arg) => arg.dirty)).toEqual([true, true]);
   });
 
   it('matches manual arguments mixed with spec arguments', () => {
@@ -518,24 +552,23 @@ describe('runtime/parser: arguments', () => {
     `);
   });
 
-  it('respects manual argument default/initial values when omitted', () => {
+  it.each([
+    { init: { initial: 'seed' }, expected: 'seed' },
+    { init: { default: 'fallback' }, expected: 'fallback' },
+    { init: { initial: 'seed', default: 'fallback' }, expected: 'fallback' }
+  ])('respects optional argument $init and spread default when omitted', ({ init, expected }) => {
     const app = breadc('cli');
     app
       .command('echo')
-      .argument('[name]', { initial: 'seed' })
+      .argument('[name]', init)
       .argument('[...rest]', { default: ['fallback'] });
 
     const result1 = app.parse(['echo']);
-    expect(result1.args).toMatchInlineSnapshot(`
-      [
-        "seed",
-        [
-          "fallback",
-        ],
-      ]
-    `);
+    expect(result1.args).toEqual([expected, ['fallback']]);
+    expect(result1.context.arguments.map((arg) => arg.dirty)).toEqual([false, false]);
 
     const result2 = app.parse(['echo', 'alice']);
+    expect(result2.context.arguments.map((arg) => arg.dirty)).toEqual([true, false]);
     expect(result2.args).toMatchInlineSnapshot(`
       [
         "alice",
@@ -546,6 +579,7 @@ describe('runtime/parser: arguments', () => {
     `);
 
     const result3 = app.parse(['echo', 'alice', 'x', 'y']);
+    expect(result3.context.arguments.map((arg) => arg.dirty)).toEqual([true, true]);
     expect(result3.args).toMatchInlineSnapshot(`
       [
         "alice",
