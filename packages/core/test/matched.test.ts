@@ -273,19 +273,35 @@ describe('runtime/matched: option', () => {
     `);
   });
 
-  it('pushes empty string for spread option when next token raw value is undefined', () => {
-    const app = breadc('cli');
-    const opt = option('-s, --include [...value]');
-    resolveOption(opt);
+  it.each([undefined, '--all', '--help', '--unknown', '-2foo', '--'])(
+    'rejects missing spread values before %s without consuming tokens or changing state',
+    (next) => {
+      const opt = option('-s, --include [...value]');
+      resolveOption(opt);
+      const ctx = makeContext(breadc('cli'), next === undefined ? [] : [next]);
+      const matched = new MatchedOption(opt);
 
-    const ctx = makeContext(app, []);
-    const matched = new MatchedOption(opt).accept(ctx, 's', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`
-      [
-        "",
-      ]
-    `);
-  });
+      const rejectMissing = () => {
+        expect(() => matched.accept(ctx, 's', undefined)).toThrowError(
+          expect.objectContaining({
+            message: `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`,
+            cause: { option: opt, name: 's', value: undefined },
+            context: ctx
+          })
+        );
+        expect(ctx.tokens.peek()?.toRaw()).toBe(next);
+      };
+
+      rejectMissing();
+      expect(matched.raw).toEqual([]);
+      expect(matched.dirty).toBe(false);
+
+      matched.accept(ctx, 's', 'a');
+      rejectMissing();
+      expect(matched.raw).toEqual(['a']);
+      expect(matched.dirty).toBe(true);
+    }
+  );
 
   it('reads optional value from next token when it is negative', () => {
     const app = breadc('cli');

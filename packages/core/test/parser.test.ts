@@ -1613,17 +1613,14 @@ describe('runtime/parser: short option combinations', () => {
     }
   });
 
-  it.each([
-    ['-o, --output [value]', true, true, true],
-    ['-o, --output [...value]', [''], [''], true]
-  ])('preserves following-token rules for %s', (spec, missing, beforeOption, brief) => {
-    const app = breadc('cli').option('-a, --all').option('-b, --brief').option(spec);
-    expect(app.parse(['-ao']).options.output).toEqual(missing);
-    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief, output: beforeOption });
-    expect(app.parse(['-ao', '-1']).options.output).toEqual(spec.includes('...') ? ['-1'] : '-1');
+  it('preserves following-token rules for optional options', () => {
+    const app = breadc('cli').option('-a, --all').option('-b, --brief').option('-o, --output [value]');
+    expect(app.parse(['-ao']).options.output).toBe(true);
+    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief: true, output: true });
+    expect(app.parse(['-ao', '-1']).options.output).toBe('-1');
 
     const escaped = app.parse(['-ao', '--', '-ab']);
-    expect(escaped.options).toEqual({ all: true, brief: false, output: missing });
+    expect(escaped.options).toEqual({ all: true, brief: false, output: true });
     expect(escaped['--']).toEqual(['-ab']);
   });
 
@@ -1646,6 +1643,34 @@ describe('runtime/parser: short option combinations', () => {
       include: ['first', 'second', 'third', '']
     });
     expect(app.parse(['-ss']).options.include).toEqual(['s']);
+  });
+
+  it.each(['--include', '-s', '-as'])('requires a value for every spread occurrence of %s', (flag) => {
+    const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
+    for (const tail of [[], ['--all'], ['--help'], ['--unknown'], ['--', 'file']]) {
+      for (const prefix of [[], ['--include', 'first']]) {
+        expect(() => app.parse([...prefix, flag, ...tail])).toThrowError(
+          `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`
+        );
+      }
+    }
+  });
+
+  it('preserves explicit empty spread values and normal accumulation', () => {
+    const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
+    expect(app.parse([]).options.include).toEqual([]);
+    expect(app.parse(['--include', 'a', '--include', 'b']).options.include).toEqual(['a', 'b']);
+    for (const argv of [['--include='], ['--include', ''], ['-s='], ['-s', ''], ['-as='], ['-as', '']]) {
+      expect(app.parse([...argv, '--include', 'b']).options.include).toEqual(['', 'b']);
+    }
+  });
+
+  it('requires spread values even when initial or default values are configured', () => {
+    for (const init of [{ initial: ['seed'] }, { default: ['seed'] }]) {
+      const app = breadc('cli').option('--include [...value]', '', init);
+      expect(app.parse([]).options.include).toEqual(['seed']);
+      expect(() => app.parse(['--include'])).toThrowError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`);
+    }
   });
 
   it.each([
@@ -1782,16 +1807,15 @@ describe('runtime/parser: option value boundaries', () => {
     }
   });
 
-  it.each(['[value]', '[...value]'] as const)('leaves following flags and unknown options for %s', (kind) => {
-    const app = breadc('cli').option('-a, --all').option(`-o, --output ${kind}`);
-    const missing = kind === '[...value]' ? [''] : true;
-    expect(app.parse(['--output', '--all']).options).toEqual({ all: true, output: missing });
+  it('leaves following flags and unknown options for optional options', () => {
+    const app = breadc('cli').option('-a, --all').option('-o, --output [value]');
+    expect(app.parse(['--output', '--all']).options).toEqual({ all: true, output: true });
     expect(isHelp(app.parse(['--output', '--help']).context)).toBe(true);
     for (const value of ['--unknown', '-2foo', '-2e']) {
       expect(() => app.parse(['--output', value])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
     }
     const escaped = app.parse(['--output', '--', '-2foo']);
-    expect(escaped.options.output).toEqual(missing);
+    expect(escaped.options.output).toBe(true);
     expect(escaped['--']).toEqual(['-2foo']);
   });
 

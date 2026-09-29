@@ -230,7 +230,15 @@ export class MatchedOption {
             });
           }
         } else {
-          this.raw.push(value ?? '');
+          if (value === undefined) {
+            throw new RuntimeError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --${this.option.long}`, {
+              context,
+              option: this.option,
+              name: long,
+              value
+            });
+          }
+          this.raw.push(value);
         }
 
         this.dirty = true;
