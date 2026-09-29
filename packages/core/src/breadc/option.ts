@@ -30,6 +30,7 @@ export function rawOption(
     spec,
     init,
     type,
+    form: type === 'boolean' ? 'positive' : undefined,
     long,
     short
   } as InternalOption;

@@ -25,6 +25,7 @@ export function command<S extends string, I extends CommandInit<S>>(
   spec: S,
   init?: I
 ): Command<S, I, {}, {}, InferArgumentsType<S>, unknown> {
+  /* v8 ignore next -- TODO: remove when direct command invocation is implemented. @preserve */
   const run = (() => {
     // TODO: run action
   }) as unknown as InternalCommand;

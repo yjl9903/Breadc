@@ -136,8 +136,12 @@ export type InternalCommand = Command & {
 
 export type OptionType = 'boolean' | 'required' | 'optional' | 'spread';
 
+export type BooleanForm = 'positive' | 'negative' | 'both';
+
 export type InternalOption = Option & {
   type: OptionType;
+
+  form?: BooleanForm;
 
   long: string;
 

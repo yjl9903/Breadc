@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { TokenStream } from '../src/runtime/lexer.ts';
+import { Token, TokenStream } from '../src/runtime/lexer.ts';
 
 describe('runtime/lexer: token stream', () => {
   it('list all arguments', () => {
@@ -813,4 +813,38 @@ describe('runtime/lexer: token stream', () => {
     expect(lexer.next()).toBeUndefined();
     expect(lexer.isEnd).toMatchInlineSnapshot(`true`);
   });
+});
+
+describe('runtime/lexer: complete decimal syntax', () => {
+  const negativeNumbers = ['-2', '-0', '-02', '-2.5', '-.5', '-2.', '-2e3', '-2E-3', '-.5e+2', '-2.e-3', '-1e999'];
+  const optionLikeValues = [
+    '--all',
+    '--help',
+    '--unknown',
+    '-a',
+    '-ab',
+    '-2foo',
+    '-2e',
+    '-2e+',
+    '-0x10',
+    '-1_000',
+    '-1j',
+    '-Infinity',
+    '-NaN'
+  ];
+
+  it.each(['2', '+2', '0', '02', '.5', '2.', '2E+3', ...negativeNumbers])('recognizes %s', (value) => {
+    const token = new Token(value);
+    expect(token.isNumber).toBe(true);
+    expect(token.isNegativeNumber).toBe(value.startsWith('-'));
+  });
+
+  it.each(['', ' ', ' 2', '2 ', '-2\n', '-2\r', '-2\t', '2foo', '0x10', 'Infinity', 'NaN', ...optionLikeValues])(
+    'does not recognize %j as a complete number',
+    (value) => {
+      const token = new Token(value);
+      expect(token.isNumber).toBe(false);
+      expect(token.isNegativeNumber).toBe(false);
+    }
+  );
 });

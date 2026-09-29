@@ -20,7 +20,7 @@ export function resolveGroup(group: Group | InternalGroup) {
   const { spec } = group;
 
   const pieces: string[] = [];
-  for (let i = 0; i < spec.length; ) {
+  for (let i = 0; i < spec.length;) {
     if (spec[i] === '<' || spec[i] === '[') {
       throw new ResolveGroupError(ResolveGroupError.INVALID_ARG_IN_GROUP, {
         spec,
@@ -54,7 +54,7 @@ export function resolveCommand(command: Command | InternalCommand) {
   const pieces: string[] = [...parent];
 
   // 1. Resolve const pieces
-  for (; i < spec.length; ) {
+  for (; i < spec.length;) {
     if (spec[i] === '<' || spec[i] === '[') {
       break;
     } else if (spec[i] === ' ') {
@@ -85,7 +85,7 @@ export function resolveCommand(command: Command | InternalCommand) {
   const resolvedArguments: InternalArgument[] = [];
   let spread: InternalArgument | undefined;
 
-  for (; i < spec.length; ) {
+  for (; i < spec.length;) {
     if (spec[i] === '<') {
       if (i + 1 >= spec.length || spec[i + 1] === ' ') {
         throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec, position: i });
@@ -257,7 +257,7 @@ export function resolveCommand(command: Command | InternalCommand) {
     const resolvedAliases: string[][] = [pieces];
     for (const spec of aliases) {
       const aliasPieces: string[] = [...parent];
-      for (let i = 0; i < spec.length; ) {
+      for (let i = 0; i < spec.length;) {
         if (spec[i] === '<' || spec[i] === '[') {
           throw new ResolveCommandError(ResolveCommandError.INVALID_ALIAS_FORMAT, { spec, position: i });
         } else if (spec[i] === ' ') {
@@ -286,7 +286,7 @@ export function resolveCommand(command: Command | InternalCommand) {
   return command;
 }
 
-const OptionRE = /^(?:-([a-zA-Z]), )?--(no-)?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
+const OptionRE = /^(?:-([a-zA-Z]), )?--(no-|\[no-\])?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
 export function resolveOption(option: Option<string, any, any> | InternalOption) {
   if ((option as InternalOption).type) return option as InternalOption;
@@ -296,6 +296,11 @@ export function resolveOption(option: Option<string, any, any> | InternalOption)
   const match = OptionRE.exec(spec);
 
   if (match) {
+    // Negation forms only apply to boolean options. Validate before marking the option resolved.
+    if (match[2] && match[4]) {
+      throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, { spec });
+    }
+
     // long: --([a-zA-Z0-9\-]+)
     const name = match[3];
     (option as InternalOption).long = name;
@@ -316,23 +321,9 @@ export function resolveOption(option: Option<string, any, any> | InternalOption)
       } else {
         (option as InternalOption).type = 'optional';
       }
-      if (match[2]) {
-        // Invalid --no-option <value>
-        throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
-          spec
-        });
-      }
     } else {
       (option as InternalOption).type = 'boolean';
-      if (
-        match[2] &&
-        option.init.negated === undefined &&
-        option.init.initial === undefined &&
-        option.init.default === undefined
-      ) {
-        option.init.negated = true as unknown as undefined;
-        option.init.initial = true;
-      }
+      (option as InternalOption).form = match[2] === '[no-]' ? 'both' : match[2] === 'no-' ? 'negative' : 'positive';
     }
 
     return option as InternalOption;

@@ -10,7 +10,7 @@ Yet another **Command Line Application Framework** desgined for **[TypeScript](h
 - **TypeScript Infer**: infer command arguments, option values, and action signatures in IDE automatically
 - **Command**: support default command, command alias, and nested sub-commands like `git remote add <name> <url>`
 - **Group**: organize commands by modules and build large multi-command CLI applications with clear structure
-- **Option**: support boolean, required, optional, spread options, `--no-*` negation, and `--` passthrough arguments
+- **Option**: support boolean, required, optional, spread options, explicit `--no-*` / `--[no-]*` boolean forms, and `--` passthrough arguments
 - **Middleware**: support middleware pipeline and unknown option handling
 - **Builtin CLI Features**: provide common help / version options and i18n support out of the box
 

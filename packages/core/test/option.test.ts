@@ -10,6 +10,7 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "form": "positive",
         "init": {
           "description": undefined,
         },
@@ -79,10 +80,9 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "form": "negative",
         "init": {
           "description": undefined,
-          "initial": true,
-          "negated": true,
         },
         "long": "open",
         "spec": "--no-open",
@@ -103,5 +103,19 @@ describe('runtime/builder: option', () => {
       const opt = option('invalid');
       resolveOption(opt);
     }).toThrowErrorMatchingInlineSnapshot(`[Error: Resolving invalid option at the option "invalid"]`);
+  });
+
+  it('resolves forms without modifying the initial configuration', () => {
+    for (const [spec, form] of [
+      ['--all', 'positive'],
+      ['--no-all', 'negative'],
+      ['-a, --[no-]all', 'both']
+    ]) {
+      const opt = option(spec);
+      const init = { ...opt.init };
+      expect(resolveOption(opt)).toMatchObject({ long: 'all', form, type: 'boolean' });
+      expect(opt.init).toEqual(init);
+    }
+    expect(resolveOption(option('--output [value]')).form).toBeUndefined();
   });
 });

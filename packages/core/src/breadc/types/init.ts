@@ -68,11 +68,6 @@ export type OptionInit<
   description?: string;
 
   /**
-   * Generate negated option
-   */
-  negated?: boolean;
-
-  /**
    * Overwrite the initial value of the corresponding matched option.
    * - &lt;required&gt;: undefined
    * - \[optional\]: false
@@ -100,13 +95,6 @@ export type NonNullableOptionInit<
    * Option description
    */
   description?: string;
-
-  /**
-   * Generate corresponding negated option
-   *
-   * @default false
-   */
-  negated?: InferOptionRawType<Spec> extends boolean ? boolean : never;
 
   /**
    * Overwrite the initial value of the corresponding matched option.

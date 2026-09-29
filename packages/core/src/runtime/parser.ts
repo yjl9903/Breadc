@@ -13,6 +13,8 @@ import { buildVersionOption } from '../breadc/builtin/version.ts';
 
 type ParseFallback = { group: InternalGroup } | { command: InternalCommand };
 
+type OptionBinding = { option: InternalOption; inverted: boolean };
+
 interface ParseResult {
   args: string[];
   unmatchedArgs: string[];
@@ -148,11 +150,11 @@ export function isVersion(context: Context<any>) {
 // Short option boundaries depend on declarations, so resolve them here rather than in the lexer.
 function* parseShortOptions(
   text: string,
-  options: Map<string, InternalOption>
+  options: Map<string, OptionBinding>
 ): Generator<[key: string, value: string | undefined]> {
   for (let i = 1; i < text.length; i++) {
     const key = text[i];
-    const option = options.get(key);
+    const option = options.get(key)?.option;
     if (!option) {
       // Keep an unknown suffix intact for the existing unknown-option middleware.
       yield splitOnce(text.slice(i), '=');
@@ -187,23 +189,42 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   let candidateTailTokens: string[] = [];
 
   const pendingCommands: Map<string, Array<[InternalGroup | InternalCommand, number]>> = new Map();
-  const pendingLongOptions: Map<string, InternalOption> = new Map();
-  const pendingNegateOptions: Map<string, InternalOption> = new Map();
-  const pendingShortOptions: Map<string, InternalOption> = new Map();
+  const pendingLongOptions: Map<string, OptionBinding> = new Map();
+  const pendingShortOptions: Map<string, OptionBinding> = new Map();
+  const registeredOptions: Map<string, InternalOption> = new Map();
   const args: string[] = [];
   const unmatchedArgs: string[] = [];
   let unknownOption: ParseResult['unknownOption'];
 
+  const registerOption = (option: InternalOption) => {
+    const previous = registeredOptions.get(option.long);
+    if (previous) {
+      // A more specific declaration replaces every spelling of the previous option.
+      for (const name of [previous.long, 'no-' + previous.long]) {
+        if (pendingLongOptions.get(name)?.option === previous) {
+          pendingLongOptions.delete(name);
+        }
+      }
+      if (previous.short && pendingShortOptions.get(previous.short)?.option === previous) {
+        pendingShortOptions.delete(previous.short);
+      }
+    }
+    registeredOptions.set(option.long, option);
+
+    if (option.form !== 'negative') {
+      pendingLongOptions.set(option.long, { option, inverted: false });
+    }
+    if (option.form === 'negative' || option.form === 'both') {
+      pendingLongOptions.set('no-' + option.long, { option, inverted: true });
+    }
+    if (option.short) {
+      pendingShortOptions.set(option.short, { option, inverted: option.form === 'negative' });
+    }
+  };
+
   const addPendingOptions = (options: InternalOption[]) => {
     for (const option of options) {
-      // Add to pending options
-      pendingLongOptions.set(option.long, option);
-      if (option.type === 'boolean') {
-        pendingNegateOptions.set('no-' + option.long, option);
-      }
-      if (option.short) {
-        pendingShortOptions.set(option.short, option);
-      }
+      registerOption(option);
 
       // Add to matched options
       matchedOptions.set(option.long, new MatchedOption(option));
@@ -250,18 +271,10 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   // 1. Prepare global options
   addPendingOptions(breadc._options);
   if (breadc._init.builtin?.version !== false) {
-    const option = buildVersionOption(context);
-    pendingLongOptions.set(option.long, option);
-    if (option.short) {
-      pendingShortOptions.set(option.short, option);
-    }
+    registerOption(buildVersionOption(context));
   }
   if (breadc._init.builtin?.help !== false) {
-    const option = buildHelpOption(context);
-    pendingLongOptions.set(option.long, option);
-    if (option.short) {
-      pendingShortOptions.set(option.short, option);
-    }
+    registerOption(buildHelpOption(context));
   }
 
   // 2. Prepare root commands and options
@@ -359,16 +372,15 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
       const isLong = token.isLong;
       const entries = isLong ? [token.toLong()] : parseShortOptions(rawToken, pendingShortOptions);
       for (const [key, value] of entries) {
-        const option = isLong
-          ? pendingLongOptions.get(key) || pendingNegateOptions.get(key)
-          : pendingShortOptions.get(key);
+        const binding = isLong ? pendingLongOptions.get(key) : pendingShortOptions.get(key);
 
-        if (option) {
+        if (binding) {
+          const { option, inverted } = binding;
           if (!matchedOptions.has(option.long) || matchedOptions.get(option.long)?.option !== option) {
             matchedOptions.set(option.long, new MatchedOption(option));
           }
           const matchedOption = matchedOptions.get(option.long)!;
-          matchedOption.accept(context, key, value);
+          matchedOption.accept(context, key, value, inverted);
         } else {
           const unknownOptionMiddlewares = [
             ...breadc._unknownOptionMiddlewares,

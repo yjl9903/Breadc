@@ -159,7 +159,7 @@ describe('runtime/matched: option', () => {
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
-    const matched = new MatchedOption(opt).accept(ctx, 'no-open', 'false');
+    const matched = new MatchedOption(opt).accept(ctx, 'no-open', 'false', true);
     expect(matched.value()).toMatchInlineSnapshot(`true`);
   });
 
@@ -169,7 +169,7 @@ describe('runtime/matched: option', () => {
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
-    const matched = new MatchedOption(opt).accept(ctx, 'no-open', 'true');
+    const matched = new MatchedOption(opt).accept(ctx, 'no-open', 'true', true);
     expect(matched.value()).toMatchInlineSnapshot(`false`);
   });
 

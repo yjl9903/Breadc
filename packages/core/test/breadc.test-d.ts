@@ -14,6 +14,14 @@ import {
   Context
 } from '../src';
 
+import type {
+  InferOptionRawName,
+  InferOptionRawType,
+  InferOptionInitialType,
+  OptionInit,
+  NonNullableOptionInit
+} from '../src/breadc/types/index.ts';
+
 describe('types/command', () => {
   it('infer default command with no arguments', () => {
     const cmd = command('');
@@ -201,6 +209,61 @@ describe('types/command', () => {
 });
 
 describe('types/option', () => {
+  it('infers canonical names and boolean values for every form', () => {
+    type Specs = '--all' | '--no-all' | '--[no-]all' | '-a, --no-all' | '-a, --[no-]all';
+    expectTypeOf<InferOptionRawName<Specs>>().toEqualTypeOf<'all'>();
+    expectTypeOf<InferOptionRawType<Specs>>().toEqualTypeOf<boolean>();
+    expectTypeOf<InferOptionInitialType<Specs>>().toEqualTypeOf<boolean>();
+  });
+
+  it('infers action options from strings and option instances', () => {
+    command('run')
+      .option('--[no-]all')
+      .option('-c, --no-cache')
+      .option(option('-p, --[no-]allow-page'))
+      .action((options) => {
+        expectTypeOf(options).toEqualTypeOf<{
+          all: boolean;
+          cache: boolean;
+          allowPage: boolean;
+          '--': string[];
+        }>();
+      });
+  });
+
+  it('infers forms and casts across app, group and command options', () => {
+    breadc('cli')
+      .option('--[no-]global')
+      .group('tool')
+      .option('--no-cache')
+      .command('run')
+      .option('-a, --[no-]all', '', { initial: true })
+      .option('--no-open', '', {
+        cast: (value) => {
+          expectTypeOf(value).toEqualTypeOf<boolean>();
+          return Number(value);
+        }
+      })
+      .action((options) => {
+        expectTypeOf(options.global).toEqualTypeOf<boolean>();
+        expectTypeOf(options.cache).toEqualTypeOf<boolean>();
+        expectTypeOf(options.all).toEqualTypeOf<boolean>();
+        expectTypeOf(options.open).toEqualTypeOf<number>();
+      });
+  });
+
+  it('does not infer value arguments for negative or paired forms', () => {
+    type Invalid = `${'' | '-a, '}--${'no-' | '[no-]'}all ${'<value>' | '[value]' | '[...value]'}`;
+    expectTypeOf<InferOptionRawName<Invalid>>().toEqualTypeOf<never>();
+    expectTypeOf<InferOptionRawType<Invalid>>().toEqualTypeOf<never>();
+    expectTypeOf<InferOptionInitialType<Invalid>>().toEqualTypeOf<never>();
+  });
+
+  it('removes negated from the option configuration types', () => {
+    expectTypeOf<Extract<'negated', keyof OptionInit<'--all', boolean>>>().toEqualTypeOf<never>();
+    expectTypeOf<Extract<'negated', keyof NonNullableOptionInit<'--all', boolean>>>().toEqualTypeOf<never>();
+  });
+
   it('infer boolean option type from command', () => {
     const cmd = command('').option('--flag');
     expectTypeOf<(options: { flag: boolean; '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<

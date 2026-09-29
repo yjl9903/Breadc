@@ -10,6 +10,24 @@ beforeAll(() => {
 });
 
 describe('runtime/run', () => {
+  it('expands paired boolean forms in help output', async () => {
+    const app = breadc('cli')
+      .option('-a, --[no-]all', 'Include everything')
+      .option('--[no-]cache', 'Use cache')
+      .option('--no-open', 'Do not open');
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      await app.run(['--help']);
+      const text = output.mock.calls.map((args) => args.join(' ')).join('\n');
+      expect(text).toContain('-a, --all, --no-all');
+      expect(text).toContain('--cache, --no-cache');
+      expect(text).toContain('--no-open');
+      expect(text).not.toContain('[no-]');
+    } finally {
+      output.mockRestore();
+    }
+  });
+
   it('passes arguments to action and returns result', async () => {
     const app = breadc('cli');
     app.command('echo <first> [second]').action((first, second, options) => [first, second, options]);

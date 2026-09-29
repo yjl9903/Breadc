@@ -46,6 +46,9 @@ function readDescription(context: Context<any>, value: unknown) {
 }
 
 function formatOption(option: InternalOption) {
+  if (option.form === 'both') {
+    return `${option.short ? `-${option.short}, ` : ''}--${option.long}, --no-${option.long}`;
+  }
   return option.spec;
 }
 

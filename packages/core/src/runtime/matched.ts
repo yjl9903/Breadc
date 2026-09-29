@@ -100,7 +100,10 @@ export class MatchedOption {
       this.raw = option.init.initial;
     } else {
       switch ((option as InternalOption).type) {
-        case 'boolean':
+        case 'boolean': {
+          this.raw = this.option.form === 'negative';
+          break;
+        }
         case 'optional': {
           this.raw = false;
           break;
@@ -126,7 +129,7 @@ export class MatchedOption {
     }
   }
 
-  public accept(context: Context, long: string, text: string | undefined) {
+  public accept(context: Context, long: string, text: string | undefined, inverted = false) {
     switch (this.option.type) {
       case 'boolean': {
         if (this.dirty) {
@@ -138,20 +141,8 @@ export class MatchedOption {
           });
         }
 
-        if (text !== undefined) {
-          const value = text.toLowerCase();
-          if (!long.startsWith('no-')) {
-            this.raw = FALSE_OPTION.includes(value) ? false : true;
-          } else {
-            this.raw = FALSE_OPTION.includes(value) ? true : false;
-          }
-        } else {
-          if (!long.startsWith('no-')) {
-            this.raw = true;
-          } else {
-            this.raw = false;
-          }
-        }
+        const value = text === undefined || !FALSE_OPTION.includes(text.toLowerCase());
+        this.raw = inverted ? !value : value;
 
         this.dirty = true;
 

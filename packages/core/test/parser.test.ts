@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import type { InternalBreadc } from '../src/breadc/index.ts';
 
 import { breadc } from '../src/breadc/app.ts';
-import { BreadcAppError, RuntimeError } from '../src/error.ts';
+import { isHelp } from '../src/runtime/parser.ts';
+import { BreadcAppError, ResolveOptionError, RuntimeError } from '../src/error.ts';
 
 describe('runtime/parser: command matching', () => {
   it('matches a single default command', () => {
@@ -136,6 +137,7 @@ describe('runtime/parser: command matching', () => {
 
     expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
       {
+        "form": "positive",
         "init": {
           "description": "Print help",
         },
@@ -161,6 +163,7 @@ describe('runtime/parser: command matching', () => {
 
     expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
       {
+        "form": "positive",
         "init": {
           "description": "Print version",
         },
@@ -189,6 +192,7 @@ describe('runtime/parser: command matching', () => {
 
     expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
       {
+        "form": "positive",
         "init": {
           "description": "Print help",
         },
@@ -199,6 +203,7 @@ describe('runtime/parser: command matching', () => {
     `);
     expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
       {
+        "form": "positive",
         "init": {
           "description": "Print version",
         },
@@ -672,8 +677,8 @@ describe('runtime/parser: options', () => {
     `);
   });
 
-  it('supports --no-* negation semantics for boolean options', () => {
-    const app = breadc('cli').option('--open');
+  it('supports explicit positive and negative boolean forms', () => {
+    const app = breadc('cli').option('--[no-]open');
 
     expect(app.parse(['--open']).options.open).toMatchInlineSnapshot(`true`);
     expect(app.parse(['--open=true']).options.open).toMatchInlineSnapshot(`true`);
@@ -705,7 +710,7 @@ describe('runtime/parser: options', () => {
 
   it('applies option default/initial/cast semantics', () => {
     const app = breadc('cli')
-      .option('-f, --flag', '', {
+      .option('-f, --[no-]flag', '', {
         default: true,
         cast: (t) => (t ? 'on' : 'off')
       })
@@ -1274,5 +1279,467 @@ describe('runtime/parser: errors', () => {
     store.command('ls');
 
     expect(() => app.parse(['unknown', 'store', 'readme.md'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+  });
+});
+
+describe('runtime/parser: boolean option forms', () => {
+  it.each([
+    { spec: '--all', initial: false, positive: ['--all'], negative: [], unknown: ['--no-all'] },
+    { spec: '--no-all', initial: true, positive: [], negative: ['--no-all'], unknown: ['--all'] },
+    { spec: '--[no-]all', initial: false, positive: ['--all'], negative: ['--no-all'], unknown: [] },
+    { spec: '-a, --[no-]all', initial: false, positive: ['--all', '-a'], negative: ['--no-all'], unknown: [] },
+    { spec: '-a, --no-all', initial: true, positive: [], negative: ['--no-all', '-a'], unknown: ['--all'] }
+  ])('accepts only the declared forms of $spec', ({ spec, initial, positive, negative, unknown }) => {
+    const app = breadc('cli').option(spec);
+    expect(app.parse([]).options).toEqual({ all: initial });
+    for (const name of positive) {
+      expect(app.parse([name]).options).toEqual({ all: true });
+      expect(app.parse([`${name}=false`]).options).toEqual({ all: false });
+    }
+    for (const name of negative) {
+      expect(app.parse([name]).options).toEqual({ all: false });
+      expect(app.parse([`${name}=false`]).options).toEqual({ all: true });
+      expect(app.parse([`${name}=true`]).options).toEqual({ all: false });
+    }
+    for (const name of unknown) {
+      expect(() => app.parse([name])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+    }
+    expect(() => app.parse(['--[no-]all'])).toThrowError(RuntimeError.UNKNOWN_OPTION);
+  });
+
+  it.each(['--no-all', '--[no-]all', '-a, --no-all', '-a, --[no-]all'])(
+    'rejects value arguments on %s on every parse',
+    (spec) => {
+      for (const suffix of ['<value>', '[value]', '[...value]']) {
+        const app = breadc('cli').option(`${spec} ${suffix}`);
+        for (let i = 0; i < 2; i++) {
+          expect(() => app.parse([])).toThrowError(ResolveOptionError.INVALID_OPTION);
+        }
+      }
+    }
+  );
+
+  it.each(['--[no-]', '--[no]all', '--[no-]all[no-]', '-ab, --[no-]all'])('rejects malformed spec %s', (spec) => {
+    expect(() => breadc('cli').option(spec).parse([])).toThrowError(ResolveOptionError.INVALID_OPTION);
+  });
+
+  it('uses explicit initial and default values independently of the form', () => {
+    const app = breadc('cli')
+      .option('--no-all', '', { initial: false })
+      .option('--[no-]open', '', { initial: true })
+      .option('--no-cache', '', { default: false });
+    expect(app.parse([]).options).toEqual({ all: false, open: true, cache: false });
+    expect(app.parse(['--no-all=false', '--no-open', '--no-cache=false']).options).toEqual({
+      all: true,
+      open: false,
+      cache: true
+    });
+  });
+
+  it('casts the resolved boolean and preserves default precedence', () => {
+    const cast = vi.fn((value: boolean) => (value ? 'on' : 'off'));
+    const app = breadc('cli').option('--no-all', '', { cast });
+    expect(app.parse([]).options.all).toBe('on');
+    expect(cast).toHaveBeenLastCalledWith(true);
+    expect(app.parse(['--no-all']).options.all).toBe('off');
+    expect(cast).toHaveBeenLastCalledWith(false);
+    expect(app.parse(['--no-all=false']).options.all).toBe('on');
+
+    cast.mockClear();
+    const withDefault = breadc('cli').option('--no-all', '', { cast, default: 'default' });
+    expect(withDefault.parse([]).options.all).toBe('default');
+    expect(cast).not.toHaveBeenCalled();
+    expect(withDefault.parse(['--no-all']).options.all).toBe('off');
+  });
+
+  it('uses positive and negative short aliases in combinations', () => {
+    const app = breadc('cli').option('-a, --[no-]all').option('-b, --no-brief');
+    expect(app.parse(['-ab']).options).toEqual({ all: true, brief: false });
+    expect(app.parse(['-ab=false']).options).toEqual({ all: true, brief: true });
+    const result = app.parse(['-ab', 'false']);
+    expect(result.options).toEqual({ all: true, brief: false });
+    expect(result.args).toEqual(['false']);
+  });
+
+  it.each([['--all', '--no-all'], ['--no-all', '--all'], ['-a', '--no-all'], ['-aa']])(
+    'shares assignment state for %j',
+    (...argv) => {
+      expect(() => breadc('cli').option('-a, --[no-]all').parse(argv)).toThrowError(
+        RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE
+      );
+    }
+  );
+
+  it('reports the actual spelling of a repeated negative short alias', () => {
+    expect(() => breadc('cli').option('-a, --no-all').parse(['--no-all', '-a'])).toThrowError(
+      expect.objectContaining({ cause: expect.objectContaining({ name: 'a' }) })
+    );
+  });
+
+  it('uses forms at app, group and command scope', () => {
+    const app = breadc('cli').option('--[no-]global');
+    app.group('tool').option('--no-cache').command('run').option('-a, --[no-]all');
+    expect(app.parse(['--no-global', 'tool', '--no-cache', 'run', '-a']).options).toEqual({
+      global: false,
+      cache: false,
+      all: true
+    });
+  });
+
+  it.each(['--all', '--no-all', '--all <value>'])(
+    'removes previous spellings when a command overrides an option with %s',
+    (spec) => {
+      const app = breadc('cli').option('-a, --[no-]all');
+      app.command('run').option(spec);
+      const accepted = spec === '--all <value>' ? ['--all', 'value'] : [spec];
+      expect(app.parse(['run', ...accepted]).options.all).toBe(spec === '--all <value>' ? 'value' : spec === '--all');
+      const rejected = spec === '--no-all' ? '--all' : '--no-all';
+      for (const name of [rejected, '-a']) {
+        expect(() => app.parse(['run', name])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+      }
+    }
+  );
+
+  it('preserves a short name reassigned to a different option when overriding', () => {
+    const app = breadc('cli').option('-a, --[no-]all').option('-a, --another');
+    app.command('run').option('--all');
+    expect(app.parse(['run', '-a']).options).toEqual({ all: false, another: true });
+  });
+
+  it('replays negative forms for app and group default commands', () => {
+    const app = breadc('cli');
+    app.command('[name]').option('--[no-]all');
+    app.command('other');
+    expect(app.parse(['--no-all', 'name']).options).toEqual({ all: false });
+
+    const grouped = breadc('cli');
+    const group = grouped.group('tool');
+    group.command('[name]').option('--[no-]all');
+    group.command('other');
+    expect(grouped.parse(['tool', '--no-all', 'name']).options).toEqual({ all: false });
+  });
+
+  it('does not generate negative forms for default built-ins', () => {
+    for (const name of ['--no-help', '--no-version']) {
+      expect(() => breadc('cli').parse([name])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+    }
+  });
+
+  it('honors forms in custom built-in specs', () => {
+    const app = breadc('cli', { builtin: { help: { spec: '-h, --[no-]help' }, version: { spec: '--no-version' } } });
+    expect(app.parse(['--no-help']).options).toEqual({ help: false });
+    expect(app.parse(['-h']).options).toEqual({ help: true });
+    expect(app.parse(['--no-version']).options).toEqual({ version: false });
+    expect(() => app.parse(['--version'])).toThrowError(RuntimeError.UNKNOWN_OPTION);
+  });
+
+  it('does not infer negation from names accepted by unknown-option middleware', () => {
+    const app = breadc('cli').allowUnknownOption((_context, name, value) => ({ name, value, type: 'boolean' }));
+    expect(app.parse(['--no-all']).options).toEqual({ noAll: true });
+    expect(app.parse(['--no-all=false']).options).toEqual({ noAll: false });
+  });
+});
+
+describe('runtime/parser: short option combinations', () => {
+  const createApp = () => breadc('cli').option('-a, --all').option('-b, --[no-]brief').option('-o, --output <file>');
+
+  it.each([['-o', 'file'], ['-o=file'], ['-ofile'], ['-abo', 'file'], ['-abo=file'], ['-abofile']])(
+    'parses short option values from %j',
+    (...argv) => {
+      const combined = argv[0].startsWith('-ab');
+      expect(createApp().parse(argv).options).toEqual({ all: combined, brief: combined, output: 'file' });
+    }
+  );
+
+  it('combines boolean options from left to right', () => {
+    expect(createApp().parse(['-ab']).options).toEqual({ all: true, brief: true, output: undefined });
+  });
+
+  it('keeps declared option letters inside an attached value', () => {
+    expect(createApp().parse(['-oab']).options).toEqual({ all: false, brief: false, output: 'ab' });
+  });
+
+  it.each([
+    ['-a, --alpha', '-b, --beta', { alpha: true, beta: true, charlie: true }],
+    ['-a, --alpha', '-b, --beta <value>', { alpha: true, beta: 'c', charlie: false }],
+    ['-a, --alpha <value>', '-b, --beta', { alpha: 'bc', beta: false, charlie: false }]
+  ])('resolves -abc using %s and %s', (alpha, beta, expected) => {
+    const app = breadc('cli').option(alpha).option(beta).option('-c, --charlie');
+    expect(app.parse(['-abc']).options).toEqual(expected);
+  });
+
+  it.each([
+    ['-abo=', ''],
+    ['-abo==file', '=file'],
+    ['-abofile=name', 'file=name'],
+    ['-abo-1', '-1'],
+    ['-abo--', '--'],
+    ['-abo--brief', '--brief']
+  ])('preserves attached value boundaries in %s', (arg, output) => {
+    const app = createApp();
+    app.command('[rest]');
+    const result = app.parse([arg, 'next']);
+    expect(result.options).toEqual({ all: true, brief: true, output });
+    expect(result.args).toEqual(['next']);
+  });
+
+  it.each([
+    ['-ab=false', false],
+    ['-ab=NO', false],
+    ['-ab=YES', true],
+    ['-ab=', true]
+  ])('applies explicit boolean values to the last flag in %s', (arg, brief) => {
+    expect(createApp().parse([arg]).options).toEqual({ all: true, brief, output: undefined });
+  });
+
+  it('does not consume a separate boolean value', () => {
+    const app = createApp();
+    app.command('[rest]');
+    const result = app.parse(['-ab', 'false']);
+    expect(result.options).toEqual({ all: true, brief: true, output: undefined });
+    expect(result.args).toEqual(['false']);
+  });
+
+  it.each([
+    ['-o, --output <value>', 'file'],
+    ['-o, --output [value]', 'file'],
+    ['-o, --output [...value]', ['file']]
+  ])('supports all attached forms for %s', (spec, output) => {
+    const app = breadc('cli').option('-a, --all').option(spec);
+    for (const argv of [['-aofile'], ['-ao=file'], ['-ao', 'file']]) {
+      expect(app.parse(argv).options).toEqual({ all: true, output });
+    }
+  });
+
+  it.each([
+    ['-o, --output [value]', true, true, true],
+    ['-o, --output [...value]', [''], [''], true]
+  ])('preserves following-token rules for %s', (spec, missing, beforeOption, brief) => {
+    const app = breadc('cli').option('-a, --all').option('-b, --brief').option(spec);
+    expect(app.parse(['-ao']).options.output).toEqual(missing);
+    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief, output: beforeOption });
+    expect(app.parse(['-ao', '-1']).options.output).toEqual(spec.includes('...') ? ['-1'] : '-1');
+
+    const escaped = app.parse(['-ao', '--', '-ab']);
+    expect(escaped.options).toEqual({ all: true, brief: false, output: missing });
+    expect(escaped['--']).toEqual(['-ab']);
+  });
+
+  it('rejects a following option as a required value but accepts a negative number', () => {
+    const app = createApp();
+    expect(() => app.parse(['-ao', '--brief'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(app.parse(['-ao', '-1']).options.output).toBe('-1');
+  });
+
+  it('ends an optional option combination at its attached value', () => {
+    const app = breadc('cli').option('-a, --all').option('-o, --output [value]').option('-b, --brief');
+    expect(app.parse(['-aob']).options).toEqual({ all: true, output: 'b', brief: false });
+    expect(app.parse(['-ao=']).options.output).toBe('');
+  });
+
+  it('accumulates repeated spread options', () => {
+    const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
+    expect(app.parse(['-asfirst', '-s=second', '-s', 'third', '-s=']).options).toEqual({
+      all: true,
+      include: ['first', 'second', 'third', '']
+    });
+    expect(app.parse(['-ss']).options.include).toEqual(['s']);
+  });
+
+  it.each([
+    ['-a, --all', ['-aa'], RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE],
+    ['-a, --all', ['-a', '-a=false'], RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE],
+    ['-o, --output <value>', ['-ofile', '--output=again'], RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE],
+    ['-o, --output [value]', ['-ofile', '-oagain'], RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE]
+  ])('preserves duplicate assignment errors for %s', (spec, argv, error) => {
+    expect(() => breadc('cli').option(spec).parse(argv)).toThrowError(error);
+  });
+
+  it('applies existing initial, default and cast behavior', () => {
+    const app = breadc('cli')
+      .option('-a, --all', '', { default: true })
+      .option('-o, --output [value]', '', { initial: 'seed', cast: (value) => String(value).toUpperCase() });
+    expect(app.parse(['-ao']).options).toEqual({ all: true, output: 'SEED' });
+    expect(app.parse(['-aofile']).options).toEqual({ all: true, output: 'FILE' });
+  });
+
+  it('uses app, group and command declarations in a combination', () => {
+    const app = breadc('cli').option('-a, --all');
+    app.group('tool').option('-b, --brief').command('run').option('-o, --output <value>');
+    expect(app.parse(['tool', 'run', '-abofile']).options).toEqual({ all: true, brief: true, output: 'file' });
+  });
+
+  it('uses the most specific option type', () => {
+    const app = breadc('cli').option('-a, --all').option('-o, --output');
+    app.command('run').option('-o, --output <value>');
+    expect(app.parse(['run', '-aofile']).options).toEqual({ all: true, output: 'file' });
+  });
+
+  it('replays combinations when resolving a default command', () => {
+    const app = breadc('cli');
+    app.command('[name]').option('-a, --all').option('-o, --output <value>');
+    app.command('other');
+    const result = app.parse(['-aofile', 'name']);
+    expect(result.options).toEqual({ all: true, output: 'file' });
+    expect(result.args).toEqual(['name']);
+  });
+
+  it('supports built-in options in a combination', () => {
+    expect(createApp().parse(['-ah']).options).toMatchObject({ all: true, help: true });
+    expect(createApp().parse(['-av']).options).toMatchObject({ all: true, version: true });
+  });
+
+  it('preserves long options, negative arguments, stdio and escape tokens', () => {
+    const app = createApp();
+    app.command('[...rest]');
+    const result = app.parse(['--all', '--no-brief', '--output=file=name', '-12', '-', '--', '-abofile']);
+    expect(result.options).toEqual({ all: true, brief: false, output: 'file=name' });
+    expect(result.args).toEqual([['-12', '-']]);
+    expect(result['--']).toEqual(['-abofile']);
+  });
+
+  it('continues to reject multi-character short option declarations', () => {
+    expect(() => breadc('cli').option('-ab, --all').parse(['-ab'])).toThrowError(ResolveOptionError.INVALID_OPTION);
+  });
+});
+
+describe('runtime/parser: unknown options in short combinations', () => {
+  it.each(['-xyz=value', '-axyz=value'])('passes an unknown suffix intact to middleware for %s', (arg) => {
+    const middleware = vi.fn((_context, key, value) => ({ name: key, value }));
+    const app = breadc('cli').option('-a, --all').option('-z, --last').allowUnknownOption(middleware);
+    expect(app.parse([arg]).options).toEqual({ all: arg.startsWith('-a'), last: false, xyz: 'value' });
+    expect(middleware).toHaveBeenCalledExactlyOnceWith(expect.anything(), 'xyz', 'value');
+  });
+
+  it('preserves unknown middleware following-token behavior', () => {
+    const app = breadc('cli').option('-a, --all').allowUnknownOption();
+    expect(app.parse(['-axyz', 'value']).options).toEqual({ all: true, xyz: 'value' });
+  });
+
+  it('uses middleware types for unknown suffixes', () => {
+    const app = breadc('cli')
+      .option('-a, --all')
+      .allowUnknownOption((_context, key, value) => ({ name: key, value, type: 'boolean' }));
+    app.command('[rest]');
+    const result = app.parse(['-axyz', 'value']);
+    expect(result.options).toEqual({ all: true, xyz: true });
+    expect(result.args).toEqual(['value']);
+  });
+
+  it('rejects an unknown suffix when no middleware accepts it', () => {
+    const app = breadc('cli').option('-a, --all').option('-z, --last');
+    app.command('[rest]');
+    expect(() => app.parse(['-axyz', 'value'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -xyz`);
+  });
+});
+
+const negativeNumbers = ['-2', '-0', '-02', '-2.5', '-.5', '-2.', '-2e3', '-2E-3', '-.5e+2', '-2.e-3', '-1e999'];
+const optionLikeValues = [
+  '--all',
+  '--help',
+  '--unknown',
+  '-a',
+  '-ab',
+  '-2foo',
+  '-2e',
+  '-2e+',
+  '-0x10',
+  '-1_000',
+  '-1j',
+  '-Infinity',
+  '-NaN'
+];
+
+describe('runtime/parser: option value boundaries', () => {
+  it.each(['--output', '-o', '-ao'])('rejects option-like values after %s', (output) => {
+    const app = breadc('cli').option('-a, --all').option('-b, --brief').option('-o, --output <value>');
+    for (const value of optionLikeValues) {
+      expect(() => app.parse([output, value]), value).toThrowError(
+        `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
+      );
+    }
+  });
+
+  it.each(['<value>', '[value]', '[...value]'] as const)('preserves negative decimal strings for %s', (kind) => {
+    const app = breadc('cli').option('-a, --all').option(`-o, --output ${kind}`);
+    for (const value of [...negativeNumbers, '-', '', '2foo']) {
+      for (const output of ['--output', '-o', '-ao']) {
+        expect(app.parse([output, value]).options.output, `${output} ${value}`).toEqual(
+          kind === '[...value]' ? [value] : value
+        );
+      }
+    }
+  });
+
+  it.each(['<value>', '[value]', '[...value]'] as const)('accepts explicit option-like values for %s', (kind) => {
+    const app = breadc('cli').option('-a, --all').option(`-o, --output ${kind}`);
+    for (const value of [...optionLikeValues, '--']) {
+      for (const arg of [`--output=${value}`, `-o${value}`, `-ao=${value}`]) {
+        expect(app.parse([arg]).options.output, arg).toEqual(kind === '[...value]' ? [value] : value);
+      }
+    }
+  });
+
+  it.each(['[value]', '[...value]'] as const)('leaves following flags and unknown options for %s', (kind) => {
+    const app = breadc('cli').option('-a, --all').option(`-o, --output ${kind}`);
+    const missing = kind === '[...value]' ? [''] : true;
+    expect(app.parse(['--output', '--all']).options).toEqual({ all: true, output: missing });
+    expect(isHelp(app.parse(['--output', '--help']).context)).toBe(true);
+    for (const value of ['--unknown', '-2foo', '-2e']) {
+      expect(() => app.parse(['--output', value])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
+    }
+    const escaped = app.parse(['--output', '--', '-2foo']);
+    expect(escaped.options.output).toEqual(missing);
+    expect(escaped['--']).toEqual(['-2foo']);
+  });
+
+  it('preserves initial-value fallback without consuming a following option', () => {
+    const app = breadc('cli').option('--output <value>', '', { initial: 'seed' }).option('--all');
+    expect(app.parse(['--output', '--all']).options).toEqual({ output: 'seed', all: true });
+    expect(() => app.parse(['--output', '--unknown'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --unknown`);
+  });
+
+  it.each([false, true])('applies value boundaries in fallback commands (grouped: %s)', (grouped) => {
+    const app = breadc('cli').option('--all');
+    const parent = grouped ? app.group('tool') : app;
+    parent.command('[value]').option('--output <value>');
+    parent.command('other');
+    const prefix = grouped ? ['tool'] : [];
+    const result = app.parse([...prefix, '--output', '-2e-3', '-.5']);
+    expect(result.options).toMatchObject({ output: '-2e-3' });
+    expect(result.args).toEqual(['-.5']);
+    expect(() => app.parse([...prefix, '--output', '--all'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+  });
+
+  it('applies the same boundary to options accepted by middleware', () => {
+    const app = breadc('cli')
+      .option('--all')
+      .allowUnknownOption((_ctx, name, value) => ({ name, value, type: 'required' }));
+    expect(app.parse(['--custom', '-2e-3']).options).toMatchObject({ custom: '-2e-3' });
+    expect(() => app.parse(['--custom', '--all'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+  });
+});
+
+describe('runtime/parser: negative positional arguments', () => {
+  it.each(negativeNumbers)('preserves %s without casting', (value) => {
+    expect(breadc('cli').parse([value]).args).toEqual([value]);
+    const app = breadc('cli');
+    app.command('calc <value>');
+    expect(app.parse(['calc', value]).args).toEqual([value]);
+  });
+
+  it.each(['-2foo', '-2e', '-0x10', '-Infinity'])('treats %s as an option, including in default commands', (value) => {
+    const app = breadc('cli');
+    app.command('[value]');
+    expect(() => app.parse([value])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
+    expect(app.parse(['--', value])['--']).toEqual([value]);
+  });
+
+  it('keeps numeric short option declarations invalid', () => {
+    expect(() => breadc('cli').option('-2, --two').parse([])).toThrowError(ResolveOptionError);
+    const app = breadc('cli').option('--2');
+    const result = app.parse(['--2', '-2']);
+    expect(result.options).toEqual({ 2: true });
+    expect(result.args).toEqual(['-2']);
   });
 });
