@@ -2,6 +2,10 @@
   "$schema": "https://turborepo.org/schema.json",
   "tasks": {
     "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/tsconfig.json"
+      ],
       "dependsOn": [
         "^build"
       ],

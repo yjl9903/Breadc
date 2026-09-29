@@ -5,7 +5,7 @@ export default defineConfig({
     index: 'src/index.ts'
   },
   clean: true,
-  dts: true,
+  dts: { tsconfig: '../../tsconfig.json' },
   sourcemap: false,
   treeshake: true,
   target: 'es2022',
