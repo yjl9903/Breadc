@@ -76,7 +76,7 @@ describe('runtime/parser: short option combinations', () => {
 
   it.each([
     ['-o, --output [value]', true, true, true],
-    ['-o, --output [...value]', [''], ['--brief'], false]
+    ['-o, --output [...value]', [''], [''], true]
   ])('preserves following-token rules for %s', (spec, missing, beforeOption, brief) => {
     const app = breadc('cli').option('-a, --all').option('-b, --brief').option(spec);
     expect(app.parse(['-ao']).options.output).toEqual(missing);
@@ -88,9 +88,9 @@ describe('runtime/parser: short option combinations', () => {
     expect(escaped['--']).toEqual(['-ab']);
   });
 
-  it('preserves required option following-token values', () => {
+  it('rejects a following option as a required value but accepts a negative number', () => {
     const app = createApp();
-    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief: false, output: '--brief' });
+    expect(() => app.parse(['-ao', '--brief'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
     expect(app.parse(['-ao', '-1']).options.output).toBe('-1');
   });
 

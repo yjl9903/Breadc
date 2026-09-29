@@ -1,5 +1,8 @@
 import { splitOnce } from '../utils/string.ts';
 
+// Match decimal syntax without coercion. The final assertion also rejects trailing newlines.
+const NUMBER_RE = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?(?![\s\S])/;
+
 export class TokenStream {
   private readonly args: string[];
 
@@ -117,14 +120,22 @@ export class Token {
    * @returns whether arg looks like a negative number (`-123`)
    */
   public get isNegativeNumber(): boolean {
-    return this.text.startsWith('-') && !Number.isNaN(Number.parseFloat(this.text));
+    return this.text.startsWith('-') && this.isNumber;
   }
 
   /**
    * @returns whether arg looks like a number (`123`, `-123`)
    */
   public get isNumber(): boolean {
-    return !Number.isNaN(Number.parseFloat(this.text));
+    return NUMBER_RE.test(this.text);
+  }
+
+  /**
+   * Whether this token starts an option rather than a decimal value.
+   * Short option declarations only allow ASCII letters, so negative numbers cannot collide.
+   */
+  public get isOption(): boolean {
+    return this.isLong || (this.isShort && !this.isNegativeNumber);
   }
 
   /**

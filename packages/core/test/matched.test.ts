@@ -132,6 +132,17 @@ describe('runtime/matched: option', () => {
     expect(matched.value()).toMatchInlineSnapshot(`"1"`);
   });
 
+  it.each(['--all', '--help', '-2foo', '--'])('does not consume %s when a required value is missing', (value) => {
+    const opt = option('--output <value>');
+    resolveOption(opt);
+    const ctx = makeContext(breadc('cli'), [value]);
+    const matched = new MatchedOption(opt);
+
+    expect(() => matched.accept(ctx, 'output', undefined)).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(ctx.tokens.peek()?.toRaw()).toBe(value);
+    expect(matched.dirty).toBe(false);
+  });
+
   it('falls back to initial for required option when next token raw value is undefined', () => {
     const app = breadc('cli');
     const opt = option('-n, --number <value>', '', { initial: 'seed' });

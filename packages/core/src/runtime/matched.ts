@@ -171,7 +171,7 @@ export class MatchedOption {
         let value = text;
         if (value === undefined) {
           const token = context.tokens.peek();
-          if (token && !token.isEscape && !token.isLong && (!token.isShort || token.isNegativeNumber)) {
+          if (token && !token.isEscape && !token.isOption) {
             value = token.toRaw();
             context.tokens.next();
           }
@@ -197,7 +197,7 @@ export class MatchedOption {
         if (value === undefined) {
           // Try next token
           const token = context.tokens.peek();
-          if (token && !token.isEscape) {
+          if (token && !token.isEscape && !token.isOption) {
             value = token.toRaw();
             context.tokens.next();
           }

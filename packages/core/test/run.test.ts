@@ -41,16 +41,19 @@ describe('runtime/run', () => {
     expect(action).not.toHaveBeenCalled();
   });
 
-  it('rejects missing required option values without invoking the action', async () => {
-    const app = breadc('cli');
-    const action = vi.fn();
-    app.command('echo').option('--output <value>').action(action);
+  it.each([[], ['--all'], ['--help'], ['-2foo']])(
+    'rejects missing required option values before %j without invoking the action',
+    async (...tail) => {
+      const app = breadc('cli');
+      const action = vi.fn();
+      app.command('echo').option('--output <value>').option('--all').action(action);
 
-    await expect(app.run(['echo', '--output'])).rejects.toThrowError(
-      `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
-    );
-    expect(action).not.toHaveBeenCalled();
-  });
+      await expect(app.run(['echo', '--output', ...tail])).rejects.toThrowError(
+        `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
+      );
+      expect(action).not.toHaveBeenCalled();
+    }
+  );
 
   it('rejects excess positional arguments without invoking the action', async () => {
     const app = breadc('cli');

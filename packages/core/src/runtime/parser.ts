@@ -354,7 +354,7 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
           addPendingCommand(command, alias);
         }
       }
-    } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
+    } else if (token.isOption) {
       // 3. handle long options or short options (not negative number)
       const isLong = token.isLong;
       const entries = isLong ? [token.toLong()] : parseShortOptions(rawToken, pendingShortOptions);
