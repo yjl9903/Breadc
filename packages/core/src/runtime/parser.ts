@@ -1,6 +1,6 @@
 import type { Breadc, InternalBreadc, InternalOption, InternalGroup, InternalCommand } from '../breadc/index.ts';
 
-import { camelCase } from '../utils/string.ts';
+import { camelCase, splitOnce } from '../utils/string.ts';
 import { rawOption } from '../breadc/option.ts';
 import { rawArgument } from '../breadc/command.ts';
 import { RuntimeError, BreadcAppError } from '../error.ts';
@@ -76,6 +76,33 @@ export function isVersion(context: Context<any>) {
     return matched?.option === version && matched.value<boolean>();
   } else {
     return false;
+  }
+}
+
+// Short option boundaries depend on declarations, so resolve them here rather than in the lexer.
+function* parseShortOptions(
+  text: string,
+  options: Map<string, InternalOption>
+): Generator<[key: string, value: string | undefined]> {
+  for (let i = 1; i < text.length; i++) {
+    const key = text[i];
+    const option = options.get(key);
+    if (!option) {
+      // Keep an unknown suffix intact for the existing unknown-option middleware.
+      yield splitOnce(text.slice(i), '=');
+      return;
+    }
+
+    const rest = text.slice(i + 1);
+    if (rest.startsWith('=')) {
+      yield [key, rest.slice(1)];
+      return;
+    }
+    if (option.type !== 'boolean') {
+      yield [key, rest || undefined];
+      return;
+    }
+    yield [key, undefined];
   }
 }
 
@@ -263,32 +290,34 @@ function doParse(
     } else if (token.isLong || (token.isShort && !token.isNegativeNumber)) {
       // 3. handle long options or short options (not negative number)
       const isLong = token.isLong;
-      const [key, value] = isLong ? token.toLong() : token.toShort();
-      const option = isLong
-        ? pendingLongOptions.get(key) || pendingNegateOptions.get(key)
-        : pendingShortOptions.get(key);
+      const entries = isLong ? [token.toLong()] : parseShortOptions(rawToken, pendingShortOptions);
+      for (const [key, value] of entries) {
+        const option = isLong
+          ? pendingLongOptions.get(key) || pendingNegateOptions.get(key)
+          : pendingShortOptions.get(key);
 
-      if (option) {
-        if (!matchedOptions.has(option.long) || matchedOptions.get(option.long)?.option !== option) {
-          matchedOptions.set(option.long, new MatchedOption(option));
-        }
-        const matchedOption = matchedOptions.get(option.long)!;
-        matchedOption.accept(context, key, value);
-      } else {
-        const unknownOptionMiddlewares = [
-          ...breadc._unknownOptionMiddlewares,
-          ...(matchedGroup?._unknownOptionMiddlewares ?? []),
-          ...(matchedCommand?._unknownOptionMiddlewares ?? [])
-        ];
-        for (const middleware of unknownOptionMiddlewares) {
-          const result = middleware(context, key, value);
-          if (result) {
-            // TODO: check following unknown option logic
-            const matched = new MatchedOption(
-              rawOption(isLong ? `--${key}` : `-${key}`, result.type ?? 'optional', key, undefined, {})
-            ).accept(context, key, value);
-            matchedOptions.set(key, matched);
-            break;
+        if (option) {
+          if (!matchedOptions.has(option.long) || matchedOptions.get(option.long)?.option !== option) {
+            matchedOptions.set(option.long, new MatchedOption(option));
+          }
+          const matchedOption = matchedOptions.get(option.long)!;
+          matchedOption.accept(context, key, value);
+        } else {
+          const unknownOptionMiddlewares = [
+            ...breadc._unknownOptionMiddlewares,
+            ...(matchedGroup?._unknownOptionMiddlewares ?? []),
+            ...(matchedCommand?._unknownOptionMiddlewares ?? [])
+          ];
+          for (const middleware of unknownOptionMiddlewares) {
+            const result = middleware(context, key, value);
+            if (result) {
+              // TODO: check following unknown option logic
+              const matched = new MatchedOption(
+                rawOption(isLong ? `--${key}` : `-${key}`, result.type ?? 'optional', key, undefined, {})
+              ).accept(context, key, value);
+              matchedOptions.set(key, matched);
+              break;
+            }
           }
         }
       }
