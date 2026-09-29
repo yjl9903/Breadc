@@ -4,6 +4,11 @@ packages:
 
 allowBuilds:
   esbuild: true
+  workerd: true
+
+minimumReleaseAgeExclude:
+  - miniflare@5.20260926.1-alpha
+  - wrangler@4.143.1
 
 ignoreWorkspaceRootCheck: true
 shamefullyHoist: true

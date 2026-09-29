@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress';
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'Breadc',
+  cleanUrls: true,
   description: 'Yet another Command Line Application Framework with fully TypeScript support',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config

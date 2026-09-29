@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
-    "docs:build": "vitepress build docs",
-    "docs:dev": "vitepress dev docs",
-    "docs:preview": "vitepress preview docs",
+    "docs:build": "turbo run build --filter=@breadc/docs",
+    "docs:deploy": "turbo run deploy --filter=@breadc/docs",
+    "docs:dev": "turbo run dev --filter=@breadc/docs",
+    "docs:preview": "turbo run preview --filter=@breadc/docs",
     "format": "prettier --write '**/*.{ts,tsx,js,mjs}'",
     "release": "bumpp package.json packages/*/package.json apps/*/package.json --commit --push --tag",
     "test:ci": "turbo run test:ci",
@@ -28,7 +29,6 @@
     "turbo": "^2.11.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
-    "vitepress": "^1.6.4",
     "vitest": "^5.0.2"
   },
   "packageManager": "pnpm@12.8.0"
