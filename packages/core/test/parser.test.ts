@@ -559,6 +559,57 @@ describe('runtime/parser: arguments', () => {
 });
 
 describe('runtime/parser: options', () => {
+  it.each(['true', 't', 'yes', 'y', 'on', '1', 'TrUe'])('parses explicit true value %s', (value) => {
+    const app = breadc('cli').option('-a, --[no-]all');
+    for (const text of [value, value.toUpperCase()]) {
+      expect(app.parse([`--all=${text}`]).options).toMatchInlineSnapshot(`
+        {
+          "all": true,
+        }
+      `);
+      expect(app.parse([`-a=${text}`]).options).toMatchInlineSnapshot(`
+        {
+          "all": true,
+        }
+      `);
+      expect(app.parse([`--no-all=${text}`]).options).toMatchInlineSnapshot(`
+        {
+          "all": false,
+        }
+      `);
+    }
+  });
+
+  it.each(['false', 'f', 'no', 'n', 'off', '0', 'FaLsE'])('parses explicit false value %s', (value) => {
+    const app = breadc('cli').option('-a, --[no-]all');
+    for (const text of [value, value.toUpperCase()]) {
+      expect(app.parse([`--all=${text}`]).options).toMatchInlineSnapshot(`
+        {
+          "all": false,
+        }
+      `);
+      expect(app.parse([`-a=${text}`]).options).toMatchInlineSnapshot(`
+        {
+          "all": false,
+        }
+      `);
+      expect(app.parse([`--no-all=${text}`]).options).toMatchInlineSnapshot(`
+        {
+          "all": true,
+        }
+      `);
+    }
+  });
+
+  it.each(['--all', '-a', '--no-all'])('rejects invalid explicit boolean values for %s', (flag) => {
+    const app = breadc('cli').option('-a, --[no-]all');
+    for (const value of ['abc', '', ' ', ' true', 'false ', '2', '-1']) {
+      expect(() => app.parse([`${flag}=${value}`])).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Invalid boolean option value: --all]`
+      );
+    }
+  });
+
   it('parses short boolean options', () => {
     const app = breadc('cli');
     app.option('-f, --flag');
@@ -1483,13 +1534,30 @@ describe('runtime/parser: short option combinations', () => {
     expect(result.args).toEqual(['next']);
   });
 
-  it.each([
-    ['-ab=false', false],
-    ['-ab=NO', false],
-    ['-ab=YES', true],
-    ['-ab=', true]
-  ])('applies explicit boolean values to the last flag in %s', (arg, brief) => {
-    expect(createApp().parse([arg]).options).toEqual({ all: true, brief, output: undefined });
+  it.each(['-ab=false', '-ab=NO', '-ab=0'])('applies explicit false values to the last flag in %s', (arg) => {
+    expect(createApp().parse([arg]).options).toMatchInlineSnapshot(`
+      {
+        "all": true,
+        "brief": false,
+        "output": undefined,
+      }
+    `);
+  });
+
+  it.each(['-ab=YES', '-ab=1'])('applies explicit true values to the last flag in %s', (arg) => {
+    expect(createApp().parse([arg]).options).toMatchInlineSnapshot(`
+      {
+        "all": true,
+        "brief": true,
+        "output": undefined,
+      }
+    `);
+  });
+
+  it.each(['-ab=', '-ab=abc', '-ab=2'])('rejects invalid boolean values in %s', (arg) => {
+    expect(() => createApp().parse([arg])).toThrowErrorMatchingInlineSnapshot(
+      `[Error: Invalid boolean option value: --brief]`
+    );
   });
 
   it('does not consume a separate boolean value', () => {

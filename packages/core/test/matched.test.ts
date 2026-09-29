@@ -93,6 +93,34 @@ describe('runtime/matched: argument', () => {
 });
 
 describe('runtime/matched: option', () => {
+  it.each([false, true])('rejects invalid boolean values without changing state (inverted=%s)', (inverted) => {
+    const opt = option('--all', '', { initial: true });
+    resolveOption(opt);
+    const ctx = makeContext(breadc('cli'), []);
+    const matched = new MatchedOption(opt);
+    const name = inverted ? 'no-all' : 'all';
+
+    for (const value of ['abc', '', ' ', ' true', 'false ', '2', '-1']) {
+      expect(() => matched.accept(ctx, name, value, inverted)).toThrow(
+        expect.objectContaining({
+          message: `${RuntimeError.INVALID_BOOLEAN_OPTION_VALUE}: --all`,
+          cause: { option: opt, name, value },
+          context: ctx
+        })
+      );
+      expect({ dirty: matched.dirty, raw: matched.raw }).toMatchInlineSnapshot(`
+        {
+          "dirty": false,
+          "raw": true,
+        }
+      `);
+    }
+
+    matched.accept(ctx, name, '0', inverted);
+    expect(matched.value()).toBe(inverted);
+    expect(matched.dirty).toMatchInlineSnapshot(`true`);
+  });
+
   it('reads optional value from next token', () => {
     const app = breadc('cli');
     const opt = option('-o, --output [value]');

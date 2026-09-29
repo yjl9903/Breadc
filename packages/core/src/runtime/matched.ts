@@ -85,7 +85,8 @@ export class MatchedArgument {
   }
 }
 
-const FALSE_OPTION = ['false', 'f', 'no', 'n', 'off'];
+const TRUE_OPTION = ['true', 't', 'yes', 'y', 'on', '1'];
+const FALSE_OPTION = ['false', 'f', 'no', 'n', 'off', '0'];
 
 export class MatchedOption {
   public readonly option: InternalOption;
@@ -141,7 +142,20 @@ export class MatchedOption {
           });
         }
 
-        const value = text === undefined || !FALSE_OPTION.includes(text.toLowerCase());
+        let value = true;
+        if (text !== undefined) {
+          const normalized = text.toLowerCase();
+          if (FALSE_OPTION.includes(normalized)) {
+            value = false;
+          } else if (!TRUE_OPTION.includes(normalized)) {
+            throw new RuntimeError(`${RuntimeError.INVALID_BOOLEAN_OPTION_VALUE}: --${this.option.long}`, {
+              context,
+              option: this.option,
+              name: long,
+              value: text
+            });
+          }
+        }
         this.raw = inverted ? !value : value;
 
         this.dirty = true;

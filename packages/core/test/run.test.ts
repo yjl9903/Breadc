@@ -59,6 +59,17 @@ describe('runtime/run', () => {
     expect(action).not.toHaveBeenCalled();
   });
 
+  it.each(['--all=abc', '--all=', '--no-all=abc', '-a=abc'])('rejects %s without invoking the action', async (flag) => {
+    const app = breadc('cli');
+    const action = vi.fn();
+    app.command('echo').option('-a, --[no-]all').action(action);
+
+    await expect(app.run(['echo', flag])).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[Error: Invalid boolean option value: --all]`
+    );
+    expect(action).not.toHaveBeenCalled();
+  });
+
   it.each([[], ['--all'], ['--help'], ['-2foo']])(
     'rejects missing required option values before %j without invoking the action',
     async (...tail) => {

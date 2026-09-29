@@ -32,6 +32,8 @@ export class RuntimeError extends BreadcError {
 
   static BOOLEAN_OPTION_ACCEPT_ONCE = 'Boolean option can only be assigned once';
 
+  static INVALID_BOOLEAN_OPTION_VALUE = 'Invalid boolean option value';
+
   static OPTIONAL_OPTION_ACCEPT_ONCE = 'Optional option can only be assigned once';
 
   static REQUIRED_OPTION_ACCEPT_ONCE = 'Required option can only be assigned once';
