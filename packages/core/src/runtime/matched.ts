@@ -213,7 +213,17 @@ export class MatchedOption {
               value
             });
           }
+
           this.raw = value ?? this.option.init.initial ?? undefined;
+
+          if (this.raw === undefined) {
+            throw new RuntimeError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --${this.option.long}`, {
+              context,
+              option: this.option,
+              name: long,
+              value
+            });
+          }
         } else {
           this.raw.push(value ?? '');
         }

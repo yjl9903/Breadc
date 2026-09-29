@@ -75,7 +75,6 @@ describe('runtime/parser: short option combinations', () => {
   });
 
   it.each([
-    ['-o, --output <value>', undefined, '--brief', false],
     ['-o, --output [value]', true, true, true],
     ['-o, --output [...value]', [''], ['--brief'], false]
   ])('preserves following-token rules for %s', (spec, missing, beforeOption, brief) => {
@@ -87,6 +86,12 @@ describe('runtime/parser: short option combinations', () => {
     const escaped = app.parse(['-ao', '--', '-ab']);
     expect(escaped.options).toEqual({ all: true, brief: false, output: missing });
     expect(escaped['--']).toEqual(['-ab']);
+  });
+
+  it('preserves required option following-token values', () => {
+    const app = createApp();
+    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief: false, output: '--brief' });
+    expect(app.parse(['-ao', '-1']).options.output).toBe('-1');
   });
 
   it('ends an optional option combination at its attached value', () => {

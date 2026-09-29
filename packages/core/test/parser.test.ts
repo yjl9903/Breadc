@@ -587,11 +587,7 @@ describe('runtime/parser: options', () => {
         "output": undefined,
       }
     `);
-    expect(app.parse(['-o']).options).toMatchInlineSnapshot(`
-      {
-        "output": undefined,
-      }
-    `);
+    expect(() => app.parse(['-o'])).toThrowError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`);
     expect(app.parse(['-o=file']).options).toMatchInlineSnapshot(`
       {
         "output": "file",
@@ -602,6 +598,49 @@ describe('runtime/parser: options', () => {
         "output": "file",
       }
     `);
+  });
+
+  it.each([['--output'], ['-o'], ['-ao'], ['--output', '--'], ['-o', '--'], ['-ao', '--', 'file']])(
+    'rejects missing required option values in %j',
+    (...argv) => {
+      const app = breadc('cli').option('-a, --all').option('-o, --output <value>');
+      expect(() => app.parse(argv)).toThrowError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`);
+    }
+  );
+
+  it.each([['--output='], ['--output', ''], ['-o='], ['-o', ''], ['-ao=']])(
+    'accepts explicit empty required option values in %j',
+    (...argv) => {
+      const app = breadc('cli').option('-a, --all').option('-o, --output <value>');
+      expect(app.parse(argv).options.output).toBe('');
+    }
+  );
+
+  it.each(['seed', ''])('preserves required option initial fallback %j', (initial) => {
+    const app = breadc('cli').option('-o, --output <value>', '', { initial });
+    expect(app.parse([]).options.output).toBe(initial);
+    expect(app.parse(['--output']).options.output).toBe(initial);
+    expect(app.parse(['-o', '--', 'file'])['--']).toEqual(['file']);
+    expect(app.parse(['--output=file']).options.output).toBe('file');
+  });
+
+  it('does not use default or cast to conceal a missing required option value', () => {
+    const app = breadc('cli').option('--output <value>', '', {
+      default: 'default.txt',
+      cast: (value) => value ?? 'cast.txt'
+    });
+    expect(app.parse([]).options.output).toBe('default.txt');
+    expect(() => app.parse(['--output'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+  });
+
+  it.each([false, true])('rejects missing values on a default command (group: %s)', (grouped) => {
+    const app = breadc('cli');
+    const parent = grouped ? app.group('tool') : app;
+    parent.command('[message]').option('--output <value>');
+    parent.command('other');
+    expect(() => app.parse([...(grouped ? ['tool'] : []), '--output'])).toThrowError(
+      `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
+    );
   });
 
   it('parses optional option values', () => {

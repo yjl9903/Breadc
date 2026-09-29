@@ -24,6 +24,8 @@ export class RuntimeError extends BreadcError {
 
   static REQUIRED_ARGUMENT_MISSING = 'Missing required argument';
 
+  static REQUIRED_OPTION_VALUE_MISSING = 'Missing required option value';
+
   static OPTIONAL_ARGUMENT_ACCEPT_ONCE = 'Optional argument can only be assigned once';
 
   static REQUIRED_ARGUMENT_ACCEPT_ONCE = 'Required argument can only be assigned once';

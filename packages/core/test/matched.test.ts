@@ -105,15 +105,21 @@ describe('runtime/matched: option', () => {
     expect(matched.value()).toMatchInlineSnapshot(`"next"`);
   });
 
-  it('falls back required option with missing value to empty string', () => {
+  it('rejects a required option with missing value without marking it assigned', () => {
     const app = breadc('cli');
     const opt = option('-n, --number <value>');
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt);
-    matched.accept(ctx, 'n', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`undefined`);
+    expect(() => matched.accept(ctx, 'n', undefined)).toThrowError(
+      expect.objectContaining({
+        message: `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --number`,
+        cause: { option: opt, name: 'n', value: undefined },
+        context: ctx
+      })
+    );
+    expect(matched.dirty).toBe(false);
   });
 
   it('accepts required option value when provided', () => {
