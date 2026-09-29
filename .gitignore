@@ -6,7 +6,8 @@ node_modules
 dist
 .turbo
 tsconfig.vitest-temp.json
-docs/.vitepress/cache
+apps/docs/.vitepress/cache
+apps/docs/.wrangler
 
 # Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
