@@ -41,6 +41,15 @@ describe('runtime/run', () => {
     expect(action).not.toHaveBeenCalled();
   });
 
+  it('rejects excess positional arguments without invoking the action', async () => {
+    const app = breadc('cli');
+    const action = vi.fn();
+    app.command('echo <file>').action(action);
+
+    await expect(app.run(['echo', 'a', 'b'])).rejects.toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(action).not.toHaveBeenCalled();
+  });
+
   it('invokes next when middleware does not call it', async () => {
     const app = breadc('cli');
     const calls: string[] = [];

@@ -100,7 +100,7 @@ export function parse(app: Breadc, argv: string[]) {
       }
     }
     if (i < args.length) {
-      context.remaining.unshift(...args.slice(i));
+      throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });
     }
   } else {
     // Fill missing unknown arguments

@@ -294,7 +294,7 @@ describe('runtime/parser: command matching', () => {
     app.command('subject <subject_id>');
     app.command('subject revision list <subject_id>');
 
-    const result = app.parse(['subject', 'revision', '114514']);
+    const result = app.parse(['subject', 'revision']);
     expect(result.context.command?.spec).toMatchInlineSnapshot(`"subject <subject_id>"`);
     expect(result.context.pieces).toMatchInlineSnapshot(`
       [
@@ -306,11 +306,8 @@ describe('runtime/parser: command matching', () => {
         "revision",
       ]
     `);
-    expect(result['--']).toMatchInlineSnapshot(`
-      [
-        "114514",
-      ]
-    `);
+    expect(result['--']).toEqual([]);
+    expect(() => app.parse(['subject', 'revision', '114514'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 
   it('commits an exact longer literal match at end of input', () => {
@@ -364,24 +361,16 @@ describe('runtime/parser: command matching', () => {
     expect(result2.args).toMatchInlineSnapshot(`[]`);
     expect(result2['--']).toMatchInlineSnapshot(`[]`);
 
-    const result3 = app.parse(['build']);
-    expect(result3.context.command?.spec).toMatchInlineSnapshot(`"build"`);
-    expect(result3.context.pieces).toMatchInlineSnapshot(`[]`);
-    expect(result3.args).toMatchInlineSnapshot(`[]`);
-    expect(result3['--']).toMatchInlineSnapshot(`
-      [
-        "build",
-      ]
-    `);
+    expect(() => app.parse(['build'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 });
 
 describe('runtime/parser: arguments', () => {
-  it('matches required/optional arguments and leaves remaining args', () => {
+  it('matches required/optional arguments and preserves explicit passthrough args', () => {
     const app = breadc('cli');
     app.command('echo <first> [second]');
 
-    const result = app.parse(['echo', 'a', 'b', 'c', 'd']);
+    const result = app.parse(['echo', 'a', 'b', '--', 'c', 'd']);
     expect(result.args).toMatchInlineSnapshot(`
       [
         "a",
@@ -1159,6 +1148,38 @@ describe('runtime/parser: other rules', () => {
 });
 
 describe('runtime/parser: errors', () => {
+  it.each([
+    ['echo', ['echo', 'a']],
+    ['echo <file>', ['echo', 'a', 'b']],
+    ['echo [file]', ['echo', 'a', 'b']],
+    ['echo <first> [second]', ['echo', 'a', 'b', 'c']],
+    ['echo <file>', ['echo', 'a', 'b', '--', 'c']],
+    ['<file>', ['a', 'b']]
+  ])('rejects excess positional arguments for %s with %j', (spec, argv) => {
+    const app = breadc('cli');
+    app.command(spec);
+
+    expect(() => app.parse(argv)).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+  });
+
+  it('rejects excess positional arguments after falling back to a default command', () => {
+    const app = breadc('cli');
+    app.command('<file>');
+    app.command('dev');
+
+    expect(() => app.parse(['a', 'b'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+  });
+
+  it('rejects excess positional arguments for group commands and group defaults', () => {
+    const app = breadc('cli');
+    const group = app.group('tool');
+    group.command('<file>');
+    group.command('echo <file>');
+
+    expect(() => app.parse(['tool', 'a', 'b'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['tool', 'echo', 'a', 'b'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+  });
+
   it('throws on missing required arguments', () => {
     const app = breadc('cli');
     app.command('echo <name>');
