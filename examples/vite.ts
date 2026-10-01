@@ -6,7 +6,7 @@ const vite = breadc('vite', {
 })
   .option('-c, --config <file>', `[string] use specified config file`)
   .option('--base <path>', `[string] public base path (default: /)`, {
-    initial: '/'
+    default: '/'
   })
   .option('-l, --logLevel <level>', `[string] info | warn | error | silent`)
   .option('--clear-screen', `[boolean] allow/disable clear screen when logging`)

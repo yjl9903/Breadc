@@ -6,7 +6,6 @@ import type {
   Option,
   OptionInit,
   InternalOption,
-  InferOptionInitialType,
   Command,
   CommandInit,
   InternalCommand,
@@ -60,7 +59,7 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run as any;
   };
 
-  run.option = <Spec extends string, Initial extends InferOptionInitialType<Spec>, I extends OptionInit<Spec, Initial>>(
+  run.option = <Spec extends string, I extends OptionInit<Spec>>(
     spec: Spec | Option<Spec>,
     description?: string,
     init?: I

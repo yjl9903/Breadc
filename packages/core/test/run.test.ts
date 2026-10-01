@@ -46,8 +46,8 @@ describe('runtime/run', () => {
   it('rejects disabled builtin options', async () => {
     const app = breadc('cli', { builtin: { version: false, help: false } });
 
-    await expect(app.run(['-v'])).rejects.toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -v`);
-    await expect(app.run(['-h'])).rejects.toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -h`);
+    await expect(app.run(['-v'])).rejects.toThrow(`${RuntimeError.UNKNOWN_OPTION}: -v`);
+    await expect(app.run(['-h'])).rejects.toThrow(`${RuntimeError.UNKNOWN_OPTION}: -h`);
   });
 
   it('rejects unknown options without invoking the action', async () => {
@@ -55,7 +55,7 @@ describe('runtime/run', () => {
     const action = vi.fn();
     app.command('echo <message>').action(action);
 
-    await expect(app.run(['echo', '--typo', 'x'])).rejects.toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    await expect(app.run(['echo', '--typo', 'x'])).rejects.toThrow(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -77,7 +77,7 @@ describe('runtime/run', () => {
       const action = vi.fn();
       app.command('echo').option('--output <value>').option('--all').action(action);
 
-      await expect(app.run(['echo', '--output', ...tail])).rejects.toThrowError(
+      await expect(app.run(['echo', '--output', ...tail])).rejects.toThrow(
         `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
       );
       expect(action).not.toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe('runtime/run', () => {
     const action = vi.fn();
     app.command('echo <file>').action(action);
 
-    await expect(app.run(['echo', 'a', 'b'])).rejects.toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    await expect(app.run(['echo', 'a', 'b'])).rejects.toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -221,7 +221,7 @@ describe('runtime/run', () => {
     const app = breadc('cli');
     app.command('noop');
 
-    await expect(app.run(['noop'])).rejects.toThrowError(BreadcAppError.NO_ACTION_BOUND);
+    await expect(app.run(['noop'])).rejects.toThrow(BreadcAppError.NO_ACTION_BOUND);
   });
 
   it('forwards options["--"] to action', async () => {

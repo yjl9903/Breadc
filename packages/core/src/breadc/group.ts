@@ -6,7 +6,6 @@ import type {
   Option,
   OptionInit,
   InternalOption,
-  InferOptionInitialType,
   Group,
   GroupInit,
   InternalGroup,
@@ -38,11 +37,7 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
     _actionMiddlewares: actionMiddlewares,
     _unknownOptionMiddlewares: unknownOptionMiddlewares,
 
-    option<Spec extends string, Initial extends InferOptionInitialType<Spec>, I extends OptionInit<Spec, Initial>>(
-      spec: Spec | Option<Spec>,
-      description?: string,
-      init?: I
-    ) {
+    option<Spec extends string, I extends OptionInit<Spec>>(spec: Spec | Option<Spec>, description?: string, init?: I) {
       options.push(resolveOptionInput(spec, description, init));
       return group;
     },

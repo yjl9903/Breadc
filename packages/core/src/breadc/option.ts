@@ -1,26 +1,24 @@
-import type { Option, OptionInit, InferOptionInitialType, InternalOption, OptionType } from './types/index.ts';
+import type { Option, OptionInit, CheckedOptionInit, InternalOption, OptionType } from './types/index.ts';
 
-export function option<
-  Spec extends string,
-  Initial extends InferOptionInitialType<Spec>,
-  Init extends OptionInit<Spec, Initial, unknown>
->(spec: Spec, description?: string, init?: Init): Option<Spec, Initial, Init> {
+export function option<Spec extends string, Init extends OptionInit<Spec>>(
+  spec: Spec,
+  description?: string,
+  init?: CheckedOptionInit<Spec, Init>
+): Option<Spec, Init> {
   const option: InternalOption = {
     spec,
-    init: {
-      description,
-      ...(init as unknown as InternalOption['init'])
-    },
-
+    description,
+    init: { ...(init as unknown as InternalOption['init']) },
     type: undefined as unknown as OptionType,
     long: ''
   };
 
-  return option as unknown as Option<Spec, Initial, Init>;
+  return option as unknown as Option<Spec, Init>;
 }
 
 export function rawOption(
   spec: string,
+  description: string | undefined,
   type: OptionType,
   long: string,
   short: string | undefined,
@@ -28,6 +26,7 @@ export function rawOption(
 ): InternalOption {
   return {
     spec,
+    description,
     init,
     type,
     form: type === 'boolean' ? 'positive' : undefined,

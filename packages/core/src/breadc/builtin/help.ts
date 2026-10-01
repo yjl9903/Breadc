@@ -190,7 +190,7 @@ export function buildHelpOption(context: Context) {
   const spec = typeof breadc._init.builtin?.help === 'object' ? breadc._init.builtin.help.spec : undefined;
   const option = spec
     ? resolveOption(makeOption(spec, 'Print help'))
-    : rawOption('-h, --help', 'boolean', 'help', 'h', { description: 'Print help' });
+    : rawOption('-h, --help', 'Print help', 'boolean', 'help', 'h', {});
   breadc._help = option;
   return option;
 }
@@ -241,7 +241,7 @@ export function printHelp(context: Context) {
         bold(underline(i18n(context, 'Options:'))),
         options.map((option) => [
           `  ${!option.short ? '    ' : ''}${bold(formatOption(option))}`,
-          readDescription(context, option.init.description)
+          readDescription(context, option.description)
         ])
       ];
     },

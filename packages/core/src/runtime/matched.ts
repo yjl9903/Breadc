@@ -1,9 +1,10 @@
 import type { Option, Argument } from '../breadc/types/app.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
+import { RuntimeError } from '../error.ts';
+
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
-import { RuntimeError } from '../error.ts';
 
 export class MatchedArgument {
   public readonly argument: InternalArgument;
@@ -95,39 +96,39 @@ export class MatchedOption {
 
   public raw: any;
 
-  public constructor(option: Option<string, any, any> | InternalOption) {
+  private resolved = false;
+
+  private result: any;
+
+  public constructor(option: Option<string, any> | InternalOption) {
     this.option = option as InternalOption;
-    if (option.init.initial !== undefined) {
-      this.raw = option.init.initial;
+    const fallback = option.init.default;
+    if (fallback !== undefined) {
+      this.raw = Array.isArray(fallback) ? [...fallback] : fallback;
+    } else if (this.option.type === 'boolean') {
+      this.raw = this.option.form === 'negative';
     } else {
-      switch ((option as InternalOption).type) {
-        case 'boolean': {
-          this.raw = this.option.form === 'negative';
-          break;
-        }
-        case 'optional': {
-          this.raw = false;
-          break;
-        }
-        case 'required': {
-          this.raw = undefined;
-          break;
-        }
-        case 'spread': {
-          this.raw = [];
-          break;
-        }
-      }
+      this.raw = this.option.type === 'spread' ? [] : undefined;
     }
   }
 
-  public value<T = any>(): T {
-    if (this.dirty || this.option.init.default === undefined) {
-      const cast = this.option.init.cast;
-      return cast ? (cast(this.raw) as T) : this.raw;
-    } else {
-      return this.option.init.default as T;
+  /** Called only after the final parse pass has passed syntax validation. */
+  public finalize() {
+    if (!this.resolved) {
+      const shouldCast =
+        this.dirty ||
+        this.option.init.default !== undefined ||
+        this.option.type === 'boolean' ||
+        this.option.type === 'spread';
+      this.result = shouldCast && this.option.init.cast ? this.option.init.cast(this.raw) : this.raw;
+      this.resolved = true;
     }
+    return this;
+  }
+
+  /** During matching, middleware can inspect raw input without triggering cast. */
+  public value<T = any>(): T {
+    return this.resolved ? this.result : this.raw;
   }
 
   public accept(context: Context, long: string, text: string | undefined, inverted = false) {
@@ -182,14 +183,7 @@ export class MatchedOption {
           }
         }
 
-        // Set option value
-        //  1. set option value text
-        //  2. set option true
-        if (value !== undefined) {
-          this.raw = value;
-        } else {
-          this.raw = this.option.init.initial ?? true;
-        }
+        this.raw = value;
 
         this.dirty = true;
 
@@ -219,9 +213,7 @@ export class MatchedOption {
             });
           }
 
-          this.raw = value ?? this.option.init.initial ?? undefined;
-
-          if (this.raw === undefined) {
+          if (value === undefined) {
             throw new RuntimeError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --${this.option.long}`, {
               context,
               option: this.option,
@@ -229,6 +221,7 @@ export class MatchedOption {
               value
             });
           }
+          this.raw = value;
         } else {
           if (value === undefined) {
             throw new RuntimeError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --${this.option.long}`, {
@@ -237,6 +230,9 @@ export class MatchedOption {
               name: long,
               value
             });
+          }
+          if (!this.dirty) {
+            this.raw = [];
           }
           this.raw.push(value);
         }

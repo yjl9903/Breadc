@@ -8,8 +8,8 @@ outline: deep
 import { breadc } from 'breadc'
 
 const cli = breadc('echo', { version: '1.0.0' })
-  .option('--host <host>', { default: 'localhost' })
-  .option('--port <port>', { default: '3000', cast: p => +p })
+  .option('--host <host>', 'specify hostname', { default: 'localhost' })
+  .option('--port <port>', 'specify port', { default: '3000', cast: p => +p })
 
 cli
   .command('[message]', 'Say something!')
