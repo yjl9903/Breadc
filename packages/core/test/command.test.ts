@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { resolveCommand } from '../src/runtime/builder.ts';
+import { DefinitionError, ErrorCode } from '../src/error.ts';
 import { type InternalCommand, breadc, command, argument, option } from '../src/breadc/index.ts';
 
 describe('breadc/command', () => {
@@ -568,5 +569,16 @@ describe('required spread argument declarations', () => {
 
   it('requires a name for inline required arrays', () => {
     expect(() => resolve(command('upload <...>'))).toThrow('Resolving invalid empty argument');
+  });
+
+  it.each(['<>', '[]', '[...]', '<...>'])('rejects empty names in manual declarations: %s', (spec) => {
+    const error = expect.objectContaining({
+      code: ErrorCode.EMPTY_ARGUMENT,
+      details: { spec, position: -1 }
+    });
+    for (const declare of [() => command('upload').argument(spec), () => command('upload').argument(argument(spec))]) {
+      expect(declare).toThrow(DefinitionError);
+      expect(declare).toThrow(error);
+    }
   });
 });

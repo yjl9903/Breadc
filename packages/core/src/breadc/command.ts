@@ -131,6 +131,14 @@ export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
     );
   }
 
+  if (name === '') {
+    throw new DefinitionError(
+      ErrorCode.EMPTY_ARGUMENT,
+      `Resolving invalid empty argument at the command "${spec}", position -1`,
+      { details: { spec, position: -1 } }
+    );
+  }
+
   if (type === 'required-spread' && init?.default !== undefined) {
     throw new DefinitionError(ErrorCode.INVALID_DEFAULT_VALUE, 'Required spread arguments cannot have defaults', {
       details: { spec }
