@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeAll } from 'vitest';
 import { options as colorOptions } from '@breadc/color';
 
 import { breadc } from '../src/breadc/index.ts';
-import { BreadcAppError, RuntimeError } from '../src/error.ts';
+import { ErrorCode } from '../src/error.ts';
 
 beforeAll(() => {
   colorOptions.enabled = false;
@@ -46,8 +46,8 @@ describe('runtime/run', () => {
   it('rejects disabled builtin options', async () => {
     const app = breadc('cli', { builtin: { version: false, help: false } });
 
-    await expect(app.run(['-v'])).rejects.toThrow(`${RuntimeError.UNKNOWN_OPTION}: -v`);
-    await expect(app.run(['-h'])).rejects.toThrow(`${RuntimeError.UNKNOWN_OPTION}: -h`);
+    await expect(app.run(['-v'])).rejects.toThrow(`Unknown option: -v`);
+    await expect(app.run(['-h'])).rejects.toThrow(`Unknown option: -h`);
   });
 
   it('rejects unknown options without invoking the action', async () => {
@@ -55,7 +55,7 @@ describe('runtime/run', () => {
     const action = vi.fn();
     app.command('echo <message>').action(action);
 
-    await expect(app.run(['echo', '--typo', 'x'])).rejects.toThrow(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    await expect(app.run(['echo', '--typo', 'x'])).rejects.toThrow(`Unknown option: --typo`);
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -65,7 +65,7 @@ describe('runtime/run', () => {
     app.command('echo').option('-a, --[no-]all').action(action);
 
     await expect(app.run(['echo', flag])).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Invalid boolean option value: --all]`
+      `[InputError: Invalid boolean option value: --all]`
     );
     expect(action).not.toHaveBeenCalled();
   });
@@ -77,9 +77,7 @@ describe('runtime/run', () => {
       const action = vi.fn();
       app.command('echo').option('--output <value>').option('--all').action(action);
 
-      await expect(app.run(['echo', '--output', ...tail])).rejects.toThrow(
-        `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
-      );
+      await expect(app.run(['echo', '--output', ...tail])).rejects.toThrow(`Missing required option value: --output`);
       expect(action).not.toHaveBeenCalled();
     }
   );
@@ -89,7 +87,7 @@ describe('runtime/run', () => {
     const action = vi.fn();
     app.command('echo <file>').action(action);
 
-    await expect(app.run(['echo', 'a', 'b'])).rejects.toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
+    await expect(app.run(['echo', 'a', 'b'])).rejects.toThrow('Detect unexpected redundant arguments');
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -217,11 +215,42 @@ describe('runtime/run', () => {
     `);
   });
 
+  it.each([new Error('user failure'), { custom: 'failure' }, 'failure'])(
+    'propagates cast, middleware and action exceptions by identity: %j',
+    async (failure) => {
+      const fail = () => {
+        throw failure;
+      };
+      const optionApp = breadc('cli').option('--value <value>', '', { cast: fail });
+      await expect(optionApp.run(['--value=x'])).rejects.toBe(failure);
+      const argumentApp = breadc('cli');
+      argumentApp.command('run').argument('<file>', { cast: fail });
+      await expect(argumentApp.run(['run', 'x'])).rejects.toBe(failure);
+      await expect(breadc('cli').allowUnknownOption(fail).run(['--typo'])).rejects.toBe(failure);
+      await expect(breadc('cli').onUnknownCommand(fail).run(['unknown'])).rejects.toBe(failure);
+      const middlewareApp = breadc('cli').use(fail);
+      middlewareApp.command('run').action(() => {});
+      await expect(middlewareApp.run(['run'])).rejects.toBe(failure);
+      const actionApp = breadc('cli');
+      actionApp.command('run').action(fail);
+      await expect(actionApp.run(['run'])).rejects.toBe(failure);
+      actionApp.use(async (_, next) => next());
+      await expect(actionApp.run(['run'])).rejects.toBe(failure);
+    }
+  );
+
   it('throws when no action is bound', async () => {
     const app = breadc('cli');
-    app.command('noop');
+    const command = app.command('noop');
 
-    await expect(app.run(['noop'])).rejects.toThrow(BreadcAppError.NO_ACTION_BOUND);
+    await expect(app.run(['noop'])).rejects.toThrow(
+      expect.objectContaining({ code: ErrorCode.MISSING_COMMAND_ACTION })
+    );
+    await expect(app.run(['noop'])).rejects.toMatchObject({
+      name: 'DefinitionError',
+      code: ErrorCode.MISSING_COMMAND_ACTION,
+      details: { command }
+    });
   });
 
   it('forwards options["--"] to action', async () => {

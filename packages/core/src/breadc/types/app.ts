@@ -69,7 +69,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
   onUnknownCommand(middleware?: UnknownCommandMiddleware<Data>): Breadc<Data, Options>;
 
   /**
-   * Accept unknown options, which otherwise throw a RuntimeError.
+   * Accept unknown options, which otherwise throw an InputError.
    * A custom middleware must return a match to accept an option.
    */
   allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Breadc<Data, Options>;
@@ -136,7 +136,7 @@ export type Group<
   ): Group<Spec, Init, InferMiddlewareData<Middleware>, Options>;
 
   /**
-   * Accept unknown options in this group, which otherwise throw a RuntimeError.
+   * Accept unknown options in this group, which otherwise throw an InputError.
    * A custom middleware must return a match to accept an option.
    */
   allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Group<Spec, Init, Data, Options>;
@@ -195,7 +195,7 @@ export type Command<
   ): Command<Spec, Init, InferMiddlewareData<Middleware>, Options, Arguments, Return>;
 
   /**
-   * Accept unknown options in this command, which otherwise throw a RuntimeError.
+   * Accept unknown options in this command, which otherwise throw an InputError.
    * A custom middleware must return a match to accept an option.
    */
   allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Command<Spec, Init, Data, Options, Arguments, Return>;

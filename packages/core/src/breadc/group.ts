@@ -1,4 +1,4 @@
-import { ResolveGroupError } from '../error.ts';
+import { DefinitionError, ErrorCode } from '../error.ts';
 
 import type {
   ActionMiddleware,
@@ -19,7 +19,11 @@ import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts'
 
 export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: I): Group<S, I, {}, {}> {
   if (!spec) {
-    throw new ResolveGroupError(ResolveGroupError.EMPTY, { spec, position: 0 });
+    throw new DefinitionError(
+      ErrorCode.EMPTY_GROUP_SPEC,
+      `Group spec should not be empty at the command "${spec}", position 0`,
+      { details: { spec, position: 0 } }
+    );
   }
 
   const commands: InternalCommand[] = [];

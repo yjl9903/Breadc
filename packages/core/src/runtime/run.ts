@@ -4,7 +4,7 @@ import type { ActionMiddleware, ActionMiddlewareNextFn } from '../breadc/types/m
 import { printHelp } from '../breadc/builtin/help.ts';
 import { printVersion } from '../breadc/builtin/version.ts';
 
-import { BreadcAppError } from '../error.ts';
+import { DefinitionError, ErrorCode } from '../error.ts';
 
 import { parse, isHelp, isVersion, resolveArgs, resolveOptions } from './parser.ts';
 
@@ -80,8 +80,9 @@ export async function run(app: Breadc, argv: string[]) {
       return context.output;
     }
   } else {
-    throw new BreadcAppError(BreadcAppError.NO_ACTION_BOUND, {
-      context
+    throw new DefinitionError(ErrorCode.MISSING_COMMAND_ACTION, 'There is no action function bound in this command', {
+      context,
+      details: { command: context.command }
     });
   }
 }

@@ -8,7 +8,7 @@ import type {
 } from '../breadc/types/internal.ts';
 
 import { rawArgument } from '../breadc/command.ts';
-import { ResolveCommandError, ResolveGroupError, ResolveOptionError } from '../error.ts';
+import { DefinitionError, ErrorCode } from '../error.ts';
 
 export function isGroup(command: InternalGroup | InternalCommand): command is InternalGroup {
   return !!(command as InternalGroup)._commands;
@@ -22,10 +22,11 @@ export function resolveGroup(group: Group | InternalGroup) {
   const pieces: string[] = [];
   for (let i = 0; i < spec.length;) {
     if (spec[i] === '<' || spec[i] === '[') {
-      throw new ResolveGroupError(ResolveGroupError.INVALID_ARG_IN_GROUP, {
-        spec,
-        position: i
-      });
+      throw new DefinitionError(
+        ErrorCode.ARGUMENT_IN_GROUP_SPEC,
+        `Resolving argument in group spec at the command "${spec}", position ${i}`,
+        { details: { spec, position: i } }
+      );
     } else if (spec[i] === ' ') {
       while (i < spec.length && spec[i] === ' ') {
         i++;
@@ -88,13 +89,21 @@ export function resolveCommand(command: Command | InternalCommand) {
   for (; i < spec.length;) {
     if (spec[i] === '<') {
       if (i + 1 >= spec.length || spec[i + 1] === ' ') {
-        throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec, position: i });
+        throw new DefinitionError(
+          ErrorCode.INVALID_REQUIRED_ARGUMENT,
+          `Resolving invalid required argument at the command "${spec}", position ${i}`,
+          { details: { spec, position: i } }
+        );
       } else {
         i++;
       }
 
       if (state >= 2) {
-        throw new ResolveCommandError(ResolveCommandError.REQUIRED_BEFORE_OPTIONAL, { spec, position: i });
+        throw new DefinitionError(
+          ErrorCode.REQUIRED_AFTER_OPTIONAL,
+          `Required argument should be placed before optional arguments at the command "${spec}", position ${i}`,
+          { details: { spec, position: i } }
+        );
       }
 
       // Parse argument name
@@ -105,22 +114,31 @@ export function resolveCommand(command: Command | InternalCommand) {
 
       // Check the close bracket
       if (i === spec.length || spec[i] !== '>') {
-        throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec: spec, position: i });
+        throw new DefinitionError(
+          ErrorCode.INVALID_REQUIRED_ARGUMENT,
+          `Resolving invalid required argument at the command "${spec}", position ${i}`,
+          { details: { spec: spec, position: i } }
+        );
       } else {
         i++;
       }
 
       // Check the space separator
       if (i < spec.length && spec[i] !== ' ') {
-        throw new ResolveCommandError(ResolveCommandError.INVALID_REQUIRED_ARG, { spec, position: i });
+        throw new DefinitionError(
+          ErrorCode.INVALID_REQUIRED_ARGUMENT,
+          `Resolving invalid required argument at the command "${spec}", position ${i}`,
+          { details: { spec, position: i } }
+        );
       }
 
       // Check empty argument name
       if (piece === '') {
-        throw new ResolveCommandError(ResolveCommandError.INVALID_EMPTY_ARG, {
-          spec,
-          position: i
-        });
+        throw new DefinitionError(
+          ErrorCode.EMPTY_ARGUMENT,
+          `Resolving invalid empty argument at the command "${spec}", position ${i}`,
+          { details: { spec, position: i } }
+        );
       }
 
       // State -> 1
@@ -128,14 +146,22 @@ export function resolveCommand(command: Command | InternalCommand) {
       resolvedArguments.push(rawArgument('required', piece));
     } else if (spec[i] === '[') {
       if (i + 1 >= spec.length || spec[i + 1] === ' ') {
-        throw new ResolveCommandError(ResolveCommandError.INVALID_OPTIONAL_ARG, { spec, position: i });
+        throw new DefinitionError(
+          ErrorCode.INVALID_OPTIONAL_ARGUMENT,
+          `Resolving invalid optional argument at the command "${spec}", position ${i}`,
+          { details: { spec, position: i } }
+        );
       } else {
         i++;
       }
 
       if (spec[i] === '.') {
         if (state >= 3) {
-          throw new ResolveCommandError(ResolveCommandError.SPREAD_ONLY_ONCE, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.DUPLICATE_SPREAD_ARGUMENT,
+            `Spread argument can only appear once at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
 
         // Skip all the dots [...
@@ -151,19 +177,31 @@ export function resolveCommand(command: Command | InternalCommand) {
 
         // Check the close bracket
         if (i === spec.length || spec[i] !== ']') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_SPREAD_ARG, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.INVALID_SPREAD_ARGUMENT,
+            `Resolving invalid spread argument at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         } else {
           i++;
         }
 
         // Check the next space separator
         if (i < spec.length && spec[i] !== ' ') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_SPREAD_ARG, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.INVALID_SPREAD_ARGUMENT,
+            `Resolving invalid spread argument at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
 
         // Check empty argument name
         if (piece === '') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_EMPTY_ARG, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.EMPTY_ARGUMENT,
+            `Resolving invalid empty argument at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
 
         // State -> 3
@@ -172,7 +210,11 @@ export function resolveCommand(command: Command | InternalCommand) {
         resolvedArguments.push(spread);
       } else {
         if (state >= 3) {
-          throw new ResolveCommandError(ResolveCommandError.OPTIONAL_BEFORE_SPREAD, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.OPTIONAL_AFTER_SPREAD,
+            `Optional argument should be placed before spread arguments at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
 
         // Parse argument name
@@ -183,19 +225,31 @@ export function resolveCommand(command: Command | InternalCommand) {
 
         // Check the close bracket
         if (i === spec.length || spec[i] !== ']') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_OPTIONAL_ARG, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.INVALID_OPTIONAL_ARGUMENT,
+            `Resolving invalid optional argument at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         } else {
           i++;
         }
 
         // Check the next space separator
         if (i < spec.length && spec[i] !== ' ') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_OPTIONAL_ARG, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.INVALID_OPTIONAL_ARGUMENT,
+            `Resolving invalid optional argument at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
 
         // Check empty argument name
         if (piece === '') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_EMPTY_ARG, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.EMPTY_ARGUMENT,
+            `Resolving invalid empty argument at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
 
         // State -> 2
@@ -208,7 +262,11 @@ export function resolveCommand(command: Command | InternalCommand) {
         i++;
       }
     } else {
-      throw new ResolveCommandError(ResolveCommandError.PIECE_BEFORE_REQUIRED, { spec, position: i });
+      throw new DefinitionError(
+        ErrorCode.COMMAND_AFTER_ARGUMENT,
+        `Sub-command should be placed in the beginning at the command "${spec}", position ${i}`,
+        { details: { spec, position: i } }
+      );
     }
   }
 
@@ -224,7 +282,11 @@ export function resolveCommand(command: Command | InternalCommand) {
         if (state === 1) {
           resolvedArguments.push(argument);
         } else {
-          throw new ResolveCommandError(ResolveCommandError.REQUIRED_BEFORE_OPTIONAL, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.REQUIRED_AFTER_OPTIONAL,
+            `Required argument should be placed before optional arguments at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
         break;
       }
@@ -233,13 +295,21 @@ export function resolveCommand(command: Command | InternalCommand) {
           state = 2;
           resolvedArguments.push(argument);
         } else {
-          throw new ResolveCommandError(ResolveCommandError.OPTIONAL_BEFORE_SPREAD, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.OPTIONAL_AFTER_SPREAD,
+            `Optional argument should be placed before spread arguments at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
         break;
       }
       case 'spread': {
         if (spread) {
-          throw new ResolveCommandError(ResolveCommandError.SPREAD_ONLY_ONCE, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.DUPLICATE_SPREAD_ARGUMENT,
+            `Spread argument can only appear once at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         }
         state = 3;
         spread = argument;
@@ -259,7 +329,11 @@ export function resolveCommand(command: Command | InternalCommand) {
       const aliasPieces: string[] = [...parent];
       for (let i = 0; i < spec.length;) {
         if (spec[i] === '<' || spec[i] === '[') {
-          throw new ResolveCommandError(ResolveCommandError.INVALID_ALIAS_FORMAT, { spec, position: i });
+          throw new DefinitionError(
+            ErrorCode.INVALID_ALIAS_FORMAT,
+            `Alias command format should not have arguments at the command "${spec}", position ${i}`,
+            { details: { spec, position: i } }
+          );
         } else if (spec[i] === ' ') {
           while (i < spec.length && spec[i] === ' ') {
             i++;
@@ -298,7 +372,9 @@ export function resolveOption(option: Option<string, any> | InternalOption) {
   if (match) {
     // Negation forms only apply to boolean options. Validate before marking the option resolved.
     if (match[2] && match[4]) {
-      throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, { spec });
+      throw new DefinitionError(ErrorCode.INVALID_OPTION_SPEC, `Resolving invalid option at the option "${spec}"`, {
+        details: { spec }
+      });
     }
 
     // long: --([a-zA-Z0-9\-]+)
@@ -328,8 +404,8 @@ export function resolveOption(option: Option<string, any> | InternalOption) {
 
     return option as InternalOption;
   } else {
-    throw new ResolveOptionError(ResolveOptionError.INVALID_OPTION, {
-      spec
+    throw new DefinitionError(ErrorCode.INVALID_OPTION_SPEC, `Resolving invalid option at the option "${spec}"`, {
+      details: { spec }
     });
   }
 }

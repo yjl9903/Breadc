@@ -5,7 +5,7 @@ import { rawOption } from '../breadc/option.ts';
 import { rawArgument } from '../breadc/command.ts';
 import { buildHelpOption } from '../breadc/builtin/help.ts';
 import { buildVersionOption } from '../breadc/builtin/version.ts';
-import { RuntimeError, BreadcAppError } from '../error.ts';
+import { InputError, DefinitionError, ErrorCode } from '../error.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
 import { type Context, context as makeContext, reset } from './context.ts';
@@ -30,9 +30,9 @@ export function parse(app: Breadc, argv: string[]) {
   // 2. Check whether it only has default command
   const defaultCommands = context.breadc._commands.filter((c) => c._default);
   if (defaultCommands.length >= 2) {
-    throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_COMMAND, {
+    throw new DefinitionError(ErrorCode.DUPLICATE_DEFAULT_COMMAND, 'Find duplicated default commands', {
       context,
-      commands: defaultCommands
+      details: { commands: defaultCommands }
     });
   }
 
@@ -60,10 +60,10 @@ export function parse(app: Breadc, argv: string[]) {
   const { command } = context;
 
   if (unknownOption) {
-    throw new RuntimeError(`${RuntimeError.UNKNOWN_OPTION}: ${unknownOption.name}`, {
-      context,
-      ...unknownOption
-    });
+    throw new InputError(
+      [{ code: ErrorCode.UNKNOWN_OPTION, message: `Unknown option: ${unknownOption.name}`, ...unknownOption }],
+      { context }
+    );
   }
 
   if (isHelp(context) || isVersion(context)) {
@@ -72,7 +72,17 @@ export function parse(app: Breadc, argv: string[]) {
 
   if (command) {
     if (unmatchedArgs.length > 0) {
-      throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });
+      throw new InputError(
+        [
+          {
+            code: ErrorCode.UNEXPECTED_ARGUMENTS,
+            message: 'Detect unexpected redundant arguments',
+            command,
+            values: unmatchedArgs
+          }
+        ],
+        { context }
+      );
     }
 
     // Fulfill the matched arguments
@@ -84,9 +94,8 @@ export function parse(app: Breadc, argv: string[]) {
 
       if (argument.type === 'required') {
         if (value === undefined) {
-          throw new RuntimeError(RuntimeError.REQUIRED_ARGUMENT_MISSING, {
-            context,
-            argument
+          throw new InputError([{ code: ErrorCode.MISSING_ARGUMENT, message: 'Missing required argument', argument }], {
+            context
           });
         }
         matchedArgument.accept(context, value);
@@ -104,7 +113,17 @@ export function parse(app: Breadc, argv: string[]) {
       }
     }
     if (i < args.length) {
-      throw new RuntimeError(RuntimeError.UNEXPECTED_ARGUMENTS, { context });
+      throw new InputError(
+        [
+          {
+            code: ErrorCode.UNEXPECTED_ARGUMENTS,
+            message: 'Detect unexpected redundant arguments',
+            command,
+            values: args.slice(i)
+          }
+        ],
+        { context }
+      );
     }
   } else {
     // Fill missing unknown arguments
@@ -249,9 +268,9 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   const setCandidateCommand = (command: InternalCommand) => {
     if (candidateCommandIndex >= index) {
       if (candidateCommand && candidateCommand !== command) {
-        throw new BreadcAppError(BreadcAppError.DUPLICATED_COMMAND, {
+        throw new DefinitionError(ErrorCode.DUPLICATE_COMMAND, 'Find duplicated commands', {
           context,
-          commands: [candidateCommand, command]
+          details: { commands: [candidateCommand, command] }
         });
       }
       return;
@@ -334,9 +353,9 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
             if (!matchedGroup || matchedGroup === group) {
               matchedGroup = group;
             } else {
-              throw new BreadcAppError(BreadcAppError.DUPLICATED_GROUP, {
+              throw new DefinitionError(ErrorCode.DUPLICATE_GROUP, 'Find duplicated groups', {
                 context,
-                commands: [matchedGroup, group]
+                details: { commands: [matchedGroup, group] }
               });
             }
 
@@ -352,11 +371,11 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
                 const defaultCommand = defaultCommands[0];
                 setCandidateCommand(defaultCommand);
               } else if (defaultCommands.length > 1) {
-                throw new BreadcAppError(BreadcAppError.DUPLICATED_DEFAULT_GROUP_COMMAND, {
-                  context,
-                  group: matchedGroup,
-                  commands: defaultCommands
-                });
+                throw new DefinitionError(
+                  ErrorCode.DUPLICATE_DEFAULT_GROUP_COMMAND,
+                  'Find duplicated default group commands',
+                  { context, details: { group: matchedGroup, commands: defaultCommands } }
+                );
               }
             } else {
               for (const command of group._commands) {

@@ -3,7 +3,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { breadc, option } from '../src/breadc/index.ts';
 import { resolveOption } from '../src/runtime/builder.ts';
 import { resolveOptions } from '../src/runtime/parser.ts';
-import { RuntimeError } from '../src/error.ts';
 
 describe('runtime/builder: option', () => {
   it('resolve boolean option', () => {
@@ -92,14 +91,16 @@ describe('runtime/builder: option', () => {
     expect(() => {
       const opt = option('--no-open <value>');
       resolveOption(opt);
-    }).toThrowErrorMatchingInlineSnapshot(`[Error: Resolving invalid option at the option "--no-open <value>"]`);
+    }).toThrowErrorMatchingInlineSnapshot(
+      `[DefinitionError: Resolving invalid option at the option "--no-open <value>"]`
+    );
   });
 
   it('reject invalid option spec', () => {
     expect(() => {
       const opt = option('invalid');
       resolveOption(opt);
-    }).toThrowErrorMatchingInlineSnapshot(`[Error: Resolving invalid option at the option "invalid"]`);
+    }).toThrowErrorMatchingInlineSnapshot(`[DefinitionError: Resolving invalid option at the option "invalid"]`);
   });
 
   it('resolves forms without modifying the initial configuration', () => {
@@ -154,7 +155,7 @@ describe('option input selection and conversion', () => {
   it.each(['', 'invalid', ' true', '2'])('rejects invalid boolean %j before any cast', (text) => {
     const cast = vi.fn();
     const app = breadc('cli').option('--other', '', { cast }).option('--cache', '', { cast });
-    expect(() => app.parse([`--cache=${text}`])).toThrow(RuntimeError.INVALID_BOOLEAN_OPTION_VALUE);
+    expect(() => app.parse([`--cache=${text}`])).toThrow('Invalid boolean option value');
     expect(cast).not.toHaveBeenCalled();
   });
 
@@ -211,7 +212,7 @@ describe('option input selection and conversion', () => {
     const config = { default: syntax === '<value>' ? 'seed' : ['seed'], cast };
     const app = breadc('cli').option(`--value ${syntax}`, '', config).option('--other', '', { cast });
     for (const argv of [['--value'], ['--value', '--other'], ['--value', '--']]) {
-      expect(() => app.parse(argv)).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+      expect(() => app.parse(argv)).toThrow('Missing required option value');
     }
     expect(cast).not.toHaveBeenCalled();
   });
