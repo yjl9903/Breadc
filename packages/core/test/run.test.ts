@@ -308,6 +308,54 @@ describe('runtime/run', () => {
 });
 
 describe('runtime/run: conversion boundaries', () => {
+  describe.each([
+    { name: 'port', value: undefined, argv: [], code: ErrorCode.MISSING_OPTION_VALUE },
+    { name: 'all', value: 'invalid', argv: [], code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE },
+    { name: 'port', value: '2', argv: ['--port=1'], code: ErrorCode.DUPLICATE_OPTION }
+  ])('middleware input errors: $code', ({ name, value, argv, code }) => {
+    it.each([false, true])('stops immediately before downstream execution (explicit next=%s)', async (explicitNext) => {
+      const afterAccept = vi.fn();
+      const downstream = vi.fn(async (context) => context);
+      const action = vi.fn();
+      const app = breadc('cli').option('--port <port>').option('--all');
+      app.use(async (context, next) => {
+        context.options.get(name)!.accept(context, name, value);
+        afterAccept();
+        return explicitNext ? next() : context;
+      });
+      app.use(downstream);
+      app.command('run').action(action);
+
+      await expect(app.run(['run', ...argv])).rejects.toMatchObject({
+        name: 'InputError',
+        code: ErrorCode.INVALID_INPUT,
+        issues: [expect.objectContaining({ code, name })],
+        context: expect.objectContaining({ command: expect.anything() })
+      });
+      expect(afterAccept).not.toHaveBeenCalled();
+      expect(downstream).not.toHaveBeenCalled();
+      expect(action).not.toHaveBeenCalled();
+    });
+
+    it('stops before subsequent unknown-command handlers', async () => {
+      const afterAccept = vi.fn();
+      const downstream = vi.fn();
+      const app = breadc('cli').option('--port <port>').option('--all');
+      app.onUnknownCommand((context) => {
+        context.options.get(name)!.accept(context, name, value);
+        afterAccept();
+      });
+      app.onUnknownCommand(downstream);
+
+      await expect(app.run(['unknown', ...argv])).rejects.toMatchObject({
+        name: 'InputError',
+        issues: [expect.objectContaining({ code, name })]
+      });
+      expect(afterAccept).not.toHaveBeenCalled();
+      expect(downstream).not.toHaveBeenCalled();
+    });
+  });
+
   it.each(['argument', 'option'])(
     'propagates %s conversion failures directly from middleware assignment',
     async (kind) => {
