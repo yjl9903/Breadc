@@ -5,7 +5,7 @@ import { rawOption } from '../breadc/option.ts';
 import { rawArgument } from '../breadc/command.ts';
 import { buildHelpOption } from '../breadc/builtin/help.ts';
 import { buildVersionOption } from '../breadc/builtin/version.ts';
-import { InputError, DefinitionError, ErrorCode } from '../error.ts';
+import { InputError, DefinitionError, ErrorCode, type InputIssue } from '../error.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
 import { type Context, context as makeContext, reset } from './context.ts';
@@ -20,7 +20,7 @@ interface ParseResult {
   unmatchedArgs: string[];
 }
 
-export function parse(app: Breadc, argv: string[]) {
+export function parse(app: Breadc<any, any>, argv: string[]) {
   const context = makeContext<any>(app as InternalBreadc, argv);
 
   // 1. Prepare root commands
@@ -117,12 +117,13 @@ export function parse(app: Breadc, argv: string[]) {
 
 /** Convert validated input only after the caller has decided it is needed. */
 export function finalizeInput(context: Context<any>) {
-  for (const option of context.options.values()) {
-    option.finalize();
+  const issues: InputIssue[] = [];
+  for (const matched of [...context.options.values(), ...context.arguments]) {
+    const result = matched.finalize();
+    if (result.issues) issues.push(...result.issues);
   }
-  for (const argument of context.arguments) {
-    argument.finalize();
-  }
+  const [first, ...rest] = issues;
+  if (first) throw new InputError([first, ...rest], { context });
 }
 
 export function resolveArgs(context: Context<any>) {

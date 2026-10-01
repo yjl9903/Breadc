@@ -1,3 +1,5 @@
+import type { Cast } from '../src/index.ts';
+
 import { describe, it, expectTypeOf } from 'vitest';
 
 import {
@@ -225,7 +227,7 @@ describe('types/argument', () => {
     expectTypeOf<InferArgumentCastInput<'[...files]'>>().toEqualTypeOf<string[]>();
     expectTypeOf<ArgumentInit<'[port]', number>>().toEqualTypeOf<{
       default?: string;
-      cast?: (value: string) => number;
+      cast?: Cast<string, number>;
     }>();
     const arg = argument('[port]', { default: '3000', cast: Number });
     expectTypeOf(arg).toEqualTypeOf<Argument<'[port]', { default: '3000'; cast: NumberConstructor }>>();
@@ -349,7 +351,6 @@ describe('types/argument', () => {
       number | undefined
     >();
   });
-
 });
 
 describe('types/option', () => {
@@ -741,7 +742,6 @@ describe('types/option', () => {
         expectTypeOf(options.array).toEqualTypeOf<number>();
       });
   });
-
 
   it('infers options configured with a description and init', () => {
     const init = { default: '80', cast: Number };

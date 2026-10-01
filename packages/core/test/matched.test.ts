@@ -13,11 +13,11 @@ describe('runtime/matched: argument', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn((items: string[]) => items.join(','));
     const matched = new MatchedArgument(argument('[...items]', { cast }));
-    expect(matched.accept(ctx, 'a').finalize().value()).toBe('a');
+    expect(matched.accept(ctx, 'a').finalize()).toEqual({ value: 'a' });
     matched.accept(ctx, 'b');
     expect(cast).toHaveBeenCalledTimes(2);
     expect(matched.value()).toBe('a,b');
-    expect(matched.finalize().value()).toBe('a,b');
+    expect(matched.finalize()).toEqual({ value: 'a,b' });
     expect(cast).toHaveBeenCalledTimes(2);
   });
 
@@ -41,7 +41,8 @@ describe('runtime/matched: argument', () => {
     expect(matched.value()).toBe(2);
     expect(cast).toHaveBeenCalledExactlyOnceWith('2');
 
-    const withEmpty = new MatchedArgument(arg).accept(ctx, '').finalize();
+    const withEmpty = new MatchedArgument(arg).accept(ctx, '');
+    withEmpty.finalize();
     expect(withEmpty.value()).toBe(0);
     expect(cast).toHaveBeenLastCalledWith('');
   });
@@ -49,10 +50,10 @@ describe('runtime/matched: argument', () => {
   it('finalizes default input and skips absent optional input', () => {
     const cast = vi.fn(Number);
     const fallback = new MatchedArgument(argument('[count]', { default: '3', cast }));
-    expect(fallback.finalize().value()).toBe(3);
+    expect(fallback.finalize()).toEqual({ value: 3 });
     expect(cast).toHaveBeenCalledExactlyOnceWith('3');
     const missing = new MatchedArgument(argument('[count]', { cast }));
-    expect(missing.finalize().value()).toBeUndefined();
+    expect(missing.finalize()).toEqual({ value: undefined });
     expect(cast).toHaveBeenCalledTimes(1);
   });
 
@@ -65,8 +66,8 @@ describe('runtime/matched: argument', () => {
     matched.accept(ctx, 'a').accept(ctx, '').accept(ctx, 'b');
     expect(matched.value()).toEqual(['a', '', 'b']);
     expect(cast).not.toHaveBeenCalled();
-    expect(matched.finalize().value()).toBe('a,,b');
-    expect(matched.finalize().value()).toBe('a,,b');
+    expect(matched.finalize()).toEqual({ value: 'a,,b' });
+    expect(matched.finalize()).toEqual({ value: 'a,,b' });
     expect(cast).toHaveBeenCalledExactlyOnceWith(['a', '', 'b']);
   });
 
@@ -105,15 +106,16 @@ describe('runtime/matched: option', () => {
     const opt = option('--all', '', { cast });
     resolveOption(opt);
     const matched = new MatchedOption(opt);
-    expect(matched.finalize().value()).toBe('off');
+    expect(matched.finalize()).toEqual({ value: 'off' });
     matched.accept(ctx, 'all', undefined);
     expect(cast).toHaveBeenCalledTimes(2);
     expect(matched.value()).toBe('on');
     matched.accept(ctx, 'all', 'false');
-    expect(matched.finalize().value()).toBe('on');
+    expect(matched.finalize()).toEqual({ value: 'on' });
     expect(cast).toHaveBeenCalledTimes(2);
 
-    const invalid = new MatchedOption(opt).finalize();
+    const invalid = new MatchedOption(opt);
+    invalid.finalize();
     invalid.accept(ctx, 'all', 'invalid');
     expect(invalid.value()).toBe('off');
     expect(cast).toHaveBeenCalledTimes(3);
@@ -124,11 +126,12 @@ describe('runtime/matched: option', () => {
     const cast = vi.fn((items: string[]) => items.join(','));
     const opt = option('--include [...value]', '', { cast });
     resolveOption(opt);
-    const matched = new MatchedOption(opt).accept(ctx, 'include', 'a').finalize();
+    const matched = new MatchedOption(opt).accept(ctx, 'include', 'a');
+    matched.finalize();
     matched.accept(ctx, 'include', 'b');
-    expect(matched.finalize().value()).toBe('a,b');
+    expect(matched.finalize()).toEqual({ value: 'a,b' });
     matched.accept(ctx, 'include', undefined);
-    expect(matched.finalize().value()).toBe('a,b');
+    expect(matched.finalize()).toEqual({ value: 'a,b' });
     expect(cast).toHaveBeenCalledTimes(2);
   });
 

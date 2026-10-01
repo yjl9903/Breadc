@@ -1,4 +1,6 @@
 export type {
+  Cast,
+  InferCastOutput,
   BreadcErrorOptions,
   InputIssue,
   Breadc,

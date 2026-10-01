@@ -10,7 +10,7 @@ Yet another **Command Line Application Framework** desgined for **[TypeScript](h
 - **TypeScript Infer**: infer command arguments, option values, and action signatures in IDE automatically
 - **Command**: support default command, command alias, and nested sub-commands like `git remote add <name> <url>`
 - **Group**: organize commands by modules and build large multi-command CLI applications with clear structure
-- **Option**: support boolean, required, optional, spread options, `--no-*` negation, and `--` passthrough arguments
+- **Option**: support boolean, required, optional, spread options, explicit `--no-*` / `--[no-]*` boolean forms, and `--` passthrough arguments
 - **Middleware**: support middleware pipeline and unknown option handling
 - **Builtin CLI Features**: provide common help / version options and i18n support out of the box
 - **Toolkits**: contains many useful tools to build your next CLI application, such as [ansi color](https://github.com/yjl9903/Breadc/tree/main/packages/color), [process death handler](https://github.com/yjl9903/Breadc/tree/main/packages/death), [shell compelete script generation](https://github.com/yjl9903/Breadc/tree/main/packages/complete) and so on.
@@ -28,11 +28,15 @@ npm i breadc
 Try [./examples/echo.ts](./examples/echo.ts).
 
 ```ts
+import { z } from 'zod';
 import { breadc } from 'breadc';
 
 const cli = breadc('echo', { version: '1.0.0' })
-  .option('--host <host>', 'specify hostname', { initial: 'localhost' })
-  .option('--port <port>', 'specify port', { initial: '3000', cast: (t) => +t });
+  .option('--host <host>', 'specify hostname', { default: 'localhost' })
+  .option('--port <port>', 'specify port', {
+    default: '3000',
+    cast: z.coerce.number().int().min(1).max(65535)
+  });
 
 cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(message ?? 'You can say anything!');
