@@ -1,3 +1,5 @@
+import type { Cast, InferCastOutput } from './cast.ts';
+
 import type { Letter } from '../../utils/types.ts';
 
 import type { OptionInit, ArgumentInit } from './init.ts';
@@ -61,12 +63,14 @@ export type InferOptionCastInput<S extends string> =
     : InferOptionRawType<S>;
 
 /** Preserve the converter's complete result, including null and undefined. */
-export type InferOptionType<S extends string, C extends OptionInit<S>> = C extends { cast: (...args: any[]) => infer R }
+export type InferOptionType<S extends string, C extends OptionInit<S>> = C extends {
+  cast: infer Converter extends Cast<any>;
+}
   ? undefined extends InferOptionRawType<S>
     ? C extends { default: InferOptionDefaultType<S> }
-      ? R
-      : R | undefined
-    : R
+      ? InferCastOutput<Converter>
+      : InferCastOutput<Converter> | undefined
+    : InferCastOutput<Converter>
   : LongOptionSpec<S> extends `--${string} <${string}>`
     ? C extends { default: InferOptionDefaultType<S> }
       ? string
@@ -98,13 +102,13 @@ export type InferArgumentCastInput<S extends string> = Exclude<InferArgumentRawT
 
 /** Preserve the converter's complete result, including null and undefined. */
 export type InferArgumentType<S extends string, C extends ArgumentInit<S>> = C extends {
-  cast: (...args: any[]) => infer R;
+  cast: infer Converter extends Cast<any>;
 }
   ? undefined extends InferArgumentRawType<S>
     ? C extends { default: InferArgumentDefaultType<S> }
-      ? R
-      : R | undefined
-    : R
+      ? InferCastOutput<Converter>
+      : InferCastOutput<Converter> | undefined
+    : InferCastOutput<Converter>
   : C extends { default: InferArgumentDefaultType<S> }
     ? Exclude<InferArgumentRawType<S>, undefined>
     : InferArgumentRawType<S>;

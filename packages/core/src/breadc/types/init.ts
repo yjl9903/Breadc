@@ -1,3 +1,5 @@
+import type { Cast } from './cast.ts';
+
 import type {
   InferOptionCastInput,
   InferOptionDefaultType,
@@ -62,12 +64,12 @@ export type BreadcInit = {
   };
 };
 
-export type OptionInit<Spec extends string, Cast = unknown> = {
+export type OptionInit<Spec extends string, Output = unknown> = {
   /** Raw input used only when the option is absent. It also passes through cast. */
   default?: InferOptionDefaultType<Spec>;
 
   /** Convert and validate the selected input once per parse. */
-  cast?: (value: InferOptionCastInput<Spec>) => Cast;
+  cast?: Cast<InferOptionCastInput<Spec>, Output>;
 };
 
 /** Reject configuration keys outside the option API. */
@@ -78,12 +80,12 @@ export type GroupInit<Spec extends string> = {};
 
 export type CommandInit<Spec extends string> = {};
 
-export type ArgumentInit<Spec extends string, Cast = unknown> = {
+export type ArgumentInit<Spec extends string, Output = unknown> = {
   /** Raw input used only when the argument is absent. Required arguments cannot have defaults. */
   default?: InferArgumentDefaultType<Spec> | undefined;
 
   /** Convert the selected string or complete spread array once per parse. */
-  cast?: (value: InferArgumentCastInput<Spec>) => Cast;
+  cast?: Cast<InferArgumentCastInput<Spec>, Output>;
 };
 
 /** Reject configuration keys outside the argument API. */

@@ -44,7 +44,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@breadc/color": "workspace:*"
+    "@breadc/color": "workspace:*",
+    "@standard-schema/spec": "^1.1.0"
+  },
+  "devDependencies": {
+    "zod": "^4.6.5"
   },
   "size-limit": [
     {

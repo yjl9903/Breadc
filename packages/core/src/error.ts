@@ -1,3 +1,5 @@
+import type { StandardSchemaV1 } from '@standard-schema/spec';
+
 import type { Context } from './runtime/context.ts';
 import type { InternalArgument, InternalCommand, InternalOption } from './breadc/types/internal.ts';
 
@@ -25,8 +27,13 @@ export const ErrorCode = Object.freeze({
   DUPLICATE_SPREAD_ARGUMENT: 'DUPLICATE_SPREAD_ARGUMENT',
   INVALID_OPTION_SPEC: 'INVALID_OPTION_SPEC',
 
+  INVALID_DEFAULT_VALUE: 'INVALID_DEFAULT_VALUE',
+  ASYNC_CAST_UNSUPPORTED: 'ASYNC_CAST_UNSUPPORTED',
+
   // User input
   INVALID_INPUT: 'INVALID_INPUT',
+  INVALID_OPTION_VALUE: 'INVALID_OPTION_VALUE',
+  INVALID_ARGUMENT_VALUE: 'INVALID_ARGUMENT_VALUE',
   UNKNOWN_OPTION: 'UNKNOWN_OPTION',
   MISSING_OPTION_VALUE: 'MISSING_OPTION_VALUE',
   DUPLICATE_OPTION: 'DUPLICATE_OPTION',
@@ -73,8 +80,17 @@ export class DefinitionError extends BreadcError {
   }
 }
 
+/** A schema diagnostic retains its internal path and the selected raw CLI input. */
+interface ValidationIssue {
+  message: string;
+  path: StandardSchemaV1.Issue['path'];
+  value: unknown;
+}
+
 /** Each diagnostic carries only the fields relevant to its code. */
 export type InputIssue =
+  | (ValidationIssue & { code: typeof ErrorCode.INVALID_OPTION_VALUE; option: InternalOption })
+  | (ValidationIssue & { code: typeof ErrorCode.INVALID_ARGUMENT_VALUE; argument: InternalArgument })
   | { code: typeof ErrorCode.UNKNOWN_OPTION; message: string; name: string; value: string | undefined }
   | { code: typeof ErrorCode.MISSING_OPTION_VALUE; message: string; option: InternalOption; name: string }
   | {
@@ -94,7 +110,7 @@ export type InputIssue =
   | { code: typeof ErrorCode.MISSING_ARGUMENT; message: string; argument: InternalArgument }
   | { code: typeof ErrorCode.UNEXPECTED_ARGUMENTS; message: string; command: InternalCommand; values: string[] };
 
-/** Invalid argv. Reports all syntax diagnostics from the final parse pass. */
+/** Invalid argv. Reports syntax or schema diagnostics from the final parse pass. */
 export class InputError extends BreadcError {
   public readonly issues: readonly [InputIssue, ...InputIssue[]];
 

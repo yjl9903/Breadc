@@ -1,8 +1,12 @@
+import { z } from 'zod';
 import { breadc } from '../packages/core/src';
 
 const cli = breadc('echo', { version: '1.0.0' })
   .option('--host <host>', 'Listen host', { default: 'localhost' })
-  .option('--port <port>', 'Listen port', { default: '3000', cast: (t) => +t });
+  .option('--port <port>', 'Listen port', {
+    default: '3000',
+    cast: z.coerce.number().int().min(1).max(65535)
+  });
 
 cli
   .command('', 'Listen and say something!')

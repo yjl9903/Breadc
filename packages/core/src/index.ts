@@ -8,7 +8,9 @@ export type {
   Command,
   CommandInit,
   Argument,
-  ArgumentInit
+  ArgumentInit,
+  Cast,
+  InferCastOutput
 } from './breadc/index.ts';
 
 export type { UnknownCommandMiddleware, UnknownOptionMiddleware, ActionMiddleware } from './breadc/types/middleware.ts';

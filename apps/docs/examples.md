@@ -5,11 +5,15 @@ outline: deep
 # Examples
 
 ```ts
+import { z } from 'zod'
 import { breadc } from 'breadc'
 
 const cli = breadc('echo', { version: '1.0.0' })
   .option('--host <host>', 'specify hostname', { default: 'localhost' })
-  .option('--port <port>', 'specify port', { default: '3000', cast: p => +p })
+  .option('--port <port>', 'specify port', {
+    default: '3000',
+    cast: z.coerce.number().int().min(1).max(65535)
+  })
 
 cli
   .command('[message]', 'Say something!')

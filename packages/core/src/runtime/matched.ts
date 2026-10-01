@@ -1,7 +1,9 @@
 import type { Option, Argument } from '../breadc/types/app.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
-import { InternalError, ErrorCode } from '../error.ts';
+import { InputError, InternalError, ErrorCode } from '../error.ts';
+
+import { executeCast, type CastResult } from './cast.ts';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
@@ -15,9 +17,7 @@ export class MatchedArgument {
 
   public raw: string | string[] | undefined;
 
-  private resolved = false;
-
-  private result: any;
+  private result: CastResult | undefined;
 
   public constructor(argument: Argument<string, any> | InternalArgument) {
     this.argument = argument;
@@ -32,20 +32,28 @@ export class MatchedArgument {
           : undefined;
   }
 
-  /** Called only after the final parse pass has passed syntax validation. */
-  public finalize() {
-    if (!this.resolved) {
+  /** Evaluate after syntax validation, caching either a value or validation issues. */
+  public finalize(): CastResult {
+    if (this.result === undefined) {
       const shouldCast = this.dirty || this.argument.init.default !== undefined || this.argument.type === 'spread';
-      this.result = shouldCast && this.argument.init.cast ? this.argument.init.cast(this.raw!) : this.raw;
-      this.resolved = true;
+      this.result = shouldCast
+        ? executeCast(
+            this.argument.init.cast,
+            this.raw,
+            { argument: this.argument },
+            !this.dirty && this.argument.init.default !== undefined
+          )
+        : { value: this.raw };
     }
 
-    return this;
+    return this.result;
   }
 
   /** Reading during matching never triggers business conversion. */
   public value<T = any>(): T {
-    return this.resolved ? this.result : (this.raw as T);
+    if (this.result === undefined) return this.raw as T;
+    if (this.result.issues) throw new InputError(this.result.issues);
+    return this.result.value as T;
   }
 
   public accept(context: Context, value: string) {
@@ -69,8 +77,7 @@ export class MatchedArgument {
 
     this.dirty = true;
 
-    if (this.resolved) {
-      this.resolved = false;
+    if (this.result !== undefined) {
       this.result = undefined;
       this.finalize();
     }
@@ -92,9 +99,7 @@ export class MatchedOption {
   // Invalid occurrences still count for duplicate detection; dirty tracks successful assignment.
   private seen = false;
 
-  private resolved = false;
-
-  private result: any;
+  private result: CastResult | undefined;
 
   public constructor(option: Option<string, any> | InternalOption) {
     this.option = option as InternalOption;
@@ -108,24 +113,32 @@ export class MatchedOption {
     }
   }
 
-  /** Called only after the final parse pass has passed syntax validation. */
-  public finalize() {
-    if (!this.resolved) {
+  /** Evaluate after syntax validation, caching either a value or validation issues. */
+  public finalize(): CastResult {
+    if (this.result === undefined) {
       const shouldCast =
         this.dirty ||
         this.option.init.default !== undefined ||
         this.option.type === 'boolean' ||
         this.option.type === 'spread';
-      this.result = shouldCast && this.option.init.cast ? this.option.init.cast(this.raw) : this.raw;
-      this.resolved = true;
+      this.result = shouldCast
+        ? executeCast(
+            this.option.init.cast,
+            this.raw,
+            { option: this.option },
+            !this.dirty && this.option.init.default !== undefined
+          )
+        : { value: this.raw };
     }
 
-    return this;
+    return this.result;
   }
 
   /** During matching, middleware can inspect raw input without triggering cast. */
   public value<T = any>(): T {
-    return this.resolved ? this.result : this.raw;
+    if (this.result === undefined) return this.raw as T;
+    if (this.result.issues) throw new InputError(this.result.issues);
+    return this.result.value as T;
   }
 
   public accept(context: Context, long: string, text: string | undefined, inverted = false) {
@@ -198,8 +211,7 @@ export class MatchedOption {
       }
     }
 
-    if (!duplicate && this.resolved) {
-      this.resolved = false;
+    if (!duplicate && this.result !== undefined) {
       this.result = undefined;
       this.finalize();
     }

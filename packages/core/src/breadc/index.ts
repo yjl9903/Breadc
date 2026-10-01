@@ -21,5 +21,7 @@ export type {
   InternalOption,
   Argument,
   ArgumentInit,
-  InternalArgument
+  InternalArgument,
+  Cast,
+  InferCastOutput
 } from './types/index.ts';
