@@ -2,13 +2,12 @@ import type { InternalOption, Option, OptionInit, UnknownOptionMiddleware } from
 
 import { option as makeOption } from './option.ts';
 
-export function resolveOptionInput<Spec extends string, Init extends OptionInit<Spec, any, unknown>>(
+export function resolveOptionInput<Spec extends string, Init extends OptionInit<Spec>>(
   spec: Spec | Option<Spec>,
   description?: string,
   init?: Init
 ): InternalOption {
-  const resolved =
-    typeof spec === 'string' ? makeOption(spec, description, init as unknown as OptionInit<Spec, any, unknown>) : spec;
+  const resolved = typeof spec === 'string' ? makeOption(spec, description, init as unknown as OptionInit<Spec>) : spec;
   return resolved as unknown as InternalOption;
 }
 

@@ -3,20 +3,13 @@ import type { Prettify } from '../../utils/types.ts';
 
 import type {
   OptionInit,
-  NonNullableOptionInit,
+  CheckedOptionInit,
   GroupInit,
   CommandInit,
   ArgumentInit,
   NonNullableArgumentInit
 } from './init.ts';
-import type {
-  NonTrueNullable,
-  InferOption,
-  InferOptionInitialType,
-  InferArgumentType,
-  InferArgumentsType,
-  InferArgumentRawType
-} from './infer.ts';
+import type { InferOption, InferArgumentType, InferArgumentsType, InferArgumentRawType } from './infer.ts';
 import type {
   ActionMiddleware,
   ActionMiddlewareNextFn,
@@ -47,21 +40,12 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
    * @param spec
    * @param init
    */
-  option<Opt extends Option<any, any, any>>(option: Opt): Breadc<Data, Options & InferOptionFromInstance<Opt>>;
-  option<
-    OS extends string,
-    Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
-    OI extends NonNullableOptionInit<OS, Initial>
-  >(
-    spec: OS,
-    description: string,
-    init: OI
-  ): Breadc<Data, Options & InferOption<OS, Initial, OI>>;
-  option<OS extends string, Initial extends InferOptionInitialType<OS>, OI extends OptionInit<OS, Initial>>(
+  option<Opt extends Option<any, any>>(option: Opt): Breadc<Data, Options & InferOptionFromInstance<Opt>>;
+  option<OS extends string, OI extends OptionInit<OS>>(
     spec: OS,
     description?: string,
-    init?: OI
-  ): Breadc<Data, Options & InferOption<OS, Initial, OI>>;
+    init?: CheckedOptionInit<OS, OI>
+  ): Breadc<Data, Options & InferOption<OS, OI>>;
 
   command<S extends string, I extends CommandInit<S>>(
     spec: S,
@@ -128,23 +112,12 @@ export type Group<
    * @param spec
    * @param init
    */
-  option<Opt extends Option<any, any, any>>(
-    option: Opt
-  ): Group<Spec, Init, Data, Options & InferOptionFromInstance<Opt>>;
-  option<
-    OS extends string,
-    Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
-    OI extends NonNullableOptionInit<OS, Initial>
-  >(
-    spec: OS,
-    description: string,
-    init: OI
-  ): Group<Spec, Init, Data, Options & InferOption<OS, Initial, OI>>;
-  option<OS extends string, Initial extends InferOptionInitialType<OS>, OI extends OptionInit<OS, Initial>>(
+  option<Opt extends Option<any, any>>(option: Opt): Group<Spec, Init, Data, Options & InferOptionFromInstance<Opt>>;
+  option<OS extends string, OI extends OptionInit<OS>>(
     spec: OS,
     description?: string,
-    init?: OI
-  ): Group<Spec, Init, Data, Options & InferOption<OS, Initial, OI>>;
+    init?: CheckedOptionInit<OS, OI>
+  ): Group<Spec, Init, Data, Options & InferOption<OS, OI>>;
 
   command<S extends string, I extends CommandInit<S>>(
     spec: S,
@@ -194,23 +167,14 @@ export type Command<
    * @param spec
    * @param init
    */
-  option<Opt extends Option<any, any, any>>(
+  option<Opt extends Option<any, any>>(
     option: Opt
   ): Command<Spec, Init, Data, Options & InferOptionFromInstance<Opt>, Arguments, Return>;
-  option<
-    OS extends string,
-    Initial extends NonTrueNullable<InferOptionInitialType<OS>>,
-    OI extends NonNullableOptionInit<OS, Initial>
-  >(
-    spec: OS,
-    description: string,
-    init: OI
-  ): Command<Spec, Init, Data, Options & InferOption<OS, Initial, OI>, Arguments, Return>;
-  option<OS extends string, Initial extends InferOptionInitialType<OS>, OI extends OptionInit<OS, Initial>>(
+  option<OS extends string, OI extends OptionInit<OS>>(
     spec: OS,
     description?: string,
-    init?: OI
-  ): Command<Spec, Init, Data, Options & InferOption<OS, Initial, OI>, Arguments, Return>;
+    init?: CheckedOptionInit<OS, OI>
+  ): Command<Spec, Init, Data, Options & InferOption<OS, OI>, Arguments, Return>;
 
   /**
    * Add argument
@@ -268,18 +232,14 @@ export type Command<
   (...args: [...Arguments, Prettify<Options & { '--': string[] }>]): Promise<Return>;
 };
 
-export type Option<
-  Spec extends string = string,
-  Initial extends InferOptionInitialType<Spec> = InferOptionInitialType<Spec>,
-  Init extends OptionInit<Spec, Initial> = OptionInit<Spec, Initial>
-> = {
+export type Option<Spec extends string = string, Init extends OptionInit<Spec> = OptionInit<Spec>> = {
   spec: Spec;
-
+  description?: string;
   init: Init;
 };
 
-type InferOptionFromInstance<Opt extends Option<any, any, any>> =
-  Opt extends Option<infer OS, infer Initial, infer OI> ? InferOption<OS, Initial, OI & {}> : never;
+type InferOptionFromInstance<Opt extends Option<any, any>> =
+  Opt extends Option<infer OS, infer OI> ? InferOption<OS, OI> : never;
 
 export type Argument<
   Spec extends string = string,

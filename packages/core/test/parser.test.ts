@@ -137,10 +137,9 @@ describe('runtime/parser: command matching', () => {
 
     expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
       {
+        "description": "Print help",
         "form": "positive",
-        "init": {
-          "description": "Print help",
-        },
+        "init": {},
         "long": "help",
         "short": "H",
         "spec": "-H, --help",
@@ -163,10 +162,9 @@ describe('runtime/parser: command matching', () => {
 
     expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
       {
+        "description": "Print version",
         "form": "positive",
-        "init": {
-          "description": "Print version",
-        },
+        "init": {},
         "long": "version",
         "short": "V",
         "spec": "-V, --version",
@@ -192,10 +190,9 @@ describe('runtime/parser: command matching', () => {
 
     expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
       {
+        "description": "Print help",
         "form": "positive",
-        "init": {
-          "description": "Print help",
-        },
+        "init": {},
         "long": "help",
         "spec": "--help",
         "type": "boolean",
@@ -203,10 +200,9 @@ describe('runtime/parser: command matching', () => {
     `);
     expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
       {
+        "description": "Print version",
         "form": "positive",
-        "init": {
-          "description": "Print version",
-        },
+        "init": {},
         "long": "version",
         "spec": "--version",
         "type": "boolean",
@@ -312,7 +308,7 @@ describe('runtime/parser: command matching', () => {
       ]
     `);
     expect(result['--']).toEqual([]);
-    expect(() => app.parse(['subject', 'revision', '114514'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['subject', 'revision', '114514'])).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 
   it('commits an exact longer literal match at end of input', () => {
@@ -366,7 +362,7 @@ describe('runtime/parser: command matching', () => {
     expect(result2.args).toMatchInlineSnapshot(`[]`);
     expect(result2['--']).toMatchInlineSnapshot(`[]`);
 
-    expect(() => app.parse(['build'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['build'])).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 });
 
@@ -677,7 +673,7 @@ describe('runtime/parser: options', () => {
         "output": undefined,
       }
     `);
-    expect(() => app.parse(['-o'])).toThrowError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`);
+    expect(() => app.parse(['-o'])).toThrow(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`);
     expect(app.parse(['-o=file']).options).toMatchInlineSnapshot(`
       {
         "output": "file",
@@ -694,7 +690,7 @@ describe('runtime/parser: options', () => {
     'rejects missing required option values in %j',
     (...argv) => {
       const app = breadc('cli').option('-a, --all').option('-o, --output <value>');
-      expect(() => app.parse(argv)).toThrowError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`);
+      expect(() => app.parse(argv)).toThrow(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`);
     }
   );
 
@@ -706,11 +702,11 @@ describe('runtime/parser: options', () => {
     }
   );
 
-  it.each(['seed', ''])('preserves required option initial fallback %j', (initial) => {
-    const app = breadc('cli').option('-o, --output <value>', '', { initial });
-    expect(app.parse([]).options.output).toBe(initial);
-    expect(app.parse(['--output']).options.output).toBe(initial);
-    expect(app.parse(['-o', '--', 'file'])['--']).toEqual(['file']);
+  it.each(['seed', ''])('uses required option default only when absent %j', (fallback) => {
+    const app = breadc('cli').option('-o, --output <value>', '', { default: fallback });
+    expect(app.parse([]).options.output).toBe(fallback);
+    expect(() => app.parse(['--output'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => app.parse(['-o', '--', 'file'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
     expect(app.parse(['--output=file']).options.output).toBe('file');
   });
 
@@ -720,7 +716,7 @@ describe('runtime/parser: options', () => {
       cast: (value) => value ?? 'cast.txt'
     });
     expect(app.parse([]).options.output).toBe('default.txt');
-    expect(() => app.parse(['--output'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => app.parse(['--output'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
   });
 
   it.each([false, true])('rejects missing values on a default command (group: %s)', (grouped) => {
@@ -728,7 +724,7 @@ describe('runtime/parser: options', () => {
     const parent = grouped ? app.group('tool') : app;
     parent.command('[message]').option('--output <value>');
     parent.command('other');
-    expect(() => app.parse([...(grouped ? ['tool'] : []), '--output'])).toThrowError(
+    expect(() => app.parse([...(grouped ? ['tool'] : []), '--output'])).toThrow(
       `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
     );
   });
@@ -737,12 +733,12 @@ describe('runtime/parser: options', () => {
     const app = breadc('cli');
     app.option('-o, --output [value]');
 
-    expect(app.parse<unknown[], { output: boolean | string }>(['-o']).options).toMatchInlineSnapshot(`
+    expect(app.parse<unknown[], { output: string | undefined }>(['-o']).options).toMatchInlineSnapshot(`
       {
-        "output": true,
+        "output": undefined,
       }
     `);
-    expect(app.parse<unknown[], { output: boolean | string }>(['-o', 'file']).options).toMatchInlineSnapshot(`
+    expect(app.parse<unknown[], { output: string | undefined }>(['-o', 'file']).options).toMatchInlineSnapshot(`
       {
         "output": "file",
       }
@@ -793,14 +789,14 @@ describe('runtime/parser: options', () => {
     expect(app.parse(['--no-open', 'off']).options.open).toMatchInlineSnapshot(`false`);
   });
 
-  it('applies option default/initial/cast semantics', () => {
+  it('applies option default/cast semantics', () => {
     const app = breadc('cli')
       .option('-f, --[no-]flag', '', {
         default: true,
         cast: (t) => (t ? 'on' : 'off')
       })
       .option('-o, --output [value]', '', {
-        initial: 'seed',
+        default: 'seed',
         cast: (t) => String(t)
       });
 
@@ -849,25 +845,25 @@ describe('runtime/parser: options', () => {
 
     expect(app.parse(['-o']).options).toMatchInlineSnapshot(`
       {
-        "flag": true,
-        "output": "seed",
+        "flag": "on",
+        "output": "undefined",
       }
     `);
     expect(app.parse(['--output']).options).toMatchInlineSnapshot(`
       {
-        "flag": true,
-        "output": "seed",
+        "flag": "on",
+        "output": "undefined",
       }
     `);
     expect(app.parse(['--output=dirty']).options).toMatchInlineSnapshot(`
       {
-        "flag": true,
+        "flag": "on",
         "output": "dirty",
       }
     `);
     expect(app.parse(['--output', 'dirty']).options).toMatchInlineSnapshot(`
       {
-        "flag": true,
+        "flag": "on",
         "output": "dirty",
       }
     `);
@@ -881,7 +877,7 @@ describe('runtime/parser: options', () => {
     expect(result1.options).toMatchInlineSnapshot(`
       {
         "flag": true,
-        "mode": false,
+        "mode": undefined,
       }
     `);
 
@@ -889,7 +885,7 @@ describe('runtime/parser: options', () => {
     expect(result2.options).toMatchInlineSnapshot(`
       {
         "flag": false,
-        "mode": false,
+        "mode": undefined,
       }
     `);
 
@@ -946,7 +942,7 @@ describe('runtime/parser: unknown options', () => {
   it.each(['--typo', '--typo=x', '-x', '-x=value', '--no-typo'])('rejects unknown option %s by default', (option) => {
     const app = breadc('cli');
     const name = option.split('=')[0];
-    expect(() => app.parse([option])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+    expect(() => app.parse([option])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
   });
 
   it('rejects unknown options before matching positional arguments', () => {
@@ -957,7 +953,7 @@ describe('runtime/parser: unknown options', () => {
       ['echo', '--typo', 'x'],
       ['echo', '--typo']
     ]) {
-      expect(() => app.parse(argv)).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+      expect(() => app.parse(argv)).toThrow(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
     }
   });
 
@@ -965,7 +961,7 @@ describe('runtime/parser: unknown options', () => {
     const app = breadc('cli');
     const command = app.group('tool').command('echo');
 
-    expect(() => app.parse(['tool', 'echo', '--typo=x'])).toThrowError(
+    expect(() => app.parse(['tool', 'echo', '--typo=x'])).toThrow(
       expect.objectContaining({
         cause: { name: '--typo', value: 'x' },
         context: expect.objectContaining({ command })
@@ -983,7 +979,7 @@ describe('runtime/parser: unknown options', () => {
     const result = app.parse([...prefix, '--output', 'file', 'hello']);
     expect(result.options).toEqual({ output: 'file' });
     expect(result.args).toEqual(['hello']);
-    expect(() => app.parse([...prefix, '--typo', 'x'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    expect(() => app.parse([...prefix, '--typo', 'x'])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
   });
 
   it.each([false, true])('honors default command unknown-option middleware (group: %s)', (grouped) => {
@@ -1005,20 +1001,20 @@ describe('runtime/parser: unknown options', () => {
     parent.command('other');
 
     // --output is unknown on the first pass, but declared by the fallback command.
-    expect(() => app.parse([...prefix, '--output=file', '--typo=x'])).toThrowError(
+    expect(() => app.parse([...prefix, '--output=file', '--typo=x'])).toThrow(
       expect.objectContaining({
         message: `${RuntimeError.UNKNOWN_OPTION}: --typo`,
         cause: { name: '--typo', value: 'x' },
         context: expect.objectContaining({ command, arguments: [] })
       })
     );
-    expect(() => app.parse([...prefix, '--output=file'])).toThrowError(RuntimeError.REQUIRED_ARGUMENT_MISSING);
+    expect(() => app.parse([...prefix, '--output=file'])).toThrow(RuntimeError.REQUIRED_ARGUMENT_MISSING);
   });
 
   it('rejects unknown options when no group command matches', () => {
     const app = breadc('cli');
     app.group('tool').command('run');
-    expect(() => app.parse(['tool', '--typo'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    expect(() => app.parse(['tool', '--typo'])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
   });
 
   it('preserves escaped options, negative numbers and stdio arguments', () => {
@@ -1030,7 +1026,7 @@ describe('runtime/parser: unknown options', () => {
   });
 
   it.each(['--help', '--version'])('rejects unknown options alongside %s', (builtin) => {
-    expect(() => breadc('cli').parse(['--typo', builtin])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
+    expect(() => breadc('cli').parse(['--typo', builtin])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: --typo`);
   });
 
   it('allows unknown options', () => {
@@ -1039,7 +1035,7 @@ describe('runtime/parser: unknown options', () => {
     const result1 = app.parse(['--flag']);
     expect(result1.options).toMatchInlineSnapshot(`
       {
-        "flag": true,
+        "flag": undefined,
       }
     `);
 
@@ -1100,7 +1096,7 @@ describe('runtime/parser: unknown options', () => {
 
   it.each([null, undefined])('rejects unknown options when middleware returns %s', (result) => {
     const app = breadc('cli').allowUnknownOption(() => result);
-    expect(() => app.parse(['-x', 'foo'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -x`);
+    expect(() => app.parse(['-x', 'foo'])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: -x`);
   });
 
   it('continues through middleware until an unknown option is accepted', () => {
@@ -1288,7 +1284,7 @@ describe('runtime/parser: errors', () => {
     const app = breadc('cli');
     app.command(spec);
 
-    expect(() => app.parse(argv)).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(argv)).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 
   it('rejects excess positional arguments after falling back to a default command', () => {
@@ -1296,7 +1292,7 @@ describe('runtime/parser: errors', () => {
     app.command('<file>');
     app.command('dev');
 
-    expect(() => app.parse(['a', 'b'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['a', 'b'])).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 
   it('rejects excess positional arguments for group commands and group defaults', () => {
@@ -1305,15 +1301,15 @@ describe('runtime/parser: errors', () => {
     group.command('<file>');
     group.command('echo <file>');
 
-    expect(() => app.parse(['tool', 'a', 'b'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
-    expect(() => app.parse(['tool', 'echo', 'a', 'b'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['tool', 'a', 'b'])).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['tool', 'echo', 'a', 'b'])).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 
   it('throws on missing required arguments', () => {
     const app = breadc('cli');
     app.command('echo <name>');
 
-    expect(() => app.parse(['echo'])).toThrowError(RuntimeError);
+    expect(() => app.parse(['echo'])).toThrow(RuntimeError);
   });
 
   it('throws on duplicated default command', () => {
@@ -1321,7 +1317,7 @@ describe('runtime/parser: errors', () => {
     app.command('<one>');
     app.command('<two>');
 
-    expect(() => app.parse(['value'])).toThrowError(BreadcAppError);
+    expect(() => app.parse(['value'])).toThrow(BreadcAppError);
   });
 
   it('throws on duplicated group pieces', () => {
@@ -1329,7 +1325,7 @@ describe('runtime/parser: errors', () => {
     app.group('store').command('ls');
     app.group('store').command('rm');
 
-    expect(() => app.parse(['store', 'ls'])).toThrowError(BreadcAppError.DUPLICATED_GROUP);
+    expect(() => app.parse(['store', 'ls'])).toThrow(BreadcAppError.DUPLICATED_GROUP);
   });
 
   it('throws on duplicated command pieces', () => {
@@ -1337,7 +1333,7 @@ describe('runtime/parser: errors', () => {
     app.command('dev');
     app.command('dev');
 
-    expect(() => app.parse(['dev'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
+    expect(() => app.parse(['dev'])).toThrow(BreadcAppError.DUPLICATED_COMMAND);
   });
 
   it('throws on duplicated candidate commands with shared literal prefix', () => {
@@ -1345,7 +1341,7 @@ describe('runtime/parser: errors', () => {
     app.command('subject <one>');
     app.command('subject <two>');
 
-    expect(() => app.parse(['subject', 'value'])).toThrowError(BreadcAppError.DUPLICATED_COMMAND);
+    expect(() => app.parse(['subject', 'value'])).toThrow(BreadcAppError.DUPLICATED_COMMAND);
   });
 
   it('throws on duplicated default commands inside a matched group', () => {
@@ -1354,7 +1350,7 @@ describe('runtime/parser: errors', () => {
     store.command('<one>');
     store.command('<two>');
 
-    expect(() => app.parse(['store', 'value'])).toThrowError(BreadcAppError.DUPLICATED_DEFAULT_GROUP_COMMAND);
+    expect(() => app.parse(['store', 'value'])).toThrow(BreadcAppError.DUPLICATED_DEFAULT_GROUP_COMMAND);
   });
 
   it('throws when unknown arguments appear before matched group default command', () => {
@@ -1363,20 +1359,20 @@ describe('runtime/parser: errors', () => {
     store.command('<name>');
     store.command('ls');
 
-    expect(() => app.parse(['unknown', 'store', 'readme.md'])).toThrowError(RuntimeError.UNEXPECTED_ARGUMENTS);
+    expect(() => app.parse(['unknown', 'store', 'readme.md'])).toThrow(RuntimeError.UNEXPECTED_ARGUMENTS);
   });
 });
 
 describe('runtime/parser: boolean option forms', () => {
   it.each([
-    { spec: '--all', initial: false, positive: ['--all'], negative: [], unknown: ['--no-all'] },
-    { spec: '--no-all', initial: true, positive: [], negative: ['--no-all'], unknown: ['--all'] },
-    { spec: '--[no-]all', initial: false, positive: ['--all'], negative: ['--no-all'], unknown: [] },
-    { spec: '-a, --[no-]all', initial: false, positive: ['--all', '-a'], negative: ['--no-all'], unknown: [] },
-    { spec: '-a, --no-all', initial: true, positive: [], negative: ['--no-all', '-a'], unknown: ['--all'] }
-  ])('accepts only the declared forms of $spec', ({ spec, initial, positive, negative, unknown }) => {
+    { spec: '--all', absent: false, positive: ['--all'], negative: [], unknown: ['--no-all'] },
+    { spec: '--no-all', absent: true, positive: [], negative: ['--no-all'], unknown: ['--all'] },
+    { spec: '--[no-]all', absent: false, positive: ['--all'], negative: ['--no-all'], unknown: [] },
+    { spec: '-a, --[no-]all', absent: false, positive: ['--all', '-a'], negative: ['--no-all'], unknown: [] },
+    { spec: '-a, --no-all', absent: true, positive: [], negative: ['--no-all', '-a'], unknown: ['--all'] }
+  ])('accepts only the declared forms of $spec', ({ spec, absent, positive, negative, unknown }) => {
     const app = breadc('cli').option(spec);
-    expect(app.parse([]).options).toEqual({ all: initial });
+    expect(app.parse([]).options).toEqual({ all: absent });
     for (const name of positive) {
       expect(app.parse([name]).options).toEqual({ all: true });
       expect(app.parse([`${name}=false`]).options).toEqual({ all: false });
@@ -1387,9 +1383,9 @@ describe('runtime/parser: boolean option forms', () => {
       expect(app.parse([`${name}=true`]).options).toEqual({ all: false });
     }
     for (const name of unknown) {
-      expect(() => app.parse([name])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+      expect(() => app.parse([name])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
     }
-    expect(() => app.parse(['--[no-]all'])).toThrowError(RuntimeError.UNKNOWN_OPTION);
+    expect(() => app.parse(['--[no-]all'])).toThrow(RuntimeError.UNKNOWN_OPTION);
   });
 
   it.each(['--no-all', '--[no-]all', '-a, --no-all', '-a, --[no-]all'])(
@@ -1398,20 +1394,20 @@ describe('runtime/parser: boolean option forms', () => {
       for (const suffix of ['<value>', '[value]', '[...value]']) {
         const app = breadc('cli').option(`${spec} ${suffix}`);
         for (let i = 0; i < 2; i++) {
-          expect(() => app.parse([])).toThrowError(ResolveOptionError.INVALID_OPTION);
+          expect(() => app.parse([])).toThrow(ResolveOptionError.INVALID_OPTION);
         }
       }
     }
   );
 
   it.each(['--[no-]', '--[no]all', '--[no-]all[no-]', '-ab, --[no-]all'])('rejects malformed spec %s', (spec) => {
-    expect(() => breadc('cli').option(spec).parse([])).toThrowError(ResolveOptionError.INVALID_OPTION);
+    expect(() => breadc('cli').option(spec).parse([])).toThrow(ResolveOptionError.INVALID_OPTION);
   });
 
-  it('uses explicit initial and default values independently of the form', () => {
+  it('uses explicit default values independently of the form', () => {
     const app = breadc('cli')
-      .option('--no-all', '', { initial: false })
-      .option('--[no-]open', '', { initial: true })
+      .option('--no-all', '', { default: false })
+      .option('--[no-]open', '', { default: true })
       .option('--no-cache', '', { default: false });
     expect(app.parse([]).options).toEqual({ all: false, open: true, cache: false });
     expect(app.parse(['--no-all=false', '--no-open', '--no-cache=false']).options).toEqual({
@@ -1431,9 +1427,9 @@ describe('runtime/parser: boolean option forms', () => {
     expect(app.parse(['--no-all=false']).options.all).toBe('on');
 
     cast.mockClear();
-    const withDefault = breadc('cli').option('--no-all', '', { cast, default: 'default' });
-    expect(withDefault.parse([]).options.all).toBe('default');
-    expect(cast).not.toHaveBeenCalled();
+    const withDefault = breadc('cli').option('--no-all', '', { cast, default: false });
+    expect(withDefault.parse([]).options.all).toBe('off');
+    expect(cast).toHaveBeenCalledExactlyOnceWith(false);
     expect(withDefault.parse(['--no-all']).options.all).toBe('off');
   });
 
@@ -1449,14 +1445,12 @@ describe('runtime/parser: boolean option forms', () => {
   it.each([['--all', '--no-all'], ['--no-all', '--all'], ['-a', '--no-all'], ['-aa']])(
     'shares assignment state for %j',
     (...argv) => {
-      expect(() => breadc('cli').option('-a, --[no-]all').parse(argv)).toThrowError(
-        RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE
-      );
+      expect(() => breadc('cli').option('-a, --[no-]all').parse(argv)).toThrow(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE);
     }
   );
 
   it('reports the actual spelling of a repeated negative short alias', () => {
-    expect(() => breadc('cli').option('-a, --no-all').parse(['--no-all', '-a'])).toThrowError(
+    expect(() => breadc('cli').option('-a, --no-all').parse(['--no-all', '-a'])).toThrow(
       expect.objectContaining({ cause: expect.objectContaining({ name: 'a' }) })
     );
   });
@@ -1480,7 +1474,7 @@ describe('runtime/parser: boolean option forms', () => {
       expect(app.parse(['run', ...accepted]).options.all).toBe(spec === '--all <value>' ? 'value' : spec === '--all');
       const rejected = spec === '--no-all' ? '--all' : '--no-all';
       for (const name of [rejected, '-a']) {
-        expect(() => app.parse(['run', name])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+        expect(() => app.parse(['run', name])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
       }
     }
   );
@@ -1506,7 +1500,7 @@ describe('runtime/parser: boolean option forms', () => {
 
   it('does not generate negative forms for default built-ins', () => {
     for (const name of ['--no-help', '--no-version']) {
-      expect(() => breadc('cli').parse([name])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
+      expect(() => breadc('cli').parse([name])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: ${name}`);
     }
   });
 
@@ -1515,7 +1509,7 @@ describe('runtime/parser: boolean option forms', () => {
     expect(app.parse(['--no-help']).options).toEqual({ help: false });
     expect(app.parse(['-h']).options).toEqual({ help: true });
     expect(app.parse(['--no-version']).options).toEqual({ version: false });
-    expect(() => app.parse(['--version'])).toThrowError(RuntimeError.UNKNOWN_OPTION);
+    expect(() => app.parse(['--version'])).toThrow(RuntimeError.UNKNOWN_OPTION);
   });
 
   it('does not infer negation from names accepted by unknown-option middleware', () => {
@@ -1615,18 +1609,18 @@ describe('runtime/parser: short option combinations', () => {
 
   it('preserves following-token rules for optional options', () => {
     const app = breadc('cli').option('-a, --all').option('-b, --brief').option('-o, --output [value]');
-    expect(app.parse(['-ao']).options.output).toBe(true);
-    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief: true, output: true });
+    expect(app.parse(['-ao']).options.output).toBe(undefined);
+    expect(app.parse(['-ao', '--brief']).options).toEqual({ all: true, brief: true, output: undefined });
     expect(app.parse(['-ao', '-1']).options.output).toBe('-1');
 
     const escaped = app.parse(['-ao', '--', '-ab']);
-    expect(escaped.options).toEqual({ all: true, brief: false, output: true });
+    expect(escaped.options).toEqual({ all: true, brief: false, output: undefined });
     expect(escaped['--']).toEqual(['-ab']);
   });
 
   it('rejects a following option as a required value but accepts a negative number', () => {
     const app = createApp();
-    expect(() => app.parse(['-ao', '--brief'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => app.parse(['-ao', '--brief'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
     expect(app.parse(['-ao', '-1']).options.output).toBe('-1');
   });
 
@@ -1649,7 +1643,7 @@ describe('runtime/parser: short option combinations', () => {
     const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
     for (const tail of [[], ['--all'], ['--help'], ['--unknown'], ['--', 'file']]) {
       for (const prefix of [[], ['--include', 'first']]) {
-        expect(() => app.parse([...prefix, flag, ...tail])).toThrowError(
+        expect(() => app.parse([...prefix, flag, ...tail])).toThrow(
           `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`
         );
       }
@@ -1665,11 +1659,11 @@ describe('runtime/parser: short option combinations', () => {
     }
   });
 
-  it('requires spread values even when initial or default values are configured', () => {
-    for (const init of [{ initial: ['seed'] }, { default: ['seed'] }]) {
+  it('requires spread values even when default values are configured', () => {
+    for (const init of [{ default: ['seed'] }, { default: [] }]) {
       const app = breadc('cli').option('--include [...value]', '', init);
-      expect(app.parse([]).options.include).toEqual(['seed']);
-      expect(() => app.parse(['--include'])).toThrowError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`);
+      expect(app.parse([]).options.include).toEqual(init.default);
+      expect(() => app.parse(['--include'])).toThrow(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`);
     }
   });
 
@@ -1679,14 +1673,14 @@ describe('runtime/parser: short option combinations', () => {
     ['-o, --output <value>', ['-ofile', '--output=again'], RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE],
     ['-o, --output [value]', ['-ofile', '-oagain'], RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE]
   ])('preserves duplicate assignment errors for %s', (spec, argv, error) => {
-    expect(() => breadc('cli').option(spec).parse(argv)).toThrowError(error);
+    expect(() => breadc('cli').option(spec).parse(argv)).toThrow(error);
   });
 
-  it('applies existing initial, default and cast behavior', () => {
+  it('applies default and cast behavior', () => {
     const app = breadc('cli')
       .option('-a, --all', '', { default: true })
-      .option('-o, --output [value]', '', { initial: 'seed', cast: (value) => String(value).toUpperCase() });
-    expect(app.parse(['-ao']).options).toEqual({ all: true, output: 'SEED' });
+      .option('-o, --output [value]', '', { default: 'seed', cast: (value) => String(value).toUpperCase() });
+    expect(app.parse(['-ao']).options).toEqual({ all: true, output: 'UNDEFINED' });
     expect(app.parse(['-aofile']).options).toEqual({ all: true, output: 'FILE' });
   });
 
@@ -1726,7 +1720,7 @@ describe('runtime/parser: short option combinations', () => {
   });
 
   it('continues to reject multi-character short option declarations', () => {
-    expect(() => breadc('cli').option('-ab, --all').parse(['-ab'])).toThrowError(ResolveOptionError.INVALID_OPTION);
+    expect(() => breadc('cli').option('-ab, --all').parse(['-ab'])).toThrow(ResolveOptionError.INVALID_OPTION);
   });
 });
 
@@ -1756,7 +1750,7 @@ describe('runtime/parser: unknown options in short combinations', () => {
   it('rejects an unknown suffix when no middleware accepts it', () => {
     const app = breadc('cli').option('-a, --all').option('-z, --last');
     app.command('[rest]');
-    expect(() => app.parse(['-axyz', 'value'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: -xyz`);
+    expect(() => app.parse(['-axyz', 'value'])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: -xyz`);
   });
 });
 
@@ -1781,7 +1775,7 @@ describe('runtime/parser: option value boundaries', () => {
   it.each(['--output', '-o', '-ao'])('rejects option-like values after %s', (output) => {
     const app = breadc('cli').option('-a, --all').option('-b, --brief').option('-o, --output <value>');
     for (const value of optionLikeValues) {
-      expect(() => app.parse([output, value]), value).toThrowError(
+      expect(() => app.parse([output, value]), value).toThrow(
         `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --output`
       );
     }
@@ -1809,20 +1803,20 @@ describe('runtime/parser: option value boundaries', () => {
 
   it('leaves following flags and unknown options for optional options', () => {
     const app = breadc('cli').option('-a, --all').option('-o, --output [value]');
-    expect(app.parse(['--output', '--all']).options).toEqual({ all: true, output: true });
+    expect(app.parse(['--output', '--all']).options).toEqual({ all: true, output: undefined });
     expect(isHelp(app.parse(['--output', '--help']).context)).toBe(true);
     for (const value of ['--unknown', '-2foo', '-2e']) {
-      expect(() => app.parse(['--output', value])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
+      expect(() => app.parse(['--output', value])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
     }
     const escaped = app.parse(['--output', '--', '-2foo']);
-    expect(escaped.options.output).toBe(true);
+    expect(escaped.options.output).toBe(undefined);
     expect(escaped['--']).toEqual(['-2foo']);
   });
 
-  it('preserves initial-value fallback without consuming a following option', () => {
-    const app = breadc('cli').option('--output <value>', '', { initial: 'seed' }).option('--all');
-    expect(app.parse(['--output', '--all']).options).toEqual({ output: 'seed', all: true });
-    expect(() => app.parse(['--output', '--unknown'])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: --unknown`);
+  it('rejects a missing value before a following option even with a default', () => {
+    const app = breadc('cli').option('--output <value>', '', { default: 'seed' }).option('--all');
+    expect(() => app.parse(['--output', '--all'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => app.parse(['--output', '--unknown'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
   });
 
   it.each([false, true])('applies value boundaries in fallback commands (grouped: %s)', (grouped) => {
@@ -1834,7 +1828,7 @@ describe('runtime/parser: option value boundaries', () => {
     const result = app.parse([...prefix, '--output', '-2e-3', '-.5']);
     expect(result.options).toMatchObject({ output: '-2e-3' });
     expect(result.args).toEqual(['-.5']);
-    expect(() => app.parse([...prefix, '--output', '--all'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => app.parse([...prefix, '--output', '--all'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
   });
 
   it('applies the same boundary to options accepted by middleware', () => {
@@ -1842,7 +1836,7 @@ describe('runtime/parser: option value boundaries', () => {
       .option('--all')
       .allowUnknownOption((_ctx, name, value) => ({ name, value, type: 'required' }));
     expect(app.parse(['--custom', '-2e-3']).options).toMatchObject({ custom: '-2e-3' });
-    expect(() => app.parse(['--custom', '--all'])).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => app.parse(['--custom', '--all'])).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
   });
 });
 
@@ -1857,12 +1851,12 @@ describe('runtime/parser: negative positional arguments', () => {
   it.each(['-2foo', '-2e', '-0x10', '-Infinity'])('treats %s as an option, including in default commands', (value) => {
     const app = breadc('cli');
     app.command('[value]');
-    expect(() => app.parse([value])).toThrowError(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
+    expect(() => app.parse([value])).toThrow(`${RuntimeError.UNKNOWN_OPTION}: ${value}`);
     expect(app.parse(['--', value])['--']).toEqual([value]);
   });
 
   it('keeps numeric short option declarations invalid', () => {
-    expect(() => breadc('cli').option('-2, --two').parse([])).toThrowError(ResolveOptionError);
+    expect(() => breadc('cli').option('-2, --two').parse([])).toThrow(ResolveOptionError);
     const app = breadc('cli').option('--2');
     const result = app.parse(['--2', '-2']);
     expect(result.options).toEqual({ 2: true });

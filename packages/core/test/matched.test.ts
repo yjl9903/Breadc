@@ -94,17 +94,17 @@ describe('runtime/matched: argument', () => {
 
     const required = new MatchedArgument(argument('<name>'));
     required.accept(ctx, 'alice');
-    expect(() => required.accept(ctx, 'bob')).toThrowError();
+    expect(() => required.accept(ctx, 'bob')).toThrow();
 
     const optional = new MatchedArgument(argument('[name]'));
     optional.accept(ctx, 'first');
-    expect(() => optional.accept(ctx, 'second')).toThrowError();
+    expect(() => optional.accept(ctx, 'second')).toThrow();
   });
 });
 
 describe('runtime/matched: option', () => {
   it.each([false, true])('rejects invalid boolean values without changing state (inverted=%s)', (inverted) => {
-    const opt = option('--all', '', { initial: true });
+    const opt = option('--all', '', { default: true });
     resolveOption(opt);
     const ctx = makeContext(breadc('cli'), []);
     const matched = new MatchedOption(opt);
@@ -150,7 +150,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt);
-    expect(() => matched.accept(ctx, 'n', undefined)).toThrowError(
+    expect(() => matched.accept(ctx, 'n', undefined)).toThrow(
       expect.objectContaining({
         message: `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --number`,
         cause: { option: opt, name: 'n', value: undefined },
@@ -176,19 +176,19 @@ describe('runtime/matched: option', () => {
     const ctx = makeContext(breadc('cli'), [value]);
     const matched = new MatchedOption(opt);
 
-    expect(() => matched.accept(ctx, 'output', undefined)).toThrowError(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => matched.accept(ctx, 'output', undefined)).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
     expect(ctx.tokens.peek()?.toRaw()).toBe(value);
     expect(matched.dirty).toBe(false);
   });
 
-  it('falls back to initial for required option when next token raw value is undefined', () => {
+  it('does not use default to fill a missing required value', () => {
     const app = breadc('cli');
-    const opt = option('-n, --number <value>', '', { initial: 'seed' });
+    const opt = option('-n, --number <value>', '', { default: 'seed' });
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
-    const matched = new MatchedOption(opt).accept(ctx, 'n', undefined);
-    expect(matched.value()).toMatchInlineSnapshot(`"seed"`);
+    const matched = new MatchedOption(opt);
+    expect(() => matched.accept(ctx, 'n', undefined)).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
   });
 
   it('interprets negated boolean option with explicit false text', () => {
@@ -218,7 +218,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'n', '1');
-    expect(() => matched.accept(ctx, '-n', '2')).toThrowError(RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE);
+    expect(() => matched.accept(ctx, '-n', '2')).toThrow(RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE);
   });
 
   it('throws when boolean option is accepted twice', () => {
@@ -228,7 +228,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'open', undefined);
-    expect(() => matched.accept(ctx, 'open', undefined)).toThrowError(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE);
+    expect(() => matched.accept(ctx, 'open', undefined)).toThrow(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE);
   });
 
   it('throws when optional option is accepted twice', () => {
@@ -238,7 +238,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'o', 'first');
-    expect(() => matched.accept(ctx, 'o', 'second')).toThrowError(RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE);
+    expect(() => matched.accept(ctx, 'o', 'second')).toThrow(RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE);
   });
 
   it('accumulates spread option values', () => {
@@ -282,7 +282,7 @@ describe('runtime/matched: option', () => {
       const matched = new MatchedOption(opt);
 
       const rejectMissing = () => {
-        expect(() => matched.accept(ctx, 's', undefined)).toThrowError(
+        expect(() => matched.accept(ctx, 's', undefined)).toThrow(
           expect.objectContaining({
             message: `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`,
             cause: { option: opt, name: 's', value: undefined },

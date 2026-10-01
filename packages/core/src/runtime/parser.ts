@@ -3,13 +3,13 @@ import type { Breadc, InternalBreadc, InternalOption, InternalGroup, InternalCom
 import { camelCase, splitOnce } from '../utils/string.ts';
 import { rawOption } from '../breadc/option.ts';
 import { rawArgument } from '../breadc/command.ts';
+import { buildHelpOption } from '../breadc/builtin/help.ts';
+import { buildVersionOption } from '../breadc/builtin/version.ts';
 import { RuntimeError, BreadcAppError } from '../error.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
 import { type Context, context as makeContext, reset } from './context.ts';
 import { buildApp, buildCommand, buildGroup, isGroup } from './builder.ts';
-import { buildHelpOption } from '../breadc/builtin/help.ts';
-import { buildVersionOption } from '../breadc/builtin/version.ts';
 
 type ParseFallback = { group: InternalGroup } | { command: InternalCommand };
 
@@ -113,6 +113,10 @@ export function parse(app: Breadc, argv: string[]) {
         new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(context, arg)
       )
     );
+  }
+
+  for (const option of context.options.values()) {
+    option.finalize();
   }
 
   return context;
@@ -395,7 +399,7 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
             if (result) {
               // TODO: check following unknown option logic
               const matched = new MatchedOption(
-                rawOption(isLong ? `--${key}` : `-${key}`, result.type ?? 'optional', key, undefined, {})
+                rawOption(isLong ? `--${key}` : `-${key}`, undefined, result.type ?? 'optional', key, undefined, {})
               ).accept(context, key, value);
               matchedOptions.set(key, matched);
               accepted = true;

@@ -11,7 +11,6 @@ import type {
   Option,
   OptionInit,
   InternalOption,
-  InferOptionInitialType,
   GroupInit,
   InternalGroup,
   Command,
@@ -42,11 +41,11 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
     _unknownOptionMiddlewares: unknownOptionMiddlewares,
     _unknownCommandMiddlewares: unknownCommandMiddlewares,
 
-    option<
-      Spec extends string,
-      Initial extends InferOptionInitialType<Spec>,
-      Init extends OptionInit<Spec, Initial, unknown>
-    >(spec: Spec | Option<Spec>, description?: string, init?: Init) {
+    option<Spec extends string, Init extends OptionInit<Spec>>(
+      spec: Spec | Option<Spec>,
+      description?: string,
+      init?: Init
+    ) {
       options.push(resolveOptionInput(spec, description, init));
       return app;
     },

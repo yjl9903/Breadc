@@ -1,4 +1,4 @@
-import type { NonTrueNullable, InferOptionRawType, InferOptionInitialType, InferArgumentRawType } from './infer.ts';
+import type { InferOptionCastInput, InferOptionDefaultType, InferArgumentRawType } from './infer.ts';
 
 export type BreadcInit = {
   /**
@@ -57,64 +57,17 @@ export type BreadcInit = {
   };
 };
 
-export type OptionInit<
-  Spec extends string,
-  Initial extends InferOptionInitialType<Spec>,
-  Cast extends unknown = unknown
-> = {
-  /**
-   * Option description
-   */
-  description?: string;
+export type OptionInit<Spec extends string, Cast = unknown> = {
+  /** Raw input used only when the option is absent. It also passes through cast. */
+  default?: InferOptionDefaultType<Spec>;
 
-  /**
-   * Overwrite the initial value of the corresponding matched option.
-   * - &lt;required&gt;: undefined
-   * - \[optional\]: false
-   * - \[...remaining\]: \[\]
-   */
-  initial?: Initial;
-
-  /**
-   * Cast initial value to the result
-   */
-  cast?: (value: Initial extends {} ? Initial : InferOptionRawType<Spec>) => Cast;
-
-  /**
-   * Default option value if it is not provided
-   */
-  default?: Cast;
+  /** Convert and validate the selected input once per parse. */
+  cast?: (value: InferOptionCastInput<Spec>) => Cast;
 };
 
-export type NonNullableOptionInit<
-  Spec extends string,
-  Initial extends NonTrueNullable<InferOptionInitialType<Spec>>,
-  Cast extends unknown = unknown
-> = {
-  /**
-   * Option description
-   */
-  description?: string;
-
-  /**
-   * Overwrite the initial value of the corresponding matched option.
-   * - `--option`: `false`
-   * - `--option [optional]`: `false`
-   * - `--option <required>`: `undefined`
-   * - `--option [...spread]`: `[]`
-   */
-  initial: Initial;
-
-  /**
-   * Cast initial value to the result
-   */
-  cast?: (value: Initial extends {} ? Initial : InferOptionRawType<Spec>) => Cast;
-
-  /**
-   * Default option value when its value or initial value is not provided
-   */
-  default?: Cast;
-};
+/** Reject configuration keys outside the option API. */
+export type CheckedOptionInit<Spec extends string, Init extends OptionInit<Spec>> = Init &
+  Record<Exclude<keyof Init, keyof OptionInit<Spec>>, never>;
 
 export type GroupInit<Spec extends string> = {};
 

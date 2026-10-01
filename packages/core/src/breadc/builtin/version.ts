@@ -10,7 +10,7 @@ export function buildVersionOption(context: Context) {
   const spec = typeof breadc._init.builtin?.version === 'object' ? breadc._init.builtin.version.spec : undefined;
   const option = spec
     ? resolveOption(makeOption(spec, 'Print version'))
-    : rawOption('-v, --version', 'boolean', 'version', 'v', { description: 'Print version' });
+    : rawOption('-v, --version', 'Print version', 'boolean', 'version', 'v', {});
   breadc._version = option;
   return option;
 }

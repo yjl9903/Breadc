@@ -288,7 +288,7 @@ export function resolveCommand(command: Command | InternalCommand) {
 
 const OptionRE = /^(?:-([a-zA-Z]), )?--(no-|\[no-\])?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
 
-export function resolveOption(option: Option<string, any, any> | InternalOption) {
+export function resolveOption(option: Option<string, any> | InternalOption) {
   if ((option as InternalOption).type) return option as InternalOption;
 
   const { spec } = option;

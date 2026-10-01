@@ -31,8 +31,8 @@ Try [./examples/echo.ts](./examples/echo.ts).
 import { breadc } from 'breadc';
 
 const cli = breadc('echo', { version: '1.0.0' })
-  .option('--host <host>', 'specify hostname', { initial: 'localhost' })
-  .option('--port <port>', 'specify port', { initial: '3000', cast: (t) => +t });
+  .option('--host <host>', 'specify hostname', { default: 'localhost' })
+  .option('--port <port>', 'specify port', { default: '3000', cast: (t) => +t });
 
 cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(message ?? 'You can say anything!');

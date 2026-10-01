@@ -38,71 +38,43 @@ export type InferOptionName<T extends string> =
       ? `${P1}${Capitalize<P2>}`
       : InferOptionRawName<T>;
 
-/**
- * Infer the raw option type: boolean or string or string[]
- */
+/** Raw option output before conversion. */
 export type InferOptionRawType<S extends string> = InferLongOptionRawType<LongOptionSpec<S>>;
 
 type InferLongOptionRawType<S extends string> = S extends BooleanValueSpec
   ? never
-  : S extends `--${string} <${string}>`
-    ? undefined | string
-    : S extends `--${string} [...${string}]`
-      ? string[]
-      : S extends `--${string} [${string}]`
-        ? boolean | string
-        : S extends `--${string}`
-          ? boolean
-          : undefined | boolean | string | string[];
+  : S extends `--${string} [...${string}]`
+    ? string[]
+    : S extends `--${string} <${string}>` | `--${string} [${string}]`
+      ? string | undefined
+      : S extends `--${string}`
+        ? boolean
+        : boolean | string | string[] | undefined;
 
-/**
- * Infer the initial option type.
- */
-export type InferOptionInitialType<S extends string> = S extends `-${Letter}, --${string} [${string}]`
-  ? Exclude<InferLongOptionInitialType<LongOptionSpec<S>>, undefined>
-  : InferLongOptionInitialType<LongOptionSpec<S>>;
+/** Defaults are raw inputs constrained by the option declaration. */
+export type InferOptionDefaultType<S extends string> = Exclude<InferOptionRawType<S>, undefined>;
 
-type InferLongOptionInitialType<S extends string> = S extends BooleanValueSpec
-  ? never
-  : S extends `--${string} <${string}>`
-    ? undefined | string
-    : S extends `--${string} [...${string}]`
-      ? string[]
-      : S extends `--${string} [${string}]`
-        ? undefined | string
-        : S extends `--${string}`
-          ? boolean
-          : boolean | string | string[];
+/** Required values are checked before cast; optional values may be bare. */
+export type InferOptionCastInput<S extends string> =
+  LongOptionSpec<S> extends `--${string} <${string}>`
+    ? Exclude<InferOptionRawType<S>, undefined>
+    : InferOptionRawType<S>;
 
-export type NonTrueNullable<T> = IsEqual<T, false | true | string> extends true ? T & string & {} : T & {};
-
-/**
- * Infer the option type with config
- */
-export type InferOptionType<
-  S extends string,
-  I extends InferOptionInitialType<S>,
-  C extends OptionInit<S, I>
-> = C['default'] extends {}
-  ? C['cast'] extends (...args: any[]) => infer R
-    ? IsEqual<R, C['default']> extends true
+/** Preserve the converter's complete result, including null and undefined. */
+export type InferOptionType<S extends string, C extends OptionInit<S>> = C extends { cast: (...args: any[]) => infer R }
+  ? undefined extends InferOptionRawType<S>
+    ? C extends { default: InferOptionDefaultType<S> }
       ? R
-      : never
-    : | C['default']
-      | (C['initial'] extends {}
-          ? C['initial'] | NonTrueNullable<InferOptionRawType<S>>
-          : NonTrueNullable<InferOptionRawType<S>>)
-  : C['cast'] extends (...args: any[]) => infer R
-    ? R
-    : C['initial'] extends {}
-      ? C['initial'] | NonTrueNullable<InferOptionRawType<S>>
-      : InferOptionRawType<S>;
+      : R | undefined
+    : R
+  : LongOptionSpec<S> extends `--${string} <${string}>`
+    ? C extends { default: InferOptionDefaultType<S> }
+      ? string
+      : string | undefined
+    : InferOptionRawType<S>;
 
-/**
- * Infer option information
- */
-export type InferOption<S extends string, I extends InferOptionInitialType<S>, C extends OptionInit<S, I, unknown>> = {
-  [k in InferOptionName<S>]: InferOptionType<S, I, C>;
+export type InferOption<S extends string, C extends OptionInit<S>> = {
+  [K in InferOptionName<S>]: InferOptionType<S, C>;
 };
 
 /**
