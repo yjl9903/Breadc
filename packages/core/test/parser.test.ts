@@ -3,7 +3,8 @@ import { describe, it, expect, vi } from 'vitest';
 import type { InternalBreadc } from '../src/breadc/index.ts';
 
 import { breadc } from '../src/breadc/app.ts';
-import { isHelp } from '../src/runtime/parser.ts';
+import { argument } from '../src/breadc/command.ts';
+import { isHelp, resolveArgs } from '../src/runtime/parser.ts';
 import { BreadcAppError, ResolveOptionError, RuntimeError } from '../src/error.ts';
 
 describe('runtime/parser: command matching', () => {
@@ -367,7 +368,178 @@ describe('runtime/parser: command matching', () => {
 });
 
 describe('runtime/parser: arguments', () => {
-  it.each(['fallback', '', 0, false])('uses default %j for an omitted optional argument', (fallback) => {
+  it('checks required arguments before any conversion and accepts explicit empty strings', () => {
+    const app = breadc('cli');
+    const cast = vi.fn((value: string) => value.length);
+    const optionCast = vi.fn(Boolean);
+    app.option('--flag', '', { cast: optionCast });
+    app.command('run').argument('<file>', { default: undefined, cast });
+    expect(() => app.parse(['run'])).toThrow(RuntimeError.REQUIRED_ARGUMENT_MISSING);
+    expect(cast).not.toHaveBeenCalled();
+    expect(optionCast).not.toHaveBeenCalled();
+    expect(app.parse(['run', '']).args).toEqual([0]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('');
+  });
+
+  it('keeps position allocation and passthrough independent of defaults', () => {
+    const app = breadc('cli');
+    app
+      .command('run')
+      .argument('[name]', { default: 'alice' })
+      .argument('[mode]', { default: 'auto' })
+      .argument('[...files]', { default: ['fallback'] });
+    const result = app.parse(['run', 'bob', '--', 'manual', 'file']);
+    expect(result.args).toEqual(['bob', 'auto', ['fallback']]);
+    expect(result['--']).toEqual(['manual', 'file']);
+  });
+
+  it.each([undefined, null, false, '', 0])('preserves cast result %j without fallback', (result) => {
+    const app = breadc('cli');
+    app
+      .command('run')
+      .argument('<file>', { cast: () => result })
+      .argument('[port]', { default: '3000', cast: () => result })
+      .argument('[...files]', { default: ['file'], cast: () => result });
+    expect(app.parse(['run', 'file']).args).toEqual([result, result, result]);
+    expect(app.parse(['run', '', '', '']).args).toEqual([result, result, result]);
+  });
+
+  it.each(['[port]', '[...files]'] as const)('propagates conversion failures for %s without fallback', (spec) => {
+    const app = breadc('cli');
+    const failure = new Error('invalid input');
+    const cast = vi.fn(() => {
+      throw failure;
+    });
+    app.command('run').argument(spec, { default: spec === '[port]' ? 'bad' : ['bad'], cast });
+    expect(() => app.parse(['run'])).toThrow(failure);
+    expect(() => app.parse(['run', 'input'])).toThrow(failure);
+    expect(cast).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([undefined, [], ['default']])('converts complete spread input with default %j', (fallback) => {
+    const app = breadc('cli');
+    const cast = vi.fn((values: string[]) => ({ values: [...values], count: values.length }));
+    app.command('run').argument(argument('[...files]', { default: fallback, cast }));
+    expect(app.parse(['run']).args).toEqual([{ values: fallback ?? [], count: fallback?.length ?? 0 }]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith(fallback ?? []);
+    expect(app.parse(['run', '', 'a', 'b']).args).toEqual([{ values: ['', 'a', 'b'], count: 3 }]);
+    expect(cast).toHaveBeenCalledTimes(2);
+    expect(cast).toHaveBeenLastCalledWith(['', 'a', 'b']);
+  });
+
+  it('isolates spread defaults, converter mutations, and results across parses', () => {
+    const fallback = ['default'];
+    const app = breadc('cli');
+    const cast = vi.fn((values: string[]) => {
+      values.push('cast');
+      return values;
+    });
+    app.command('run').argument('[...files]', { default: fallback, cast });
+    const first = app.parse(['run']);
+    first.args[0].push('later');
+    expect(app.parse(['run', 'user']).args).toEqual([['user', 'cast']]);
+    expect(app.parse(['run']).args).toEqual([['default', 'cast']]);
+    expect(fallback).toEqual(['default']);
+    expect(cast).toHaveBeenCalledTimes(3);
+
+    const raw = breadc('raw');
+    raw.command('run').argument('[...files]', { default: fallback });
+    raw.parse(['run']).args[0].push('later');
+    expect(raw.parse(['run']).args).toEqual([['default']]);
+    expect(fallback).toEqual(['default']);
+  });
+
+  it('does not evaluate overwritten defaults', () => {
+    const app = breadc('cli');
+    const cast = vi.fn((value: string) => {
+      if (value === 'invalid') throw new Error('invalid default');
+      return Number(value);
+    });
+    app.command('run').argument('[port]', { default: 'invalid', cast });
+    expect(app.parse(['run', '8080']).args).toEqual([8080]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('8080');
+  });
+
+  it.each(['root', 'group'])('converts once after %s default-command fallback', (scope) => {
+    const app = breadc('cli');
+    const cast = vi.fn(Number);
+    if (scope === 'root') {
+      app.command('').argument('[port]', { default: '3000', cast });
+      app.command('other');
+    } else {
+      const group = app.group('server');
+      group.command('').argument('[port]', { default: '3000', cast });
+      group.command('other');
+    }
+    const result = app.parse(scope === 'root' ? ['8080'] : ['server', '8080']);
+    expect(resolveArgs(result.context)).toEqual([8080]);
+    expect(resolveArgs(result.context)).toEqual([8080]);
+    result.context.arguments[0].finalize();
+    expect(result.context.arguments[0].value()).toBe(8080);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('8080');
+  });
+
+  it('converts options before arguments in declaration order and reuses results in middleware/action', async () => {
+    const order: string[] = [];
+    const app = breadc('cli');
+    app.option('--flag', '', {
+      cast: (value) => {
+        order.push('option');
+        return value;
+      }
+    });
+    const cmd = app
+      .command('run')
+      .argument('<file>', {
+        cast: (value) => {
+          order.push('file');
+          return value.length;
+        }
+      })
+      .argument('[port]', {
+        default: '3000',
+        cast: (value) => {
+          order.push('port');
+          return Number(value);
+        }
+      });
+    cmd
+      .use(async (context, next) => {
+        expect(resolveArgs(context)).toEqual([1, 3000]);
+        expect(resolveArgs(context)).toEqual([1, 3000]);
+        const result = await next();
+        expect(resolveArgs(context)).toEqual([1, 3000]);
+        return result;
+      })
+      .action((file, port) => [file, port]);
+    expect(await app.run(['run', 'a'])).toEqual([1, 3000]);
+    expect(order).toEqual(['option', 'file', 'port']);
+  });
+
+  it.each(['--help', '--version'])('skips business argument casts on %s', (flag) => {
+    const app = breadc('cli', { version: '1.0.0' });
+    const cast = vi.fn(() => {
+      throw new Error('must not run');
+    });
+    app.command('run').argument('<file>', { cast }).argument('[port]', { default: '3000', cast });
+    expect(() => app.parse(['run', flag])).not.toThrow();
+    expect(() => app.parse(['run', 'file', flag])).not.toThrow();
+    expect(cast).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['run', 'a', 'extra'],
+    ['run', 'a', '--unknown'],
+    ['run', 'a', '--flag']
+  ])('validates syntax before conversion: %j', (...argv) => {
+    const app = breadc('cli');
+    const cast = vi.fn(Number);
+    app.command('run').argument('<value>', { cast }).option('--flag <value>');
+    expect(() => app.parse(argv)).toThrow();
+    expect(cast).not.toHaveBeenCalled();
+  });
+
+  it.each(['fallback', ''])('uses default %j for an omitted optional argument', (fallback) => {
     const app = breadc('cli');
     app.command('echo').argument('[file]', { default: fallback });
 
@@ -378,26 +550,26 @@ describe('runtime/parser: arguments', () => {
     expect(app.parse(['echo', '']).args).toEqual(['']);
   });
 
-  it.each([undefined, 'seed'])('skips cast for an omitted optional argument with default and initial %j', (initial) => {
+  it('casts the default string for an omitted optional argument', () => {
     const app = breadc('cli');
-    const cast = vi.fn((value: string | undefined) => value?.toUpperCase());
-    app.command('echo').argument('[file]', { initial, default: 'fallback', cast });
+    const cast = vi.fn((value: string) => value.toUpperCase());
+    app.command('echo').argument('[file]', { default: 'fallback', cast });
 
-    expect(app.parse(['echo']).args).toEqual(['fallback']);
-    expect(cast).not.toHaveBeenCalled();
+    expect(app.parse(['echo']).args).toEqual(['FALLBACK']);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('fallback');
     expect(app.parse(['echo', 'readme.md']).args).toEqual(['README.MD']);
     expect(cast).toHaveBeenLastCalledWith('readme.md');
     expect(app.parse(['echo', '']).args).toEqual(['']);
     expect(cast).toHaveBeenLastCalledWith('');
   });
 
-  it.each([undefined, 'seed'])('casts initial %j for an omitted optional argument without default', (initial) => {
+  it('skips cast for an omitted optional argument without a default', () => {
     const app = breadc('cli');
-    const cast = vi.fn((value: string | undefined) => value?.toUpperCase() ?? 'missing');
-    app.command('echo').argument('[file]', { initial, cast });
+    const cast = vi.fn((value: string) => value.toUpperCase());
+    app.command('echo').argument('[file]', { default: undefined, cast });
 
-    expect(app.parse(['echo']).args).toEqual([initial === undefined ? 'missing' : 'SEED']);
-    expect(cast).toHaveBeenCalledWith(initial);
+    expect(app.parse(['echo']).args).toEqual([undefined]);
+    expect(cast).not.toHaveBeenCalled();
   });
 
   it('matches required/optional arguments and preserves explicit passthrough args', () => {
@@ -549,14 +721,13 @@ describe('runtime/parser: arguments', () => {
   });
 
   it.each([
-    { init: { initial: 'seed' }, expected: 'seed' },
-    { init: { default: 'fallback' }, expected: 'fallback' },
-    { init: { initial: 'seed', default: 'fallback' }, expected: 'fallback' }
+    { init: { default: undefined }, expected: undefined },
+    { init: { default: 'fallback' }, expected: 'fallback' }
   ])('respects optional argument $init and spread default when omitted', ({ init, expected }) => {
     const app = breadc('cli');
     app
       .command('echo')
-      .argument('[name]', init)
+      .argument('[name]', { default: init.default })
       .argument('[...rest]', { default: ['fallback'] });
 
     const result1 = app.parse(['echo']);

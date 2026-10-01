@@ -1,6 +1,6 @@
-import type { IsEqual, Letter } from '../../utils/types.ts';
+import type { Letter } from '../../utils/types.ts';
 
-import type { OptionInit, ArgumentInit, NonNullableArgumentInit } from './init.ts';
+import type { OptionInit, ArgumentInit } from './init.ts';
 
 type LongOptionSpec<S extends string> = S extends `-${Letter}, ${infer R}` ? R : S;
 
@@ -88,27 +88,26 @@ export type InferArgumentRawType<S extends string> = S extends `<${string}>`
       ? undefined | string
       : undefined | string | string[];
 
-/**
- * Infer the argument type with config
- */
-export type InferArgumentType<
-  S extends string,
-  I extends InferArgumentRawType<S>,
-  C extends ArgumentInit<S, I, unknown> | NonNullableArgumentInit<S, NonNullable<I>, unknown>
-> = C['default'] extends {}
-  ? C['cast'] extends (...args: any[]) => infer R
-    ? IsEqual<R, C['default']> extends true
+/** Defaults are raw inputs constrained by the argument declaration. */
+export type InferArgumentDefaultType<S extends string> = S extends `<${string}>`
+  ? never
+  : Exclude<InferArgumentRawType<S>, undefined>;
+
+/** Arguments have no bare-value state; missing optional arguments skip cast. */
+export type InferArgumentCastInput<S extends string> = Exclude<InferArgumentRawType<S>, undefined>;
+
+/** Preserve the converter's complete result, including null and undefined. */
+export type InferArgumentType<S extends string, C extends ArgumentInit<S>> = C extends {
+  cast: (...args: any[]) => infer R;
+}
+  ? undefined extends InferArgumentRawType<S>
+    ? C extends { default: InferArgumentDefaultType<S> }
       ? R
-      : never
-    : | C['default']
-      | (C['initial'] extends {}
-          ? C['initial'] | NonNullable<InferArgumentRawType<S>>
-          : NonNullable<InferArgumentRawType<S>>)
-  : C['cast'] extends (...args: any[]) => infer R
-    ? R
-    : C['initial'] extends {}
-      ? C['initial'] | NonNullable<InferArgumentRawType<S>>
-      : InferArgumentRawType<S>;
+      : R | undefined
+    : R
+  : C extends { default: InferArgumentDefaultType<S> }
+    ? Exclude<InferArgumentRawType<S>, undefined>
+    : InferArgumentRawType<S>;
 
 /**
  * Infer the arguments type

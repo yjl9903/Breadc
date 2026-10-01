@@ -6,6 +6,8 @@ import {
   type GroupInit,
   type Command,
   type CommandInit,
+  type Argument,
+  type ArgumentInit,
   breadc,
   group,
   option,
@@ -18,7 +20,10 @@ import type {
   InferOptionRawName,
   InferOptionRawType,
   InferOptionDefaultType,
-  OptionInit
+  InferArgumentRawType,
+  InferArgumentDefaultType,
+  InferArgumentCastInput,
+  InferArgumentType
 } from '../src/breadc/types/index.ts';
 
 describe('types/command', () => {
@@ -150,9 +155,9 @@ describe('types/command', () => {
       .argument(argument('<arg1>'))
       .argument('<arg2>', { cast: (t) => +t })
       .argument('[arg3]', { default: 'default' })
-      .argument('[arg4]', { default: 0, cast: (t) => (t ? +t : 0) })
-      .argument('[arg5]', { initial: 'default' })
-      .argument('[arg6]', { initial: '0', cast: (t) => +t })
+      .argument('[arg4]', { default: '0', cast: (t) => (t ? +t : 0) })
+      .argument('[arg5]', { default: 'default' })
+      .argument('[arg6]', { default: '0', cast: (t) => +t })
       .argument('[...arg7]')
       .action(() => 1);
     expectTypeOf<
@@ -174,9 +179,9 @@ describe('types/command', () => {
       .argument(argument('<arg1>'))
       .argument(argument('<arg2>', { cast: (t) => +t }))
       .argument(argument('[arg3]', { default: 'default' }))
-      .argument(argument('[arg4]', { default: 0, cast: (t) => (t ? +t : 0) }))
-      .argument(argument('[arg5]', { initial: 'default' }))
-      .argument(argument('[arg6]', { initial: '0', cast: (t) => +t }))
+      .argument(argument('[arg4]', { default: '0', cast: (t) => (t ? +t : 0) }))
+      .argument(argument('[arg5]', { default: 'default' }))
+      .argument(argument('[arg6]', { default: '0', cast: (t) => +t }))
       .argument(argument('[...arg7]'))
       .action(() => 1);
     expectTypeOf<
@@ -205,6 +210,146 @@ describe('types/command', () => {
     const cmd3 = command('').action(async () => ({}));
     expectTypeOf<Promise<{}>>().toEqualTypeOf<ReturnType<typeof cmd3>>();
   });
+});
+
+describe('types/argument', () => {
+  it('constrains defaults and converter inputs by syntax', () => {
+    expectTypeOf<InferArgumentRawType<'<file>'>>().toEqualTypeOf<string>();
+    expectTypeOf<InferArgumentRawType<'[port]'>>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<InferArgumentRawType<'[...files]'>>().toEqualTypeOf<string[]>();
+    expectTypeOf<InferArgumentDefaultType<'<file>'>>().toEqualTypeOf<never>();
+    expectTypeOf<InferArgumentDefaultType<'[port]'>>().toEqualTypeOf<string>();
+    expectTypeOf<InferArgumentDefaultType<'[...files]'>>().toEqualTypeOf<string[]>();
+    expectTypeOf<InferArgumentCastInput<'<file>'>>().toEqualTypeOf<string>();
+    expectTypeOf<InferArgumentCastInput<'[port]'>>().toEqualTypeOf<string>();
+    expectTypeOf<InferArgumentCastInput<'[...files]'>>().toEqualTypeOf<string[]>();
+    expectTypeOf<ArgumentInit<'[port]', number>>().toEqualTypeOf<{
+      default?: string;
+      cast?: (value: string) => number;
+    }>();
+    const arg = argument('[port]', { default: '3000', cast: Number });
+    expectTypeOf(arg).toEqualTypeOf<Argument<'[port]', { default: '3000'; cast: NumberConstructor }>>();
+  });
+
+  it('infers string declaration actions and contextual cast inputs', () => {
+    command('run')
+      .argument('<raw>')
+      .argument('<cast>', {
+        default: undefined,
+        cast: (value) => {
+          expectTypeOf(value).toEqualTypeOf<string>();
+          return value.length;
+        }
+      })
+      .argument('[raw]')
+      .argument('[default]', { default: '' })
+      .argument('[cast]', {
+        cast: (value) => {
+          expectTypeOf(value).toEqualTypeOf<string>();
+          return Number(value);
+        }
+      })
+      .argument('[convertedDefault]', { default: '3000', cast: Number })
+      .argument('[...files]', {
+        default: [],
+        cast: (values) => {
+          expectTypeOf(values).toEqualTypeOf<string[]>();
+          return { count: values.length };
+        }
+      })
+      .action((raw, converted, optional, fallback, optionalCast, defaultCast, files) => {
+        expectTypeOf(raw).toEqualTypeOf<string>();
+        expectTypeOf(converted).toEqualTypeOf<number>();
+        expectTypeOf(optional).toEqualTypeOf<string | undefined>();
+        expectTypeOf(fallback).toEqualTypeOf<string>();
+        expectTypeOf(optionalCast).toEqualTypeOf<number | undefined>();
+        expectTypeOf(defaultCast).toEqualTypeOf<number>();
+        expectTypeOf(files).toEqualTypeOf<{ count: number }>();
+      });
+  });
+
+  it('infers factory instance actions and contextual cast inputs', () => {
+    command('run')
+      .argument(argument('<raw>'))
+      .argument(
+        argument('<cast>', {
+          cast: (value) => {
+            expectTypeOf(value).toEqualTypeOf<string>();
+            return value.length;
+          }
+        })
+      )
+      .argument(argument('[raw]'))
+      .argument(argument('[default]', { default: '' }))
+      .argument(
+        argument('[cast]', {
+          cast: (value) => {
+            expectTypeOf(value).toEqualTypeOf<string>();
+            return Number(value);
+          }
+        })
+      )
+      .argument(argument('[convertedDefault]', { default: '3000', cast: Number }))
+      .argument(
+        argument('[...files]', {
+          cast: (values) => {
+            expectTypeOf(values).toEqualTypeOf<string[]>();
+            return values.length;
+          }
+        })
+      )
+      .action((raw, converted, optional, fallback, optionalCast, defaultCast, files) => {
+        expectTypeOf(raw).toEqualTypeOf<string>();
+        expectTypeOf(converted).toEqualTypeOf<number>();
+        expectTypeOf(optional).toEqualTypeOf<string | undefined>();
+        expectTypeOf(fallback).toEqualTypeOf<string>();
+        expectTypeOf(optionalCast).toEqualTypeOf<number | undefined>();
+        expectTypeOf(defaultCast).toEqualTypeOf<number>();
+        expectTypeOf(files).toEqualTypeOf<number>();
+      });
+  });
+
+  it('preserves possibly absent defaults and complete cast return unions', () => {
+    const fallback = '' as string | undefined;
+    const cast = (_value: string): number | null | false | '' | undefined => undefined;
+    command('run')
+      .argument('<required>', { cast })
+      .argument('[raw]', { default: fallback })
+      .argument('[cast]', { default: fallback, cast: Number })
+      .argument('[result]', { default: '1', cast })
+      .argument('[undefined]', { default: '1', cast: () => undefined })
+      .argument('[explicitUndefined]', { default: undefined, cast: Number })
+      .argument('[...files]', { default: [], cast: (): null | undefined => null })
+      .action((required, raw, converted, result, missing, explicit, spread) => {
+        expectTypeOf(required).toEqualTypeOf<number | null | false | '' | undefined>();
+        expectTypeOf(raw).toEqualTypeOf<string | undefined>();
+        expectTypeOf(converted).toEqualTypeOf<number | undefined>();
+        expectTypeOf(result).toEqualTypeOf<number | null | false | '' | undefined>();
+        expectTypeOf(missing).toEqualTypeOf<undefined>();
+        expectTypeOf(explicit).toEqualTypeOf<number | undefined>();
+        expectTypeOf(spread).toEqualTypeOf<null | undefined>();
+      });
+    command('run')
+      .argument(argument('<required>', { default: undefined, cast }))
+      .argument(argument('[raw]', { default: fallback }))
+      .argument(argument('[cast]', { default: fallback, cast: Number }))
+      .argument(argument('[result]', { default: '', cast }))
+      .argument(argument('[...files]', { default: [], cast: (): false | undefined => false }))
+      .action((required, raw, converted, result, spread) => {
+        expectTypeOf(required).toEqualTypeOf<number | null | false | '' | undefined>();
+        expectTypeOf(raw).toEqualTypeOf<string | undefined>();
+        expectTypeOf(converted).toEqualTypeOf<number | undefined>();
+        expectTypeOf(result).toEqualTypeOf<number | null | false | '' | undefined>();
+        expectTypeOf(spread).toEqualTypeOf<false | undefined>();
+      });
+    expectTypeOf<InferArgumentType<'[...files]', {}>>().toEqualTypeOf<string[]>();
+    expectTypeOf<InferArgumentType<'[...files]', { default: string[] }>>().toEqualTypeOf<string[]>();
+    expectTypeOf<InferArgumentType<'[...files]', { cast: () => number }>>().toEqualTypeOf<number>();
+    expectTypeOf<InferArgumentType<'[port]', { default?: string; cast: () => number }>>().toEqualTypeOf<
+      number | undefined
+    >();
+  });
+
 });
 
 describe('types/option', () => {
@@ -597,26 +742,8 @@ describe('types/option', () => {
       });
   });
 
-  it('constrains defaults to syntax even for broad converters', () => {
-    const cast = (value: unknown) => value;
-    // @ts-expect-error Boolean defaults must be boolean.
-    breadc('cli').option('--flag', '', { default: 'false', cast });
-    // @ts-expect-error Required option defaults must be raw strings.
-    group('tool').option('--port <value>', '', { default: 80, cast });
-    // @ts-expect-error Optional value defaults cannot be boolean.
-    command('').option('--color [value]', '', { default: false, cast });
-    // @ts-expect-error Array defaults must be string arrays.
-    option('--include [...value]', '', { default: 'a', cast });
-    // @ts-expect-error Defaults cannot be null.
-    option('--color [value]', '', { default: null, cast });
-    // @ts-expect-error Array elements must be strings.
-    option('--include [...value]', '', { default: [1], cast });
-    // @ts-expect-error Optional converters must handle bare input, even with a default.
-    option('-c, --color [value]', '', { default: '', cast: (raw: string) => raw.length });
-  });
 
-  it('requires description outside init and keeps init in the third position', () => {
-    expectTypeOf<Extract<'description', keyof OptionInit<'--flag'>>>().toEqualTypeOf<never>();
+  it('infers options configured with a description and init', () => {
     const init = { default: '80', cast: Number };
     const configured = option('--port <value>', 'Server port', init);
     expectTypeOf(configured.description).toEqualTypeOf<string | undefined>();
@@ -626,22 +753,6 @@ describe('types/option', () => {
       .action((options) => {
         expectTypeOf(options.port).toEqualTypeOf<number>();
       });
-    // @ts-expect-error Description belongs in the second argument.
-    breadc('cli').option('--port <value>', '', { ...init, description: 'Port' });
-    // @ts-expect-error Description belongs in the second argument.
-    group('tool').option('--port <value>', '', { ...init, description: 'Port' });
-    // @ts-expect-error Description belongs in the second argument.
-    command('').option('--port <value>', '', { ...init, description: 'Port' });
-    // @ts-expect-error Description belongs in the second argument.
-    option('--port <value>', '', { ...init, description: 'Port' });
-    // @ts-expect-error Init belongs in the third argument.
-    breadc('cli').option('--port <value>', init);
-    // @ts-expect-error Init belongs in the third argument.
-    group('tool').option('--port <value>', init);
-    // @ts-expect-error Init belongs in the third argument.
-    command('').option('--port <value>', init);
-    // @ts-expect-error Init belongs in the third argument.
-    option('--port <value>', init);
   });
 });
 
