@@ -23,4 +23,6 @@ export { printVersion } from './breadc/builtin/version.ts';
 
 export { MatchedArgument, MatchedOption, type MatchedUnknownOption } from './runtime/matched.ts';
 
-export { BreadcError, BreadcAppError, ResolveGroupError, ResolveCommandError, ResolveOptionError } from './error.ts';
+export { BreadcError, DefinitionError, InputError, InternalError, ErrorCode } from './error.ts';
+
+export type { BreadcErrorOptions, InputIssue } from './error.ts';

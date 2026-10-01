@@ -11,7 +11,7 @@ export type UnknownCommandMiddleware<Data extends {} = {}> = (context: Context<D
 /**
  * Unknown option middleware
  * Return a match to accept the option, or null/undefined to try the next middleware.
- * If no middleware accepts it, parsing throws a RuntimeError.
+ * If no middleware accepts it, parsing throws an InputError.
  *
  * @public
  */

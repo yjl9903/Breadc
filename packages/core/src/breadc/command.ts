@@ -1,4 +1,4 @@
-import { ResolveCommandError } from '../error.ts';
+import { DefinitionError, ErrorCode } from '../error.ts';
 
 import type {
   ActionMiddleware,
@@ -123,10 +123,11 @@ export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
       name = spec.slice(1, spec.length - 1);
     }
   } else {
-    throw new ResolveCommandError(ResolveCommandError.INVALID_ARG, {
-      spec,
-      position: -1
-    });
+    throw new DefinitionError(
+      ErrorCode.INVALID_ARGUMENT,
+      `Resolving invalid argument at the command "${spec}", position -1`,
+      { details: { spec, position: -1 } }
+    );
   }
 
   const result = {

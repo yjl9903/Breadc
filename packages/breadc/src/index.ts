@@ -1,4 +1,6 @@
 export type {
+  BreadcErrorOptions,
+  InputIssue,
   Breadc,
   BreadcInit,
   Group,
@@ -24,10 +26,10 @@ export {
   printHelp,
   printVersion,
   BreadcError,
-  BreadcAppError,
-  ResolveGroupError,
-  ResolveCommandError,
-  ResolveOptionError
+  DefinitionError,
+  InputError,
+  InternalError,
+  ErrorCode
 } from '@breadc/core';
 
 export * from '@breadc/death';

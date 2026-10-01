@@ -1,7 +1,7 @@
 import type { Option, Argument } from '../breadc/types/app.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
-import { RuntimeError } from '../error.ts';
+import { InputError, InternalError, ErrorCode } from '../error.ts';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
@@ -55,11 +55,12 @@ export class MatchedArgument {
       (this.raw as string[]).push(value);
     } else {
       if (this.dirty) {
-        throw new RuntimeError(
+        throw new InternalError(
+          ErrorCode.ARGUMENT_ALREADY_BOUND,
           this.argument.type === 'required'
-            ? RuntimeError.REQUIRED_ARGUMENT_ACCEPT_ONCE
-            : RuntimeError.OPTIONAL_ARGUMENT_ACCEPT_ONCE,
-          { context, argument: this.argument, value }
+            ? 'Required argument can only be assigned once'
+            : 'Optional argument can only be assigned once',
+          { context, details: { argument: this.argument, value } }
         );
       }
       this.raw = value;
@@ -118,12 +119,18 @@ export class MatchedOption {
     switch (this.option.type) {
       case 'boolean': {
         if (this.dirty) {
-          throw new RuntimeError(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE, {
-            context,
-            option: this.option,
-            name: long,
-            value: text
-          });
+          throw new InputError(
+            [
+              {
+                code: ErrorCode.DUPLICATE_OPTION,
+                message: 'Boolean option can only be assigned once',
+                option: this.option,
+                name: long,
+                value: text
+              }
+            ],
+            { context }
+          );
         }
 
         let value = true;
@@ -132,12 +139,18 @@ export class MatchedOption {
           if (FALSE_OPTION.includes(normalized)) {
             value = false;
           } else if (!TRUE_OPTION.includes(normalized)) {
-            throw new RuntimeError(`${RuntimeError.INVALID_BOOLEAN_OPTION_VALUE}: --${this.option.long}`, {
-              context,
-              option: this.option,
-              name: long,
-              value: text
-            });
+            throw new InputError(
+              [
+                {
+                  code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+                  message: `Invalid boolean option value: --${this.option.long}`,
+                  option: this.option,
+                  name: long,
+                  value: text
+                }
+              ],
+              { context }
+            );
           }
         }
         this.raw = inverted ? !value : value;
@@ -148,12 +161,18 @@ export class MatchedOption {
       }
       case 'optional': {
         if (this.dirty) {
-          throw new RuntimeError(RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE, {
-            context,
-            option: this.option,
-            name: long,
-            value: text
-          });
+          throw new InputError(
+            [
+              {
+                code: ErrorCode.DUPLICATE_OPTION,
+                message: 'Optional option can only be assigned once',
+                option: this.option,
+                name: long,
+                value: text
+              }
+            ],
+            { context }
+          );
         }
 
         // Handle optional options
@@ -188,31 +207,47 @@ export class MatchedOption {
         // Set option value
         if (this.option.type === 'required') {
           if (this.dirty) {
-            throw new RuntimeError(RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE, {
-              context,
-              option: this.option,
-              name: long,
-              value
-            });
+            throw new InputError(
+              [
+                {
+                  code: ErrorCode.DUPLICATE_OPTION,
+                  message: 'Required option can only be assigned once',
+                  option: this.option,
+                  name: long,
+                  value
+                }
+              ],
+              { context }
+            );
           }
 
           if (value === undefined) {
-            throw new RuntimeError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --${this.option.long}`, {
-              context,
-              option: this.option,
-              name: long,
-              value
-            });
+            throw new InputError(
+              [
+                {
+                  code: ErrorCode.MISSING_OPTION_VALUE,
+                  message: `Missing required option value: --${this.option.long}`,
+                  option: this.option,
+                  name: long
+                }
+              ],
+              { context }
+            );
           }
           this.raw = value;
         } else {
           if (value === undefined) {
-            throw new RuntimeError(`${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --${this.option.long}`, {
-              context,
-              option: this.option,
-              name: long,
-              value
-            });
+            throw new InputError(
+              [
+                {
+                  code: ErrorCode.MISSING_OPTION_VALUE,
+                  message: `Missing required option value: --${this.option.long}`,
+                  option: this.option,
+                  name: long
+                }
+              ],
+              { context }
+            );
           }
           if (!this.dirty) {
             this.raw = [];

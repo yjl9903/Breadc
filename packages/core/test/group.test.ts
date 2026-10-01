@@ -45,14 +45,14 @@ describe('breadc/group', () => {
 
   it('reject empty spec', () => {
     expect(() => group('')).toThrowErrorMatchingInlineSnapshot(
-      `[Error: Group spec should not be empty at the command "", position 0]`
+      `[DefinitionError: Group spec should not be empty at the command "", position 0]`
     );
   });
 
   it('reject arguments in group spec', () => {
     const grp = group('dev <path>') as unknown as InternalGroup;
     expect(() => resolveGroup(grp)).toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving argument in group spec at the command "dev <path>", position 4]`
+      `[DefinitionError: Resolving argument in group spec at the command "dev <path>", position 4]`
     );
   });
 

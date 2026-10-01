@@ -308,7 +308,7 @@ describe('breadc/command', () => {
 
   it('reject invalid argument format', () => {
     expect(() => argument('arg')).toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid argument at the command "arg", position -1]`
+      `[DefinitionError: Resolving invalid argument at the command "arg", position -1]`
     );
   });
 
@@ -352,21 +352,21 @@ describe('breadc/command', () => {
       const cmd = command('dev [opt]').argument('<req>') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Required argument should be placed before optional arguments at the command "dev [opt]", position 9]`
+      `[DefinitionError: Required argument should be placed before optional arguments at the command "dev [opt]", position 9]`
     );
 
     await expect(async () => {
       const cmd = command('dev [...rest]').argument('[opt]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Optional argument should be placed before spread arguments at the command "dev [...rest]", position 13]`
+      `[DefinitionError: Optional argument should be placed before spread arguments at the command "dev [...rest]", position 13]`
     );
 
     await expect(async () => {
       const cmd = command('dev').argument('[...rest1]').argument('[...rest2]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Spread argument can only appear once at the command "dev", position 3]`
+      `[DefinitionError: Spread argument can only appear once at the command "dev", position 3]`
     );
   });
 
@@ -375,70 +375,70 @@ describe('breadc/command', () => {
       const cmd = command('submodule add <') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid required argument at the command "submodule add <", position 14]`
+      `[DefinitionError: Resolving invalid required argument at the command "submodule add <", position 14]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add < [def]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid required argument at the command "submodule add < [def]", position 14]`
+      `[DefinitionError: Resolving invalid required argument at the command "submodule add < [def]", position 14]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add <abc [def]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid required argument at the command "submodule add <abc [def]", position 24]`
+      `[DefinitionError: Resolving invalid required argument at the command "submodule add <abc [def]", position 24]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add <abc>ghi [def]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid required argument at the command "submodule add <abc>ghi [def]", position 19]`
+      `[DefinitionError: Resolving invalid required argument at the command "submodule add <abc>ghi [def]", position 19]`
     );
 
     await expect(async () => {
       const cmd = command('submodule <def> add [abc]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Sub-command should be placed in the beginning at the command "submodule <def> add [abc]", position 16]`
+      `[DefinitionError: Sub-command should be placed in the beginning at the command "submodule <def> add [abc]", position 16]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [abc] <def>') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Required argument should be placed before optional arguments at the command "submodule add [abc] <def>", position 21]`
+      `[DefinitionError: Required argument should be placed before optional arguments at the command "submodule add [abc] <def>", position 21]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add <>') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid empty argument at the command "submodule add <>", position 16]`
+      `[DefinitionError: Resolving invalid empty argument at the command "submodule add <>", position 16]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add []') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid empty argument at the command "submodule add []", position 16]`
+      `[DefinitionError: Resolving invalid empty argument at the command "submodule add []", position 16]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [...]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid empty argument at the command "submodule add [...]", position 19]`
+      `[DefinitionError: Resolving invalid empty argument at the command "submodule add [...]", position 19]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [...rest]').alias('add [...rest]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Alias command format should not have arguments at the command "add [...rest]", position 4]`
+      `[DefinitionError: Alias command format should not have arguments at the command "add [...rest]", position 4]`
     );
   });
 
@@ -447,28 +447,28 @@ describe('breadc/command', () => {
       const cmd = command('submodule add [') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid optional argument at the command "submodule add [", position 14]`
+      `[DefinitionError: Resolving invalid optional argument at the command "submodule add [", position 14]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [ [def]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid optional argument at the command "submodule add [ [def]", position 14]`
+      `[DefinitionError: Resolving invalid optional argument at the command "submodule add [ [def]", position 14]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [abc') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid optional argument at the command "submodule add [abc", position 18]`
+      `[DefinitionError: Resolving invalid optional argument at the command "submodule add [abc", position 18]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [abc]def') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid optional argument at the command "submodule add [abc]def", position 19]`
+      `[DefinitionError: Resolving invalid optional argument at the command "submodule add [abc]def", position 19]`
     );
 
     {
@@ -490,7 +490,7 @@ describe('breadc/command', () => {
       const cmd = command('submodule [def] add [...abc]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Sub-command should be placed in the beginning at the command "submodule [def] add [...abc]", position 16]`
+      `[DefinitionError: Sub-command should be placed in the beginning at the command "submodule [def] add [...abc]", position 16]`
     );
   });
 
@@ -499,42 +499,42 @@ describe('breadc/command', () => {
       const cmd = command('submodule add [...') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid spread argument at the command "submodule add [...", position 18]`
+      `[DefinitionError: Resolving invalid spread argument at the command "submodule add [...", position 18]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [... <abc>') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid spread argument at the command "submodule add [... <abc>", position 24]`
+      `[DefinitionError: Resolving invalid spread argument at the command "submodule add [... <abc>", position 24]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [...rest <abc>') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid spread argument at the command "submodule add [...rest <abc>", position 28]`
+      `[DefinitionError: Resolving invalid spread argument at the command "submodule add [...rest <abc>", position 28]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [...rest]def <abc>') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Resolving invalid spread argument at the command "submodule add [...rest]def <abc>", position 23]`
+      `[DefinitionError: Resolving invalid spread argument at the command "submodule add [...rest]def <abc>", position 23]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [...rest] [abc]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Optional argument should be placed before spread arguments at the command "submodule add [...rest] [abc]", position 25]`
+      `[DefinitionError: Optional argument should be placed before spread arguments at the command "submodule add [...rest] [abc]", position 25]`
     );
 
     await expect(async () => {
       const cmd = command('submodule add [...rest1] [...rest2]') as unknown as InternalCommand;
       resolveCommand(cmd);
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`
+      `[DefinitionError: Spread argument can only appear once at the command "submodule add [...rest1] [...rest2]", position 26]`
     );
   });
 });

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 
+import { ErrorCode } from '../src/error.ts';
 import { breadc } from '../src/breadc/app.ts';
 import { option } from '../src/breadc/option.ts';
 import { argument } from '../src/breadc/command.ts';
-import { RuntimeError } from '../src/error.ts';
 import { resolveOption } from '../src/runtime/builder.ts';
 import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
@@ -64,11 +64,25 @@ describe('runtime/matched: argument', () => {
 
     const required = new MatchedArgument(argument('<name>'));
     required.accept(ctx, 'alice');
-    expect(() => required.accept(ctx, 'bob')).toThrow();
+    expect(() => required.accept(ctx, 'bob')).toThrow(
+      expect.objectContaining({
+        name: 'InternalError',
+        code: ErrorCode.ARGUMENT_ALREADY_BOUND,
+        details: { argument: required.argument, value: 'bob' },
+        context: ctx
+      })
+    );
 
     const optional = new MatchedArgument(argument('[name]'));
     optional.accept(ctx, 'first');
-    expect(() => optional.accept(ctx, 'second')).toThrow();
+    expect(() => optional.accept(ctx, 'second')).toThrow(
+      expect.objectContaining({
+        name: 'InternalError',
+        code: ErrorCode.ARGUMENT_ALREADY_BOUND,
+        details: { argument: optional.argument, value: 'second' },
+        context: ctx
+      })
+    );
   });
 });
 
@@ -83,8 +97,8 @@ describe('runtime/matched: option', () => {
     for (const value of ['abc', '', ' ', ' true', 'false ', '2', '-1']) {
       expect(() => matched.accept(ctx, name, value, inverted)).toThrow(
         expect.objectContaining({
-          message: `${RuntimeError.INVALID_BOOLEAN_OPTION_VALUE}: --all`,
-          cause: { option: opt, name, value },
+          message: `Invalid boolean option value: --all`,
+          issues: [expect.objectContaining({ code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE, option: opt, name, value })],
           context: ctx
         })
       );
@@ -122,8 +136,8 @@ describe('runtime/matched: option', () => {
     const matched = new MatchedOption(opt);
     expect(() => matched.accept(ctx, 'n', undefined)).toThrow(
       expect.objectContaining({
-        message: `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --number`,
-        cause: { option: opt, name: 'n', value: undefined },
+        message: `Missing required option value: --number`,
+        issues: [expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE, option: opt, name: 'n' })],
         context: ctx
       })
     );
@@ -146,7 +160,7 @@ describe('runtime/matched: option', () => {
     const ctx = makeContext(breadc('cli'), [value]);
     const matched = new MatchedOption(opt);
 
-    expect(() => matched.accept(ctx, 'output', undefined)).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => matched.accept(ctx, 'output', undefined)).toThrow('Missing required option value');
     expect(ctx.tokens.peek()?.toRaw()).toBe(value);
     expect(matched.dirty).toBe(false);
   });
@@ -158,7 +172,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt);
-    expect(() => matched.accept(ctx, 'n', undefined)).toThrow(RuntimeError.REQUIRED_OPTION_VALUE_MISSING);
+    expect(() => matched.accept(ctx, 'n', undefined)).toThrow('Missing required option value');
   });
 
   it('interprets negated boolean option with explicit false text', () => {
@@ -188,7 +202,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'n', '1');
-    expect(() => matched.accept(ctx, '-n', '2')).toThrow(RuntimeError.REQUIRED_OPTION_ACCEPT_ONCE);
+    expect(() => matched.accept(ctx, '-n', '2')).toThrow('Required option can only be assigned once');
   });
 
   it('throws when boolean option is accepted twice', () => {
@@ -198,7 +212,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'open', undefined);
-    expect(() => matched.accept(ctx, 'open', undefined)).toThrow(RuntimeError.BOOLEAN_OPTION_ACCEPT_ONCE);
+    expect(() => matched.accept(ctx, 'open', undefined)).toThrow('Boolean option can only be assigned once');
   });
 
   it('throws when optional option is accepted twice', () => {
@@ -208,7 +222,7 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'o', 'first');
-    expect(() => matched.accept(ctx, 'o', 'second')).toThrow(RuntimeError.OPTIONAL_OPTION_ACCEPT_ONCE);
+    expect(() => matched.accept(ctx, 'o', 'second')).toThrow('Optional option can only be assigned once');
   });
 
   it('accumulates spread option values', () => {
@@ -254,8 +268,8 @@ describe('runtime/matched: option', () => {
       const rejectMissing = () => {
         expect(() => matched.accept(ctx, 's', undefined)).toThrow(
           expect.objectContaining({
-            message: `${RuntimeError.REQUIRED_OPTION_VALUE_MISSING}: --include`,
-            cause: { option: opt, name: 's', value: undefined },
+            message: `Missing required option value: --include`,
+            issues: [expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE, option: opt, name: 's' })],
             context: ctx
           })
         );
