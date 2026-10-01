@@ -308,6 +308,60 @@ describe('runtime/run', () => {
 });
 
 describe('runtime/run: conversion boundaries', () => {
+  it.each(['argument', 'option'])(
+    'propagates %s conversion failures directly from middleware assignment',
+    async (kind) => {
+      const failure = new Error('invalid input');
+      const cast = vi.fn(() => {
+        throw failure;
+      });
+      const action = vi.fn();
+      const afterAccept = vi.fn();
+      const app = breadc('cli');
+      app
+        .command('run')
+        .argument('[count]', { cast })
+        .option('--port <port>', '', { cast })
+        .use(async (context) => {
+          if (kind === 'argument') {
+            context.arguments[0].accept(context, 'invalid');
+          } else {
+            context.options.get('port')!.accept(context, 'port', 'invalid');
+          }
+          afterAccept();
+          return context;
+        })
+        .action(action);
+
+      await expect(app.run(['run'])).rejects.toBe(failure);
+      expect(cast).toHaveBeenCalledExactlyOnceWith('invalid');
+      expect(afterAccept).not.toHaveBeenCalled();
+      expect(action).not.toHaveBeenCalled();
+    }
+  );
+
+  it('converts input supplied by action middleware after initial finalization', async () => {
+    const optionCast = vi.fn(Number);
+    const argumentCast = vi.fn(Number);
+    const app = breadc('cli');
+    app
+      .command('run')
+      .argument('[count]', { cast: argumentCast })
+      .option('--port <port>', '', { cast: optionCast })
+      .use(async (context) => {
+        context.arguments[0].accept(context, '2');
+        const port = context.options.get('port')!;
+        port.accept(context, 'port', '8080');
+        expect(port.value()).toBe(8080);
+        return context;
+      })
+      .action((count, options) => [count, options.port]);
+
+    await expect(app.run(['run'])).resolves.toEqual([2, 8080]);
+    expect(argumentCast).toHaveBeenCalledExactlyOnceWith('2');
+    expect(optionCast).toHaveBeenCalledExactlyOnceWith('8080');
+  });
+
   it.each(['--help', '--version'])('skips all casts and execution for explicit %s in parse and run', async (flag) => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     try {
