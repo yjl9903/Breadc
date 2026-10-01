@@ -68,7 +68,7 @@ export type OptionInit<Spec extends string, Output = unknown> = {
   /** Raw input used only when the option is absent. It also passes through cast. */
   default?: InferOptionDefaultType<Spec>;
 
-  /** Convert and validate the selected input once per parse. */
+  /** Convert and validate the selected input (the complete array for spread options) once per parse. */
   cast?: Cast<InferOptionCastInput<Spec>, Output>;
 };
 

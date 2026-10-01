@@ -32,6 +32,28 @@ function inputError(fn: () => unknown) {
 }
 
 describe('Standard Schema cast', () => {
+  it('validates the complete array once and preserves failure paths without redistributing values', () => {
+    const validate = vi.fn(z.array(z.string().min(1))['~standard'].validate);
+    const app = breadc('cli').option('-i, --include <...value>', '', {
+      default: ['fallback'],
+      cast: schema(validate)
+    });
+    app.command('build [target]');
+    const error = inputError(() => app.parse(['build', '-i', 'a', '', '--include', 'b', 'target']));
+    expect(validate).toHaveBeenCalledTimes(1);
+    expect(validate.mock.calls[0][0]).toEqual(['a', '', 'b', 'target']);
+    expect(error.issues).toEqual([
+      expect.objectContaining({
+        code: ErrorCode.INVALID_OPTION_VALUE,
+        path: [1],
+        value: ['a', '', 'b', 'target']
+      })
+    ]);
+    expect(error.context?.arguments[0].value()).toBeUndefined();
+    expect(app.parse(['build', '--include', 'a', 'b', '-i=c']).options.include).toEqual(['a', 'b', 'c']);
+    expect(validate).toHaveBeenCalledTimes(2);
+  });
+
   it('supports Zod, Mini, enums, transforms and all option/argument entry points', async () => {
     const app = breadc('cli').option('--mode <value>', '', { default: 'dev', cast: z.enum(['dev', 'prod']) });
     app
@@ -45,7 +67,7 @@ describe('Standard Schema cast', () => {
           cast: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int().min(1).max(65535))
         })
       )
-      .option('--files [...file]', '', { cast: z.array(z.string()).transform((items) => new Set(items)) })
+      .option('--files <...file>', '', { cast: z.array(z.string()).transform((items) => new Set(items)) })
       .argument(
         argument('<name>', {
           cast: z
@@ -100,8 +122,8 @@ describe('Standard Schema cast', () => {
     const app = breadc('cli')
       .option('--flag', '', { cast: z.boolean().transform(String) })
       .option('--no-cache', '', { cast: z.boolean().transform(String) })
-      .option('--empty [...value]', '', { cast })
-      .option('--files [...value]', '', { default: defaults, cast });
+      .option('--empty <...value>', '', { cast })
+      .option('--files <...value>', '', { default: defaults, cast });
     app.command('').argument('[...files]', { default: defaults, cast });
     expect(app.parse([])).toMatchObject({
       options: { flag: 'false', cache: 'true', empty: ['converted'], files: ['fallback', 'converted'] },
@@ -139,7 +161,7 @@ describe('Standard Schema cast', () => {
   });
 
   it('reports invalid built-in empty arrays as input failures', () => {
-    const app = breadc('cli').option('--files [...value]', '', { cast: z.array(z.string()).min(1) });
+    const app = breadc('cli').option('--files <...value>', '', { cast: z.array(z.string()).min(1) });
     app.command('').argument('[...files]', { cast: z.array(z.string()).min(1) });
     expect(inputError(() => app.parse([])).issues.map((issue) => issue.code)).toEqual([
       'INVALID_OPTION_VALUE',
@@ -151,7 +173,7 @@ describe('Standard Schema cast', () => {
     const key = Symbol('key');
     const path = [{ key: 1 }, { key: 'name' }, 'a.b', key];
     const cast = schema(() => ({ issues: [{ message: 'bad', path }] }));
-    const error = inputError(() => breadc('cli').option('--files [...value]', '', { cast }).parse(['--files=a']));
+    const error = inputError(() => breadc('cli').option('--files <...value>', '', { cast }).parse(['--files=a']));
     expect(error.issues[0]).toMatchObject({ path, value: ['a'], message: '--files[1].name["a.b"][Symbol(key)]: bad' });
   });
 
@@ -320,7 +342,7 @@ describe('Standard Schema cast', () => {
     const validate = vi.fn(z.array(z.string()).min(1).max(1)['~standard'].validate);
     const cast = schema(validate);
     const context = makeContext(breadc('cli'), []);
-    const opt = option('--files [...value]', '', { cast });
+    const opt = option('--files <...value>', '', { cast });
     resolveOption(opt);
     const matched = kind === 'option' ? new MatchedOption(opt) : new MatchedArgument(argument('[...files]', { cast }));
     const accept = (value: string) =>

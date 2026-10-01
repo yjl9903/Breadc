@@ -126,7 +126,7 @@ describe('runtime/matched: option', () => {
   it('reconverts spread options after successful appends but not rejected values', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn((items: string[]) => items.join(','));
-    const opt = option('--include [...value]', '', { cast });
+    const opt = option('--include <...value>', '', { cast });
     resolveOption(opt);
     const matched = new MatchedOption(opt).accept(ctx, 'include', 'a');
     matched.finalize();
@@ -281,7 +281,7 @@ describe('runtime/matched: option', () => {
 
   it('accumulates spread option values', () => {
     const app = breadc('cli');
-    const opt = option('-s, --include [...value]');
+    const opt = option('-s, --include <...value>');
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
@@ -296,7 +296,7 @@ describe('runtime/matched: option', () => {
 
   it('reads spread value from next token when omitted', () => {
     const app = breadc('cli');
-    const opt = option('-s, --include [...value]');
+    const opt = option('-s, --include <...value>');
     resolveOption(opt);
 
     const ctx = makeContext(app, ['-s', 'next']);
@@ -314,7 +314,7 @@ describe('runtime/matched: option', () => {
   it.each([undefined, '--all', '--help', '--unknown', '-2foo', '--'])(
     'rejects missing spread values before %s without consuming tokens or changing state',
     (next) => {
-      const opt = option('-s, --include [...value]');
+      const opt = option('-s, --include <...value>');
       resolveOption(opt);
       const ctx = makeContext(breadc('cli'), next === undefined ? [] : [next]);
       const matched = new MatchedOption(opt);

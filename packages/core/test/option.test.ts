@@ -56,16 +56,16 @@ describe('runtime/builder: option', () => {
   });
 
   it('resolve spread option', () => {
-    const opt = option('--include [...value]');
+    const opt = option('--include <...value>');
     resolveOption(opt);
 
     expect(opt).toMatchInlineSnapshot(`
       {
-        "argument": "[...value]",
+        "argument": "<...value>",
         "description": undefined,
         "init": {},
         "long": "include",
-        "spec": "--include [...value]",
+        "spec": "--include <...value>",
         "type": "spread",
       }
     `);
@@ -207,7 +207,7 @@ describe('option input selection and conversion', () => {
     expect(plain.parse(['--color']).options.color).toBeUndefined();
   });
 
-  it.each(['<value>', '[...value]'] as const)('rejects missing %s before conversion despite default', (syntax) => {
+  it.each(['<value>', '<...value>'] as const)('rejects missing %s before conversion despite default', (syntax) => {
     const cast = vi.fn();
     const config = { default: syntax === '<value>' ? 'seed' : ['seed'], cast };
     const app = breadc('cli').option(`--value ${syntax}`, '', config).option('--other', '', { cast });
@@ -250,7 +250,7 @@ describe('option input selection and conversion', () => {
       values.push('cast');
       return new Set(values);
     });
-    const app = breadc('cli').option(option('-i, --include [...value]', '', { default: fallback, cast }));
+    const app = breadc('cli').option(option('-i, --include <...value>', '', { default: fallback, cast }));
     const saved = fallback?.slice();
     for (let i = 0; i < 2; i++) {
       cast.mockClear();
@@ -268,12 +268,12 @@ describe('option input selection and conversion', () => {
 
   it('isolates unconverted arrays across parses and from configuration', () => {
     const fallback = ['seed'];
-    const app = breadc('cli').option('--include [...value]', '', { default: fallback });
+    const app = breadc('cli').option('--include <...value>', '', { default: fallback });
     app.parse([]).options.include.push('mutated');
     app.parse(['--include=provided']).options.include.push('mutated');
     expect(app.parse([]).options.include).toEqual(['seed']);
     expect(fallback).toEqual(['seed']);
-    const empty = breadc('cli').option('--include [...value]');
+    const empty = breadc('cli').option('--include <...value>');
     empty.parse([]).options.include.push('mutated');
     expect(empty.parse([]).options.include).toEqual([]);
   });
@@ -295,9 +295,9 @@ describe('option conversion lifecycle', () => {
   it.each([false, true])('casts only the final default command scope (grouped: %s)', (grouped) => {
     const outer = vi.fn(() => 'outer');
     const inner = vi.fn((values: string[]) => values.join(','));
-    const app = breadc('cli').option('--include [...value]', '', { default: ['outer'], cast: outer });
+    const app = breadc('cli').option('--include <...value>', '', { default: ['outer'], cast: outer });
     const parent = grouped ? app.group('tool') : app;
-    parent.command('[file]').option('--include [...value]', '', { default: ['inner'], cast: inner });
+    parent.command('[file]').option('--include <...value>', '', { default: ['inner'], cast: inner });
     parent.command('other');
     const prefix = grouped ? ['tool'] : [];
     for (const argv of [[], ['--include=a', '--include=b', 'file']]) {

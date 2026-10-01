@@ -27,7 +27,7 @@ export class MatchedArgument {
         ? Array.isArray(fallback)
           ? [...fallback]
           : fallback
-        : argument.type === 'spread'
+        : argument.type === 'spread' || argument.type === 'required-spread'
           ? []
           : undefined;
   }
@@ -35,7 +35,11 @@ export class MatchedArgument {
   /** Evaluate after syntax validation, caching either a value or validation issues. */
   public finalize(): CastResult {
     if (this.result === undefined) {
-      const shouldCast = this.dirty || this.argument.init.default !== undefined || this.argument.type === 'spread';
+      const shouldCast =
+        this.dirty ||
+        this.argument.init.default !== undefined ||
+        this.argument.type === 'spread' ||
+        this.argument.type === 'required-spread';
       this.result = shouldCast
         ? executeCast(
             this.argument.init.cast,
@@ -57,7 +61,7 @@ export class MatchedArgument {
   }
 
   public accept(context: Context, value: string) {
-    if (this.argument.type === 'spread') {
+    if (this.argument.type === 'spread' || this.argument.type === 'required-spread') {
       if (!this.dirty) {
         this.raw = [];
       }
@@ -201,6 +205,19 @@ export class MatchedOption {
             this.raw = [];
           }
           this.raw.push(value);
+
+          // Attached values finish this occurrence. Otherwise consume ordinary
+          // tokens here, before command/positional matching can reinterpret them.
+          if (text === undefined) {
+            for (
+              let token = context.tokens.peek();
+              token && !token.isEscape && !token.isOption;
+              token = context.tokens.peek()
+            ) {
+              this.raw.push(token.toRaw());
+              context.tokens.next();
+            }
+          }
         } else {
           this.raw = value;
         }

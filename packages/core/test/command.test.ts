@@ -538,3 +538,35 @@ describe('breadc/command', () => {
     );
   });
 });
+
+describe('required spread argument declarations', () => {
+  const resolve = (cmd: unknown) => resolveCommand(cmd as InternalCommand);
+  it.each(['<...files> <next>', '<...files> [next]', '<...files> [...rest]', '[first] <...files>'])(
+    'enforces argument order for %s',
+    (spec) => {
+      expect(() => resolve(command(`upload ${spec}`))).toThrow();
+    }
+  );
+
+  it.each(['<next>', '[next]', '[...rest]', '<...rest>'])(
+    'requires a manually declared spread to end the list before %s',
+    (next) => {
+      expect(() => resolve(command('upload').argument('<...files>').argument(next))).toThrow();
+      expect(() => resolve(command('upload <...files>').argument(next))).toThrow();
+    }
+  );
+
+  it('applies required ordering to manually appended arrays', () => {
+    expect(() => resolve(command('upload [first]').argument('<...files>'))).toThrow();
+    expect(() => resolve(command('upload [...first]').argument('<...files>'))).toThrow();
+  });
+
+  it('rejects configured defaults for required arrays', () => {
+    // @ts-expect-error required arguments cannot have defaults
+    expect(() => argument('<...files>', { default: ['a'] })).toThrow('Required spread arguments cannot have defaults');
+  });
+
+  it('requires a name for inline required arrays', () => {
+    expect(() => resolve(command('upload <...>'))).toThrow('Resolving invalid empty argument');
+  });
+});

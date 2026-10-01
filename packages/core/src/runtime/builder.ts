@@ -132,6 +132,9 @@ export function resolveCommand(command: Command | InternalCommand) {
         );
       }
 
+      const requiredSpread = piece[0] === '.' && piece[1] === '.' && piece[2] === '.';
+      if (requiredSpread) piece = piece.slice(3);
+
       // Check empty argument name
       if (piece === '') {
         throw new DefinitionError(
@@ -141,9 +144,14 @@ export function resolveCommand(command: Command | InternalCommand) {
         );
       }
 
-      // State -> 1
-      state = 1;
-      resolvedArguments.push(rawArgument('required', piece));
+      if (requiredSpread) {
+        state = 3;
+        spread = rawArgument('required-spread', piece);
+        resolvedArguments.push(spread);
+      } else {
+        state = 1;
+        resolvedArguments.push(rawArgument('required', piece));
+      }
     } else if (spec[i] === '[') {
       if (i + 1 >= spec.length || spec[i + 1] === ' ') {
         throw new DefinitionError(
@@ -278,8 +286,13 @@ export function resolveCommand(command: Command | InternalCommand) {
   // For now, command._arguments contains only manual added arguments
   for (const argument of (command as InternalCommand)._arguments) {
     switch (argument.type) {
-      case 'required': {
+      case 'required':
+      case 'required-spread': {
         if (state === 1) {
+          if (argument.type === 'required-spread') {
+            state = 3;
+            spread = argument;
+          }
           resolvedArguments.push(argument);
         } else {
           throw new DefinitionError(
@@ -360,7 +373,8 @@ export function resolveCommand(command: Command | InternalCommand) {
   return command;
 }
 
-const OptionRE = /^(?:-([a-zA-Z]), )?--(no-|\[no-\])?([a-zA-Z0-9\-]+)(?: (<[a-zA-Z0-9\-]+>|\[\.*[a-zA-Z0-9\-]+\]))?$/;
+const OptionRE =
+  /^(?:-([a-zA-Z]), )?--(no-|\[no-\])?([a-zA-Z0-9\-]+)(?: (<(?:\.{3})?[a-zA-Z0-9\-]+>|\[[a-zA-Z0-9\-]+\]))?$/;
 
 export function resolveOption(option: Option<string, any> | InternalOption) {
   if ((option as InternalOption).type) return option as InternalOption;
@@ -390,10 +404,10 @@ export function resolveOption(option: Option<string, any> | InternalOption) {
     if (match[4]) {
       const arg = match[4];
       (option as InternalOption).argument = arg;
-      if (arg[0] === '<') {
-        (option as InternalOption).type = 'required';
-      } else if (arg[1] === '.') {
+      if (arg[0] === '<' && arg[1] === '.' && arg[2] === '.' && arg[3] === '.') {
         (option as InternalOption).type = 'spread';
+      } else if (arg[0] === '<') {
+        (option as InternalOption).type = 'required';
       } else {
         (option as InternalOption).type = 'optional';
       }
