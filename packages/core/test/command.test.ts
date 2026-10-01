@@ -270,19 +270,19 @@ describe('breadc/command', () => {
     expect(cmd._arguments).toMatchInlineSnapshot(`
       [
         {
-          "init": undefined,
+          "init": {},
           "name": "arg",
           "spec": "<arg>",
           "type": "required",
         },
         {
-          "init": undefined,
+          "init": {},
           "name": "opt",
           "spec": "[opt]",
           "type": "optional",
         },
         {
-          "init": undefined,
+          "init": {},
           "name": "rest",
           "spec": "[...rest]",
           "type": "spread",

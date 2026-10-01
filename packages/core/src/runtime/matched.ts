@@ -15,74 +15,57 @@ export class MatchedArgument {
 
   public raw: string | string[] | undefined;
 
-  public constructor(argument: Argument<string, any, any> | InternalArgument) {
+  private resolved = false;
+
+  private result: any;
+
+  public constructor(argument: Argument<string, any> | InternalArgument) {
     this.argument = argument;
-    if (argument.init?.initial !== undefined) {
-      this.raw = argument.init.initial;
-    } else {
-      switch (argument.type) {
-        case 'required': {
-          this.raw = '';
-          break;
-        }
-        case 'optional': {
-          this.raw = undefined;
-          break;
-        }
-        case 'spread': {
-          this.raw = [];
-          break;
-        }
-      }
-    }
+    const fallback = argument.init.default;
+    this.raw =
+      fallback !== undefined
+        ? Array.isArray(fallback)
+          ? [...fallback]
+          : fallback
+        : argument.type === 'spread'
+          ? []
+          : undefined;
   }
 
+  /** Called only after the final parse pass has passed syntax validation. */
+  public finalize() {
+    if (!this.resolved) {
+      const shouldCast = this.dirty || this.argument.init.default !== undefined || this.argument.type === 'spread';
+      this.result = shouldCast && this.argument.init.cast ? this.argument.init.cast(this.raw!) : this.raw;
+      this.resolved = true;
+    }
+    return this;
+  }
+
+  /** Reading during matching never triggers business conversion. */
   public value<T = any>(): T {
-    if (this.dirty || this.argument.init?.default === undefined) {
-      const cast = this.argument.init?.cast;
-      return cast ? (cast(this.raw) as T) : (this.raw as T);
-    } else {
-      return this.argument.init.default as T;
-    }
+    return this.resolved ? this.result : (this.raw as T);
   }
 
-  public accept(context: Context, value: string | string[] | undefined) {
-    switch (this.argument.type) {
-      case 'optional': {
-        if (this.dirty) {
-          throw new RuntimeError(RuntimeError.OPTIONAL_ARGUMENT_ACCEPT_ONCE, {
-            context,
-            argument: this.argument,
-            value
-          });
-        }
-        this.raw = value ?? this.argument.init?.initial ?? undefined;
-        this.dirty = true;
-        return this;
+  public accept(context: Context, value: string) {
+    if (this.argument.type === 'spread') {
+      if (!this.dirty) {
+        this.raw = [];
       }
-      case 'required': {
-        if (this.dirty) {
-          throw new RuntimeError(RuntimeError.REQUIRED_ARGUMENT_ACCEPT_ONCE, {
-            context,
-            argument: this.argument,
-            value
-          });
-        }
-        this.raw = value ?? this.argument.init?.initial ?? '';
-        this.dirty = true;
-        return this;
+      (this.raw as string[]).push(value);
+    } else {
+      if (this.dirty) {
+        throw new RuntimeError(
+          this.argument.type === 'required'
+            ? RuntimeError.REQUIRED_ARGUMENT_ACCEPT_ONCE
+            : RuntimeError.OPTIONAL_ARGUMENT_ACCEPT_ONCE,
+          { context, argument: this.argument, value }
+        );
       }
-      case 'spread': {
-        (this.raw as string[]).push((value ?? this.argument.init?.initial ?? '') as string);
-        this.dirty = true;
-        return this;
-      }
-      /* v8 ignore next -- @preserve */
-      default: {
-        /* v8 ignore next -- @preserve */
-        return this;
-      }
+      this.raw = value;
     }
+    this.dirty = true;
+    return this;
   }
 }
 

@@ -1,4 +1,9 @@
-import type { InferOptionCastInput, InferOptionDefaultType, InferArgumentRawType } from './infer.ts';
+import type {
+  InferOptionCastInput,
+  InferOptionDefaultType,
+  InferArgumentDefaultType,
+  InferArgumentCastInput
+} from './infer.ts';
 
 export type BreadcInit = {
   /**
@@ -73,50 +78,14 @@ export type GroupInit<Spec extends string> = {};
 
 export type CommandInit<Spec extends string> = {};
 
-export type ArgumentInit<
-  Spec extends string,
-  Initial extends InferArgumentRawType<Spec>,
-  Cast extends unknown = unknown
-> = {
-  /**
-   * Overwrite the initial value of the corresponding matched option.
-   * - &lt;required&gt; : undefined
-   * - \[optional\] : undefined
-   * - \[...remaining\] : \[\]
-   */
-  initial?: Initial;
+export type ArgumentInit<Spec extends string, Cast = unknown> = {
+  /** Raw input used only when the argument is absent. Required arguments cannot have defaults. */
+  default?: InferArgumentDefaultType<Spec> | undefined;
 
-  /**
-   * Cast initial value to the result
-   */
-  cast?: (value: Initial extends {} ? Initial : InferArgumentRawType<Spec>) => Cast;
-
-  /**
-   * Default argument value if it is not provided
-   */
-  default?: Cast;
+  /** Convert the selected string or complete spread array once per parse. */
+  cast?: (value: InferArgumentCastInput<Spec>) => Cast;
 };
 
-export type NonNullableArgumentInit<
-  Spec extends string,
-  Initial extends NonNullable<InferArgumentRawType<Spec>>,
-  Cast extends unknown = unknown
-> = {
-  /**
-   * Overwrite the initial value of the corresponding matched option.
-   * - &lt;required&gt; : undefined
-   * - \[optional\] : undefined
-   * - \[...remaining\] : \[\]
-   */
-  initial: Initial;
-
-  /**
-   * Cast initial value to the result
-   */
-  cast?: (value: Initial extends {} ? Initial : InferArgumentRawType<Spec>) => Cast;
-
-  /**
-   * Default argument value if it is not provided
-   */
-  default?: Cast;
-};
+/** Reject configuration keys outside the argument API. */
+export type CheckedArgumentInit<Spec extends string, Init extends ArgumentInit<Spec>> = Init &
+  Record<Exclude<keyof Init, keyof ArgumentInit<Spec>>, never>;

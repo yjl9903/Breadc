@@ -6,7 +6,7 @@ const cli = breadc('echo', { version: '1.0.0' })
 
 cli
   .command('', 'Listen and say something!')
-  .argument('[message]', { initial: 'Breadc' })
+  .argument('[message]', { default: 'Breadc' })
   .action((message, option) => {
     const { host, port } = option;
     console.log(message);

@@ -12,10 +12,9 @@ import type {
   Argument,
   ArgumentInit,
   InternalArgument,
-  NonNullableArgumentInit,
+  CheckedArgumentInit,
   ArgumentType,
-  InferArgumentsType,
-  InferArgumentRawType
+  InferArgumentsType
 } from './types/index.ts';
 
 import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
@@ -45,14 +44,9 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run;
   };
 
-  run.argument = <
-    Spec extends string,
-    Initial extends InferArgumentRawType<Spec>,
-    Cast extends unknown,
-    Init extends ArgumentInit<Spec, Initial, Cast>
-  >(
+  run.argument = <Spec extends string, Init extends ArgumentInit<Spec>>(
     spec: Spec | Argument<Spec>,
-    init?: Init
+    init?: CheckedArgumentInit<Spec, Init>
   ) => {
     const arg = typeof spec === 'string' ? argument(spec, init as any) : spec;
     args.push(arg as unknown as InternalArgument);
@@ -105,26 +99,10 @@ export function rawArgument(type: ArgumentType, name: string): InternalArgument 
   };
 }
 
-export function argument<
-  Spec extends string,
-  Initial extends NonNullable<InferArgumentRawType<Spec>>,
-  Cast extends unknown,
-  Init extends NonNullableArgumentInit<Spec, Initial, Cast>
->(spec: Spec, init: Init): Argument<Spec, Initial, Cast, Init>;
-
-export function argument<
-  Spec extends string,
-  Initial extends InferArgumentRawType<Spec>,
-  Cast extends unknown,
-  Init extends ArgumentInit<Spec, Initial, Cast>
->(spec: Spec, init?: Init): Argument<Spec, Initial, Cast, Init>;
-
-export function argument<
-  Spec extends string,
-  Initial extends InferArgumentRawType<Spec>,
-  Cast extends unknown,
-  Init extends ArgumentInit<Spec, Initial, Cast>
->(spec: Spec, init?: Init): Argument<Spec, Initial, Cast, Init> {
+export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
+  spec: Spec,
+  init?: CheckedArgumentInit<Spec, Init>
+): Argument<Spec, Init> {
   let type: ArgumentType | undefined;
   let name: string | undefined;
 
@@ -151,10 +129,12 @@ export function argument<
     });
   }
 
-  return (<InternalArgument>{
+  const result = {
     spec,
     type: type!,
     name: name!,
-    init
-  }) as unknown as Argument<Spec, Initial, Cast, Init>;
+    init: { ...init }
+  } as InternalArgument;
+
+  return result as unknown as Argument<Spec, Init>;
 }

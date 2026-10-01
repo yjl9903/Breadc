@@ -9,83 +9,53 @@ import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
 
 describe('runtime/matched: argument', () => {
-  it.each([undefined, '3'])('uses default before input and casts accepted input with initial %j', (initial) => {
-    const app = breadc('cli');
-    const ctx = makeContext(app, []);
-
-    const cast = vi.fn((t: string | undefined) => Number(t));
-    const arg = argument('[count]', { initial, default: '1', cast });
+  it('records input and caches conversion only after finalization', () => {
+    const ctx = makeContext(breadc('cli'), []);
+    const cast = vi.fn(Number);
+    const arg = argument('[count]', { default: '1', cast });
     const matched = new MatchedArgument(arg);
     expect(matched.dirty).toBe(false);
-    expect(matched.value()).toMatchInlineSnapshot(`"1"`);
+    expect(matched.value()).toBe('1');
+    expect(matched.value()).toBe('1');
     expect(cast).not.toHaveBeenCalled();
 
     matched.accept(ctx, '2');
     expect(matched.dirty).toBe(true);
-    expect(matched.value()).toMatchInlineSnapshot(`2`);
+    expect(matched.value()).toBe('2');
+    expect(cast).not.toHaveBeenCalled();
+    matched.finalize();
+    expect(matched.value()).toBe(2);
+    matched.finalize();
+    expect(matched.value()).toBe(2);
     expect(cast).toHaveBeenCalledExactlyOnceWith('2');
 
-    const withEmpty = new MatchedArgument(arg).accept(ctx, '');
-    expect(withEmpty.dirty).toBe(true);
+    const withEmpty = new MatchedArgument(arg).accept(ctx, '').finalize();
     expect(withEmpty.value()).toBe(0);
     expect(cast).toHaveBeenLastCalledWith('');
   });
 
-  it('uses initial value when provided', () => {
-    const arg = argument('[name]', { initial: 'seed' });
+  it('finalizes default input and skips absent optional input', () => {
+    const cast = vi.fn(Number);
+    const fallback = new MatchedArgument(argument('[count]', { default: '3', cast }));
+    expect(fallback.finalize().value()).toBe(3);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('3');
+    const missing = new MatchedArgument(argument('[count]', { cast }));
+    expect(missing.finalize().value()).toBeUndefined();
+    expect(cast).toHaveBeenCalledTimes(1);
+  });
+
+  it('collects a complete spread array before converting once', () => {
+    const ctx = makeContext(breadc('cli'), []);
+    const cast = vi.fn((items: string[]) => items.join(','));
+    const arg = argument('[...items]', { default: ['fallback'], cast });
     const matched = new MatchedArgument(arg);
-    expect(matched.value()).toMatchInlineSnapshot(`"seed"`);
-  });
-
-  it('supports required argument values and fallback behavior', () => {
-    const app = breadc('cli');
-    const ctx = makeContext(app, []);
-
-    const withValue = new MatchedArgument(argument('<name>'));
-    withValue.accept(ctx, 'alice');
-    expect(withValue.value()).toMatchInlineSnapshot(`"alice"`);
-
-    const withFallback = new MatchedArgument(argument('<name>'));
-    withFallback.accept(ctx, undefined);
-    expect(withFallback.value()).toMatchInlineSnapshot(`""`);
-  });
-
-  it('supports optional argument values and preserves initial value', () => {
-    const app = breadc('cli');
-    const ctx = makeContext(app, []);
-
-    const withUndefined = new MatchedArgument(argument('[name]'));
-    withUndefined.accept(ctx, undefined);
-    expect(withUndefined.value()).toMatchInlineSnapshot(`undefined`);
-
-    const withInitial = new MatchedArgument(argument('[name]', { initial: 'seed' }));
-    withInitial.accept(ctx, undefined);
-    expect(withInitial.value()).toMatchInlineSnapshot(`"seed"`);
-
-    const withValue = new MatchedArgument(argument('[name]', { initial: 'seed' }));
-    withValue.accept(ctx, 'next');
-    expect(withValue.value()).toMatchInlineSnapshot(`"next"`);
-  });
-
-  it('supports spread argument accumulation and empty fallback', () => {
-    const app = breadc('cli');
-    const ctx = makeContext(app, []);
-
-    const arg = argument('[...items]');
-    const matched = new MatchedArgument(arg);
-
-    expect(matched.value()).toMatchInlineSnapshot(`[]`);
-
-    matched.accept(ctx, 'a');
-    matched.accept(ctx, undefined);
-    matched.accept(ctx, 'b');
-    expect(matched.value()).toMatchInlineSnapshot(`
-      [
-        "a",
-        "",
-        "b",
-      ]
-    `);
+    expect(matched.value()).toEqual(['fallback']);
+    matched.accept(ctx, 'a').accept(ctx, '').accept(ctx, 'b');
+    expect(matched.value()).toEqual(['a', '', 'b']);
+    expect(cast).not.toHaveBeenCalled();
+    expect(matched.finalize().value()).toBe('a,,b');
+    expect(matched.finalize().value()).toBe('a,,b');
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', '', 'b']);
   });
 
   it('throws when required/optional argument is accepted twice', () => {

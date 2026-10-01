@@ -118,6 +118,9 @@ export function parse(app: Breadc, argv: string[]) {
   for (const option of context.options.values()) {
     option.finalize();
   }
+  for (const argument of context.arguments) {
+    argument.finalize();
+  }
 
   return context;
 }

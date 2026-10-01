@@ -7,9 +7,9 @@ import type {
   GroupInit,
   CommandInit,
   ArgumentInit,
-  NonNullableArgumentInit
+  CheckedArgumentInit
 } from './init.ts';
-import type { InferOption, InferArgumentType, InferArgumentsType, InferArgumentRawType } from './infer.ts';
+import type { InferOption, InferArgumentType, InferArgumentsType } from './infer.ts';
 import type {
   ActionMiddleware,
   ActionMiddlewareNextFn,
@@ -179,32 +179,13 @@ export type Command<
   /**
    * Add argument
    */
-  argument<
-    AS extends string,
-    Initial extends InferArgumentRawType<AS>,
-    Cast extends unknown,
-    AI extends ArgumentInit<AS, Initial, Cast>
-  >(
-    argument: Argument<AS, Initial, Cast, AI>
-  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, Initial, AI>], Return>;
-  argument<
-    AS extends string,
-    Initial extends NonNullable<InferArgumentRawType<AS>>,
-    Cast extends unknown,
-    AI extends NonNullableArgumentInit<AS, Initial, Cast>
-  >(
+  argument<Arg extends Argument<any, any>>(
+    argument: Arg
+  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentFromInstance<Arg>], Return>;
+  argument<AS extends string, AI extends ArgumentInit<AS>>(
     spec: AS,
-    init: AI
-  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, Initial, AI>], Return>;
-  argument<
-    AS extends string,
-    Initial extends InferArgumentRawType<AS>,
-    Cast extends unknown,
-    AI extends ArgumentInit<AS, Initial, Cast>
-  >(
-    spec: AS,
-    init?: AI
-  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, Initial, AI>], Return>;
+    init?: CheckedArgumentInit<AS, AI>
+  ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, AI>], Return>;
 
   /**
    * Action middleware
@@ -241,17 +222,15 @@ export type Option<Spec extends string = string, Init extends OptionInit<Spec> =
 type InferOptionFromInstance<Opt extends Option<any, any>> =
   Opt extends Option<infer OS, infer OI> ? InferOption<OS, OI> : never;
 
-export type Argument<
-  Spec extends string = string,
-  Initial extends InferArgumentRawType<Spec> = InferArgumentRawType<Spec>,
-  Cast extends unknown = unknown,
-  Init extends ArgumentInit<Spec, Initial, Cast> = ArgumentInit<Spec, Initial, Cast>
-> = {
+type InferArgumentFromInstance<Arg extends Argument<any, any>> =
+  Arg extends Argument<infer AS, infer AI> ? InferArgumentType<AS, AI> : never;
+
+export type Argument<Spec extends string = string, Init extends ArgumentInit<Spec> = ArgumentInit<Spec>> = {
   spec: Spec;
 
   type: ArgumentType;
 
   name: string;
 
-  init: Init | undefined;
+  init: Init;
 };
