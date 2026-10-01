@@ -8,8 +8,6 @@ const cli = breadc('echo', { version: '1.0.0' })
     cast: z.coerce.number().int().min(1).max(65535)
   });
 
-
-
 cli.command('[message]', 'Say something!').action((message, option) => {
   console.log(message ?? 'You can say anything!');
   const { host, port } = option; // { host: string, port: number, '--': string[] }
