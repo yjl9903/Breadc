@@ -6,7 +6,7 @@ import { printVersion } from '../breadc/builtin/version.ts';
 
 import { DefinitionError, ErrorCode } from '../error.ts';
 
-import { parse, isHelp, isVersion, resolveArgs, resolveOptions } from './parser.ts';
+import { parse, finalizeInput, isHelp, isVersion, resolveArgs, resolveOptions } from './parser.ts';
 
 export async function run(app: Breadc, argv: string[]) {
   // 1. Parse arguments
@@ -21,68 +21,70 @@ export async function run(app: Breadc, argv: string[]) {
     return printHelp(context);
   }
 
-  // 3. Check whether there is a matched command
-  if (!context.command) {
-    const { breadc } = context;
+  // 3. Decide whether execution is needed before converting user input.
+  const { breadc, command } = context;
 
-    if (breadc._unknownCommandMiddlewares.length > 0) {
-      let res: any;
-      for (const middleware of breadc._unknownCommandMiddlewares) {
-        res = await middleware(context);
-      }
-      return res;
-    } else {
-      return printHelp(context);
+  if (!command && breadc._unknownCommandMiddlewares.length === 0) {
+    return printHelp(context);
+  }
+
+  if (command && !command._actionFn) {
+    throw new DefinitionError(ErrorCode.MISSING_COMMAND_ACTION, 'There is no action function bound in this command', {
+      context,
+      details: { command }
+    });
+  }
+
+  finalizeInput(context);
+
+  if (!command) {
+    let res: any;
+    for (const middleware of breadc._unknownCommandMiddlewares) {
+      res = await middleware(context);
     }
+    return res;
   }
 
   // 4. Collect middlewares
   const actionMiddlewares: ActionMiddleware[] = [
     ...context.breadc._actionMiddlewares,
     ...(context.group?._actionMiddlewares ?? []),
-    ...(context.command?._actionMiddlewares ?? [])
+    ...(command._actionMiddlewares ?? [])
   ];
 
   // 5. Run
 
-  if (context.command._actionFn) {
-    const actionFn = context.command._actionFn;
-    if (actionMiddlewares.length === 0) {
-      const args = resolveArgs(context);
-      const options = resolveOptions(context);
-      options['--'] = context.remaining;
-      const output = await actionFn(...args, options, context);
-      return output;
-    } else {
-      const invoked: boolean[] = [];
-      const makeNextFn = (index: number): ActionMiddlewareNextFn => {
-        return (async (nextContext) => {
-          if (nextContext?.data) {
-            context.data = { ...context.data, ...nextContext?.data };
-          }
-          invoked[index] = true;
-          if (index === actionMiddlewares.length) {
-            const args = resolveArgs(context);
-            const options = resolveOptions(context);
-            options['--'] = context.remaining;
-            context.output = await actionFn(...args, options, context);
-          } else {
-            const next = makeNextFn(index + 1);
-            await actionMiddlewares[index](context, next);
-            if (!invoked[index + 1]) {
-              await next();
-            }
-          }
-          return context;
-        }) as ActionMiddlewareNextFn;
-      };
-      await makeNextFn(0)(undefined);
-      return context.output;
-    }
+  const actionFn = command._actionFn!;
+  if (actionMiddlewares.length === 0) {
+    const args = resolveArgs(context);
+    const options = resolveOptions(context);
+    options['--'] = context.remaining;
+    const output = await actionFn(...args, options, context);
+    return output;
   } else {
-    throw new DefinitionError(ErrorCode.MISSING_COMMAND_ACTION, 'There is no action function bound in this command', {
-      context,
-      details: { command: context.command }
-    });
+    const invoked: boolean[] = [];
+    const makeNextFn = (index: number): ActionMiddlewareNextFn => {
+      return (async (nextContext) => {
+        if (nextContext?.data) {
+          context.data = { ...context.data, ...nextContext?.data };
+        }
+        invoked[index] = true;
+        if (index === actionMiddlewares.length) {
+          const args = resolveArgs(context);
+          const options = resolveOptions(context);
+          options['--'] = context.remaining;
+          context.output = await actionFn(...args, options, context);
+        } else {
+          const next = makeNextFn(index + 1);
+          await actionMiddlewares[index](context, next);
+          if (!invoked[index + 1]) {
+            await next();
+          }
+        }
+        return context;
+      }) as ActionMiddlewareNextFn;
+    };
+    await makeNextFn(0)(undefined);
+    return context.output;
   }
 }

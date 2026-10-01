@@ -1,5 +1,7 @@
 import type { Breadc, InternalBreadc, InternalGroup, InternalCommand } from '../breadc/types/index.ts';
 
+import type { InputIssue } from '../error.ts';
+
 import type { MatchedArgument, MatchedOption } from './matched.ts';
 
 import { TokenStream } from './lexer.ts';
@@ -45,6 +47,9 @@ export type Context<Data extends {} = {}> = {
    */
   readonly remaining: string[];
 
+  /** Input syntax diagnostics from the current parse pass. */
+  readonly issues: InputIssue[];
+
   /**
    * Breadc app instance
    */
@@ -69,6 +74,7 @@ export function context<Data extends {} = {}>(
     options: new Map(),
     arguments: [],
     remaining: [],
+    issues: [],
     breadc: breadc as InternalBreadc,
     tokens: new TokenStream(args)
   };
@@ -82,6 +88,7 @@ export function reset<Data extends {} = {}>(context: Context<Data>): Context<Dat
   context.options.clear();
   context.arguments.length = 0;
   context.remaining.length = 0;
+  context.issues.length = 0;
   context.tokens.reset();
   return context;
 }

@@ -94,7 +94,7 @@ export type InputIssue =
   | { code: typeof ErrorCode.MISSING_ARGUMENT; message: string; argument: InternalArgument }
   | { code: typeof ErrorCode.UNEXPECTED_ARGUMENTS; message: string; command: InternalCommand; values: string[] };
 
-/** Invalid argv. Parsing currently throws immediately with one diagnostic. */
+/** Invalid argv. Reports all syntax diagnostics from the final parse pass. */
 export class InputError extends BreadcError {
   public readonly issues: readonly [InputIssue, ...InputIssue[]];
 

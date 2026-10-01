@@ -1,7 +1,7 @@
 import type { Option, Argument } from '../breadc/types/app.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
-import { InputError, InternalError, ErrorCode } from '../error.ts';
+import { InternalError, ErrorCode } from '../error.ts';
 
 import type { Token } from './lexer.ts';
 import type { Context } from './context.ts';
@@ -80,6 +80,9 @@ export class MatchedOption {
 
   public raw: any;
 
+  // Invalid occurrences still count for duplicate detection; dirty tracks successful assignment.
+  private seen = false;
+
   private resolved = false;
 
   private result: any;
@@ -116,148 +119,72 @@ export class MatchedOption {
   }
 
   public accept(context: Context, long: string, text: string | undefined, inverted = false) {
-    switch (this.option.type) {
-      case 'boolean': {
-        if (this.dirty) {
-          throw new InputError(
-            [
-              {
-                code: ErrorCode.DUPLICATE_OPTION,
-                message: 'Boolean option can only be assigned once',
-                option: this.option,
-                name: long,
-                value: text
-              }
-            ],
-            { context }
-          );
-        }
+    const duplicate = this.seen && this.option.type !== 'spread';
+    this.seen = true;
 
-        let value = true;
-        if (text !== undefined) {
-          const normalized = text.toLowerCase();
-          if (FALSE_OPTION.includes(normalized)) {
-            value = false;
-          } else if (!TRUE_OPTION.includes(normalized)) {
-            throw new InputError(
-              [
-                {
-                  code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
-                  message: `Invalid boolean option value: --${this.option.long}`,
-                  option: this.option,
-                  name: long,
-                  value: text
-                }
-              ],
-              { context }
-            );
-          }
-        }
-        this.raw = inverted ? !value : value;
-
-        this.dirty = true;
-
-        break;
+    // Even duplicate value options consume their own value so scanning can recover.
+    let value = text;
+    if (this.option.type !== 'boolean' && value === undefined) {
+      const token = context.tokens.peek();
+      if (token && !token.isEscape && !token.isOption) {
+        value = token.toRaw();
+        context.tokens.next();
       }
-      case 'optional': {
-        if (this.dirty) {
-          throw new InputError(
-            [
-              {
-                code: ErrorCode.DUPLICATE_OPTION,
-                message: 'Optional option can only be assigned once',
-                option: this.option,
-                name: long,
-                value: text
-              }
-            ],
-            { context }
-          );
+    }
+
+    if (duplicate) {
+      const label =
+        this.option.type === 'boolean' ? 'Boolean' : this.option.type === 'optional' ? 'Optional' : 'Required';
+      context.issues.push({
+        code: ErrorCode.DUPLICATE_OPTION,
+        message: `${label} option can only be assigned once`,
+        option: this.option,
+        name: long,
+        value
+      });
+    }
+
+    if (this.option.type === 'boolean') {
+      let boolean = true;
+      if (text !== undefined) {
+        const normalized = text.toLowerCase();
+        if (FALSE_OPTION.includes(normalized)) {
+          boolean = false;
+        } else if (!TRUE_OPTION.includes(normalized)) {
+          context.issues.push({
+            code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+            message: `Invalid boolean option value: --${this.option.long}`,
+            option: this.option,
+            name: long,
+            value: text
+          });
+          return this;
         }
-
-        // Handle optional options
-        let value = text;
-        if (value === undefined) {
-          const token = context.tokens.peek();
-          if (token && !token.isEscape && !token.isOption) {
-            value = token.toRaw();
-            context.tokens.next();
-          }
-        }
-
-        this.raw = value;
-
-        this.dirty = true;
-
-        break;
       }
-      case 'required':
-      case 'spread': {
-        // Handle required / array options
-        let value = text;
-        if (value === undefined) {
-          // Try next token
-          const token = context.tokens.peek();
-          if (token && !token.isEscape && !token.isOption) {
-            value = token.toRaw();
-            context.tokens.next();
-          }
-        }
-
-        // Set option value
-        if (this.option.type === 'required') {
-          if (this.dirty) {
-            throw new InputError(
-              [
-                {
-                  code: ErrorCode.DUPLICATE_OPTION,
-                  message: 'Required option can only be assigned once',
-                  option: this.option,
-                  name: long,
-                  value
-                }
-              ],
-              { context }
-            );
-          }
-
-          if (value === undefined) {
-            throw new InputError(
-              [
-                {
-                  code: ErrorCode.MISSING_OPTION_VALUE,
-                  message: `Missing required option value: --${this.option.long}`,
-                  option: this.option,
-                  name: long
-                }
-              ],
-              { context }
-            );
-          }
-          this.raw = value;
-        } else {
-          if (value === undefined) {
-            throw new InputError(
-              [
-                {
-                  code: ErrorCode.MISSING_OPTION_VALUE,
-                  message: `Missing required option value: --${this.option.long}`,
-                  option: this.option,
-                  name: long
-                }
-              ],
-              { context }
-            );
-          }
+      if (!duplicate) {
+        this.raw = inverted ? !boolean : boolean;
+        this.dirty = true;
+      }
+    } else {
+      if (this.option.type !== 'optional' && value === undefined) {
+        context.issues.push({
+          code: ErrorCode.MISSING_OPTION_VALUE,
+          message: `Missing required option value: --${this.option.long}`,
+          option: this.option,
+          name: long
+        });
+        return this;
+      }
+      if (!duplicate) {
+        if (this.option.type === 'spread') {
           if (!this.dirty) {
             this.raw = [];
           }
           this.raw.push(value);
+        } else {
+          this.raw = value;
         }
-
         this.dirty = true;
-
-        break;
       }
     }
     return this;

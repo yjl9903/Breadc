@@ -4,7 +4,7 @@ import type { InternalBreadc } from '../src/breadc/index.ts';
 
 import { breadc } from '../src/breadc/app.ts';
 import { argument } from '../src/breadc/command.ts';
-import { isHelp, resolveArgs } from '../src/runtime/parser.ts';
+import { parse, finalizeInput, isHelp, resolveArgs, resolveOptions } from '../src/runtime/parser.ts';
 import { DefinitionError, InputError, ErrorCode } from '../src/error.ts';
 
 describe('runtime/parser: command matching', () => {
@@ -1174,9 +1174,12 @@ describe('runtime/parser: unknown options', () => {
     // --output is unknown on the first pass, but declared by the fallback command.
     expect(() => app.parse([...prefix, '--output=file', '--typo=x'])).toThrow(
       expect.objectContaining({
-        message: `Unknown option: --typo`,
-        issues: [expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION, name: '--typo', value: 'x' })],
-        context: expect.objectContaining({ command, arguments: [] })
+        message: `Unknown option: --typo\nMissing required argument`,
+        issues: [
+          expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION, name: '--typo', value: 'x' }),
+          expect.objectContaining({ code: ErrorCode.MISSING_ARGUMENT })
+        ],
+        context: expect.objectContaining({ command, arguments: [expect.anything()] })
       })
     );
     expect(() => app.parse([...prefix, '--output=file'])).toThrow('Missing required argument');
@@ -2056,5 +2059,172 @@ describe('runtime/parser: negative positional arguments', () => {
     const result = app.parse(['--2', '-2']);
     expect(result.options).toEqual({ 2: true });
     expect(result.args).toEqual(['-2']);
+  });
+});
+
+describe('runtime/parser: aggregated input diagnostics', () => {
+  it('leaves internal parsing raw and finalizes input once in the existing order', () => {
+    const order: string[] = [];
+    const optionCast = vi.fn((value: string) => {
+      order.push('option');
+      return Number(value);
+    });
+    const argumentCast = vi.fn((value: string) => {
+      order.push('argument');
+      return Number(value);
+    });
+    const app = breadc('cli');
+    app.option('--count <value>', '', { default: '2', cast: optionCast });
+    app.command('run').argument('[number]', { default: '3', cast: argumentCast });
+    const context = parse(app, ['run']);
+    expect(resolveOptions(context)).toEqual({ count: '2' });
+    expect(resolveArgs(context)).toEqual(['3']);
+    expect(order).toEqual([]);
+    finalizeInput(context);
+    finalizeInput(context);
+    expect(resolveOptions(context)).toEqual({ count: 2 });
+    expect(resolveArgs(context)).toEqual([3]);
+    expect(order).toEqual(['option', 'argument']);
+    expect(optionCast).toHaveBeenCalledExactlyOnceWith('2');
+    expect(argumentCast).toHaveBeenCalledExactlyOnceWith('3');
+  });
+
+  function inputError(parse: () => unknown): InputError {
+    try {
+      parse();
+    } catch (error) {
+      expect(error).toBeInstanceOf(InputError);
+      return error as InputError;
+    }
+    throw new Error('Expected an InputError');
+  }
+
+  it('collects all option errors in scan order, then all missing arguments', () => {
+    const cast = vi.fn(Number);
+    const app = breadc('cli').option('--default <value>', '', { default: '1', cast });
+    app.command('run <first> <second>').option('-n, --number <value>').option('-a, --all');
+
+    const error = inputError(() =>
+      app.parse(['run', '--unknown=x', '-n', '--all=invalid', '-a', '--other', '-n', '2'])
+    );
+    expect(error.issues.map((issue) => issue.code)).toEqual([
+      ErrorCode.UNKNOWN_OPTION,
+      ErrorCode.MISSING_OPTION_VALUE,
+      ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.UNKNOWN_OPTION,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.MISSING_ARGUMENT,
+      ErrorCode.MISSING_ARGUMENT
+    ]);
+    expect(error.issues.filter((issue) => 'name' in issue).map((issue) => issue.name)).toEqual([
+      '--unknown',
+      'n',
+      'all',
+      'a',
+      '--other',
+      'n'
+    ]);
+    expect(error.context?.issues).toEqual(error.issues);
+    expect(error.context?.arguments).toHaveLength(2);
+    expect(cast).not.toHaveBeenCalled();
+  });
+
+  it('keeps unknown option followers as arguments and reports excess arguments after scanning', () => {
+    const app = breadc('cli');
+    app.command('run <first>');
+    const error = inputError(() => app.parse(['before', 'run', '--unknown', 'value', '--other=x', 'extra']));
+    expect(error.issues).toMatchObject([
+      { code: ErrorCode.UNKNOWN_OPTION, name: '--unknown', value: undefined },
+      { code: ErrorCode.UNKNOWN_OPTION, name: '--other', value: 'x' },
+      { code: ErrorCode.UNEXPECTED_ARGUMENTS, values: ['before'] },
+      { code: ErrorCode.UNEXPECTED_ARGUMENTS, values: ['extra'] }
+    ]);
+    expect(resolveArgs(error.context!)).toEqual(['value']);
+  });
+
+  it.each(['<value>', '[value]'])('consumes duplicate %s option values and continues through short bundles', (spec) => {
+    const app = breadc('cli');
+    app.command('run <file>').option(`-o, --output ${spec}`).option('-a, --all').option('-b, --brief');
+    const error = inputError(() =>
+      app.parse(['run', '-o', 'first', '-aao', 'second', '-oattached', '-b=bad', '-bb', 'file'])
+    );
+    expect(error.issues.map((issue) => issue.code)).toEqual([
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.DUPLICATE_OPTION
+    ]);
+    expect(error.context?.options.get('output')?.value()).toBe('first');
+    expect(resolveArgs(error.context!)).toEqual(['file']);
+  });
+
+  it('reports duplicate and malformed values together without losing later options or escapes', () => {
+    const app = breadc('cli').option('-n, --number <value>').option('-a, --all').option('-s, --spread [...value]');
+    const error = inputError(() => app.parse(['-n', '-n', '-a', '-a=bad', '-s', '-sok', '--', '--escaped']));
+    expect(error.issues.map((issue) => issue.code)).toEqual([
+      ErrorCode.MISSING_OPTION_VALUE,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.MISSING_OPTION_VALUE,
+      ErrorCode.DUPLICATE_OPTION,
+      ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+      ErrorCode.MISSING_OPTION_VALUE
+    ]);
+    expect(error.context?.options.get('all')?.value()).toBe(true);
+    expect(error.context?.options.get('spread')?.value()).toEqual(['ok']);
+    expect(error.context?.remaining).toEqual(['--escaped']);
+  });
+
+  it.each([false, true])('discards every first-pass diagnostic during fallback (grouped=%s)', (grouped) => {
+    const app = breadc('cli').option('--value');
+    const parent = grouped ? app.group('tool') : app;
+    const prefix = grouped ? ['tool'] : [];
+    parent.command('[file]').option('--value <text>').option('--local');
+    parent.command('other');
+    const result = app.parse([...prefix, '--value=invalid', '--local']);
+    expect(result.options).toEqual({ value: 'invalid', local: true });
+    expect(result.context.issues).toEqual([]);
+
+    const error = inputError(() => app.parse([...prefix, '--value=invalid', '--local', '--typo', '--typo2']));
+    expect(error.issues).toMatchObject([
+      { code: ErrorCode.UNKNOWN_OPTION, name: '--typo' },
+      { code: ErrorCode.UNKNOWN_OPTION, name: '--typo2' }
+    ]);
+  });
+
+  it.each(['--help', '--version'])('still aggregates scanning errors for %s, skipping argument binding', (flag) => {
+    const cast = vi.fn(Number);
+    const app = breadc('cli').option('--count <value>', '', { default: '1', cast });
+    app.command('run <file>').option('--all');
+    const error = inputError(() => app.parse(['before', 'run', '--all=bad', '--unknown', flag]));
+    expect(error.issues.map((issue) => issue.code)).toEqual([
+      ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+      ErrorCode.UNKNOWN_OPTION
+    ]);
+    expect(error.context?.arguments).toEqual([]);
+    expect(cast).not.toHaveBeenCalled();
+  });
+
+  it('immediately propagates unknown-option middleware failures after a collected diagnostic', () => {
+    const failure = { user: 'middleware error' };
+    const app = breadc('cli').allowUnknownOption((_context, name) => {
+      if (name === 'fail') throw failure;
+    });
+    expect(() => app.parse(['--unknown', '--fail'])).toThrow(expect.objectContaining(failure));
+    try {
+      app.parse(['--unknown', '--fail']);
+    } catch (error) {
+      expect(error).toBe(failure);
+    }
+  });
+
+  it('immediately reports invalid declarations even after a collected input diagnostic', () => {
+    const app = breadc('cli');
+    app.command('run [optional] <required>');
+    expect(() => app.parse(['--unknown', 'run'])).toThrow(
+      expect.objectContaining({ name: 'DefinitionError', code: ErrorCode.REQUIRED_AFTER_OPTIONAL })
+    );
   });
 });

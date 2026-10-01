@@ -1,4 +1,4 @@
-import { parse as doParse, resolveArgs, resolveOptions } from '../runtime/parser.ts';
+import { parse as doParse, finalizeInput, isHelp, isVersion, resolveArgs, resolveOptions } from '../runtime/parser.ts';
 import { run as doRun } from '../runtime/run.ts';
 
 import type {
@@ -84,6 +84,10 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
 
     parse(argv: string[]) {
       const context = doParse(app, argv);
+      if (!isHelp(context) && !isVersion(context)) {
+        finalizeInput(context);
+      }
+
       const args = resolveArgs(context);
       const options = resolveOptions(context);
 
