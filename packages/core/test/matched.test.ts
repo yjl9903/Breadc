@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-import { ErrorCode, InputError } from '../src/error.ts';
+import { ErrorCode } from '../src/error.ts';
 import { breadc } from '../src/breadc/app.ts';
 import { option } from '../src/breadc/option.ts';
 import { argument } from '../src/breadc/command.ts';
@@ -9,14 +9,14 @@ import { context as makeContext } from '../src/runtime/context.ts';
 import { MatchedArgument, MatchedOption } from '../src/runtime/matched.ts';
 
 describe('runtime/matched: argument', () => {
-  it('immediately refreshes a finalized spread conversion when more input is accepted', () => {
+  it('invalidates a finalized spread conversion without converting on assignment', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn((items: string[]) => items.join(','));
     const matched = new MatchedArgument(argument('[...items]', { cast }));
     expect(matched.accept(ctx, 'a').finalize()).toEqual({ value: 'a' });
     matched.accept(ctx, 'b');
-    expect(cast).toHaveBeenCalledTimes(2);
-    expect(matched.value()).toBe('a,b');
+    expect(cast).toHaveBeenCalledTimes(1);
+    expect(matched.value()).toEqual(['a', 'b']);
     expect(matched.finalize()).toEqual({ value: 'a,b' });
     expect(cast).toHaveBeenCalledTimes(2);
   });
@@ -100,7 +100,7 @@ describe('runtime/matched: argument', () => {
 });
 
 describe('runtime/matched: option', () => {
-  it('immediately refreshes a finalized boolean conversion only for successful assignment', () => {
+  it('invalidates boolean conversion only for successful assignment', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn((value: boolean) => (value ? 'on' : 'off'));
     const opt = option('--all', '', { cast });
@@ -108,15 +108,17 @@ describe('runtime/matched: option', () => {
     const matched = new MatchedOption(opt);
     expect(matched.finalize()).toEqual({ value: 'off' });
     matched.accept(ctx, 'all', undefined);
-    expect(cast).toHaveBeenCalledTimes(2);
-    expect(matched.value()).toBe('on');
-    expect(() => matched.accept(ctx, 'all', 'false')).toThrow(InputError);
+    expect(cast).toHaveBeenCalledTimes(1);
+    expect(matched.value()).toBe(true);
+    matched.accept(ctx, 'all', 'false');
+    expect(ctx.issues.at(-1)?.code).toBe(ErrorCode.DUPLICATE_OPTION);
     expect(matched.finalize()).toEqual({ value: 'on' });
     expect(cast).toHaveBeenCalledTimes(2);
 
     const invalid = new MatchedOption(opt);
     invalid.finalize();
-    expect(() => invalid.accept(ctx, 'all', 'invalid')).toThrow(InputError);
+    invalid.accept(ctx, 'all', 'invalid');
+    expect(ctx.issues.at(-1)?.code).toBe(ErrorCode.INVALID_BOOLEAN_OPTION_VALUE);
     expect(invalid.value()).toBe('off');
     expect(cast).toHaveBeenCalledTimes(3);
   });
@@ -130,7 +132,8 @@ describe('runtime/matched: option', () => {
     matched.finalize();
     matched.accept(ctx, 'include', 'b');
     expect(matched.finalize()).toEqual({ value: 'a,b' });
-    expect(() => matched.accept(ctx, 'include', undefined)).toThrow(InputError);
+    matched.accept(ctx, 'include', undefined);
+    expect(ctx.issues.at(-1)?.code).toBe(ErrorCode.MISSING_OPTION_VALUE);
     expect(matched.finalize()).toEqual({ value: 'a,b' });
     expect(cast).toHaveBeenCalledTimes(2);
   });

@@ -371,7 +371,7 @@ describe('option conversion lifecycle', () => {
     expect(cast).toHaveBeenCalledExactlyOnceWith(true);
   });
 
-  it('shares one converted result between middleware and action', async () => {
+  it('shares one converted result between action and middleware after next', async () => {
     const cast = vi.fn((value: string | undefined) => ({ value }));
     const observed: unknown[] = [];
     const app = breadc('cli').option('--value [value]', '', { cast });
@@ -388,15 +388,21 @@ describe('option conversion lifecycle', () => {
     const result = await app.run(['--value']);
     expect(result).toEqual({ value: undefined });
     expect(observed).toHaveLength(4);
-    for (const value of observed) expect(value).toBe(result);
+    expect(observed[0]).toBeUndefined();
+    for (const value of observed.slice(1)) expect(value).toBe(result);
     expect(cast).toHaveBeenCalledExactlyOnceWith(undefined);
   });
 
-  it('makes converted values available to unknown-command middleware', async () => {
+  it('finalizes unknown-command input after the handler returns', async () => {
     const cast = vi.fn((value: boolean) => Number(value));
     const app = breadc('cli').option('--flag', '', { cast });
-    app.onUnknownCommand((context) => resolveOptions(context));
-    expect(await app.run(['unknown'])).toEqual({ flag: 0 });
+    app.onUnknownCommand((context) => {
+      expect(context.options.get('flag')!.raw).toBe(false);
+      expect(cast).not.toHaveBeenCalled();
+      return context;
+    });
+    const result = await app.run<import('../src/index.ts').Context>(['unknown']);
+    expect(resolveOptions(result)).toEqual({ flag: 0 });
     expect(cast).toHaveBeenCalledExactlyOnceWith(false);
   });
 });
