@@ -45,7 +45,7 @@ export type InferOptionRawType<S extends string> = InferLongOptionRawType<LongOp
 
 type InferLongOptionRawType<S extends string> = S extends BooleanValueSpec
   ? never
-  : S extends `--${string} [...${string}]`
+  : S extends `--${string} <...${string}>`
     ? string[]
     : S extends `--${string} <${string}>` | `--${string} [${string}]`
       ? string | undefined
@@ -73,8 +73,8 @@ export type InferOptionType<S extends string, C extends OptionInit<S>> = C exten
     : InferCastOutput<Converter>
   : LongOptionSpec<S> extends `--${string} <${string}>`
     ? C extends { default: InferOptionDefaultType<S> }
-      ? string
-      : string | undefined
+      ? Exclude<InferOptionRawType<S>, undefined>
+      : InferOptionRawType<S>
     : InferOptionRawType<S>;
 
 export type InferOption<S extends string, C extends OptionInit<S>> = {
@@ -84,10 +84,10 @@ export type InferOption<S extends string, C extends OptionInit<S>> = {
 /**
  * Infer the raw argument type: required or optional or spread
  */
-export type InferArgumentRawType<S extends string> = S extends `<${string}>`
-  ? string
-  : S extends `[...${string}]`
-    ? string[]
+export type InferArgumentRawType<S extends string> = S extends `[...${string}]` | `<...${string}>`
+  ? string[]
+  : S extends `<${string}>`
+    ? string
     : S extends `[${string}]`
       ? undefined | string
       : undefined | string | string[];
@@ -116,39 +116,47 @@ export type InferArgumentType<S extends string, C extends ArgumentInit<S>> = C e
 /**
  * Infer the arguments type
  */
-export type InferArgumentsType<S extends string> = S extends `<${string}> ${infer U}`
-  ? [string, ...InferArgumentsType1<U>]
-  : S extends `[...${string}] ${string}`
-    ? never
-    : S extends `[${string}] ${infer U}`
-      ? [undefined | string, ...InferArgumentsType2<U>]
-      : S extends `${string} ${infer U}`
-        ? InferArgumentsType<U>
-        : S extends `<${string}>`
-          ? [string]
-          : S extends `[...${string}]`
-            ? [string[]]
-            : S extends `[${string}]`
-              ? [undefined | string]
-              : [];
-
-type InferArgumentsType1<S extends string> = S extends `<${string}> ${infer U}`
-  ? [string, ...InferArgumentsType<U>]
-  : S extends `[...${string}] ${string}`
-    ? never
-    : S extends `[${string}] ${infer U}`
-      ? [undefined | string, ...InferArgumentsType2<U>]
-      : S extends `${string} ${string}`
+export type InferArgumentsType<S extends string> = S extends `<...${string}> ${string}`
+  ? never
+  : S extends `<...${string}>`
+    ? [string[]]
+    : S extends `<${string}> ${infer U}`
+      ? [string, ...InferArgumentsType1<U>]
+      : S extends `[...${string}] ${string}`
         ? never
-        : S extends `<${string}>`
-          ? [string]
-          : S extends `[...${string}]`
-            ? [string[]]
-            : S extends `[${string}]`
-              ? [undefined | string]
-              : S extends `${string}`
-                ? never
-                : [];
+        : S extends `[${string}] ${infer U}`
+          ? [undefined | string, ...InferArgumentsType2<U>]
+          : S extends `${string} ${infer U}`
+            ? InferArgumentsType<U>
+            : S extends `<${string}>`
+              ? [string]
+              : S extends `[...${string}]`
+                ? [string[]]
+                : S extends `[${string}]`
+                  ? [undefined | string]
+                  : [];
+
+type InferArgumentsType1<S extends string> = S extends `<...${string}> ${string}`
+  ? never
+  : S extends `<...${string}>`
+    ? [string[]]
+    : S extends `<${string}> ${infer U}`
+      ? [string, ...InferArgumentsType<U>]
+      : S extends `[...${string}] ${string}`
+        ? never
+        : S extends `[${string}] ${infer U}`
+          ? [undefined | string, ...InferArgumentsType2<U>]
+          : S extends `${string} ${string}`
+            ? never
+            : S extends `<${string}>`
+              ? [string]
+              : S extends `[...${string}]`
+                ? [string[]]
+                : S extends `[${string}]`
+                  ? [undefined | string]
+                  : S extends `${string}`
+                    ? never
+                    : [];
 
 type InferArgumentsType2<S extends string> = S extends `<${string}> ${string}`
   ? never

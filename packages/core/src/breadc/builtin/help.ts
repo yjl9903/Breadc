@@ -59,6 +59,8 @@ function formatArgument(command: InternalCommand) {
         return `<${argument.name}>`;
       case 'optional':
         return `[${argument.name}]`;
+      case 'required-spread':
+        return `<...${argument.name}>`;
       case 'spread':
         return `[...${argument.name}]`;
     }

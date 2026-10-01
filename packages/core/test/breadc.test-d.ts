@@ -398,7 +398,7 @@ describe('types/option', () => {
   });
 
   it('does not infer value arguments for negative or paired forms', () => {
-    type Invalid = `${'' | '-a, '}--${'no-' | '[no-]'}all ${'<value>' | '[value]' | '[...value]'}`;
+    type Invalid = `${'' | '-a, '}--${'no-' | '[no-]'}all ${'<value>' | '[value]' | '<...value>'}`;
     expectTypeOf<InferOptionRawName<Invalid>>().toEqualTypeOf<never>();
     expectTypeOf<InferOptionRawType<Invalid>>().toEqualTypeOf<never>();
     expectTypeOf<InferOptionDefaultType<Invalid>>().toEqualTypeOf<never>();
@@ -426,7 +426,7 @@ describe('types/option', () => {
   });
 
   it('infer spread option type from command', () => {
-    const cmd = command('').option('--flag [...arg]');
+    const cmd = command('').option('--flag <...arg>');
     expectTypeOf<(options: { flag: string[]; '--': string[] }, context: Context<{}>) => unknown>().toEqualTypeOf<
       Parameters<(typeof cmd)['action']>[0]
     >();
@@ -496,16 +496,16 @@ describe('types/option', () => {
 
   it('infer spread option type with transform from command', () => {
     const cmd = command('')
-      .option('--flag1 [...arg]', '')
-      .option('--flag2 [...arg]', '', { default: ['default'] })
-      .option('--flag3 [...arg]', '', {
+      .option('--flag1 <...arg>', '')
+      .option('--flag2 <...arg>', '', { default: ['default'] })
+      .option('--flag3 <...arg>', '', {
         cast: (t) => t.join(',')
       })
-      .option('--flag4 [...arg]', '', {
+      .option('--flag4 <...arg>', '', {
         default: [],
         cast: (t) => t.join(',')
       })
-      .option('--flag5 [...arg]', '', {
+      .option('--flag5 <...arg>', '', {
         default: ['default'],
         cast: (t) => t.join(',')
       });
@@ -635,15 +635,15 @@ describe('types/option', () => {
           return Number(value);
         }
       })
-      .option('--array [...value]')
-      .option('--array-default [...value]', '', { default: [] })
-      .option('--array-cast [...value]', '', {
+      .option('--array <...value>')
+      .option('--array-default <...value>', '', { default: [] })
+      .option('--array-cast <...value>', '', {
         cast: (value) => {
           expectTypeOf(value).toEqualTypeOf<string[]>();
           return new Set(value);
         }
       })
-      .option('--array-both [...value]', '', {
+      .option('--array-both <...value>', '', {
         default: ['a'],
         cast: (value) => {
           expectTypeOf(value).toEqualTypeOf<string[]>();
@@ -689,7 +689,7 @@ describe('types/option', () => {
         })
       )
       .command('run')
-      .option('--command [...value]', '', { default: [], cast: (raw) => raw.length })
+      .option('--command <...value>', '', { default: [], cast: (raw) => raw.length })
       .option(option('--factory-command <value>', '', { cast: Number }))
       .option(option('--factory-optional [value]'))
       .option(option('--factory-boolean', '', { cast: Number }))
@@ -711,7 +711,7 @@ describe('types/option', () => {
       .option('--boolean', '', { default: false, cast })
       .option('--required <value>', '', { default: '', cast })
       .option('--optional [value]', '', { default: '', cast })
-      .option('--array [...value]', '', { default: [], cast })
+      .option('--array <...value>', '', { default: [], cast })
       .option('--only-undefined', '', { cast: () => undefined })
       .option('--only-null <value>', '', { default: '', cast: () => null })
       .action((options) => {
@@ -732,7 +732,7 @@ describe('types/option', () => {
       .option('--plain <value>', '', { default: undefined })
       .option('--maybe <value>', '', { default: maybeDefault, cast: Number })
       .option('--boolean', '', { default: undefined, cast: Number })
-      .option('--array [...value]', '', { default: undefined, cast: (value) => value.length })
+      .option('--array <...value>', '', { default: undefined, cast: (value) => value.length })
       .action((options) => {
         expectTypeOf(options.required).toEqualTypeOf<number | undefined>();
         expectTypeOf(options.optional).toEqualTypeOf<number | undefined>();
@@ -774,5 +774,39 @@ describe('types/middleware', () => {
     expectTypeOf<
       Command<'', CommandInit<''>, { count: number; group: string; command: string }, {}, [], unknown>
     >().toEqualTypeOf<typeof cmd>();
+  });
+});
+
+describe('types/required spread arguments', () => {
+  it('infers complete arrays for declarations and converters', () => {
+    expectTypeOf<InferArgumentRawType<'<...files>'>>().toEqualTypeOf<string[]>();
+    expectTypeOf<InferArgumentDefaultType<'<...files>'>>().toEqualTypeOf<never>();
+    expectTypeOf<InferArgumentCastInput<'<...files>'>>().toEqualTypeOf<string[]>();
+    command('upload <...files>').action((files) => {
+      expectTypeOf(files).toEqualTypeOf<string[]>();
+    });
+    command('upload <owner> <...files>').action((owner, files) => {
+      expectTypeOf(owner).toEqualTypeOf<string>();
+      expectTypeOf(files).toEqualTypeOf<string[]>();
+    });
+    command('upload')
+      .argument('<...files>', {
+        cast: (files) => {
+          expectTypeOf(files).toEqualTypeOf<string[]>();
+          return new Set(files);
+        }
+      })
+      .action((files) => {
+        expectTypeOf(files).toEqualTypeOf<Set<string>>();
+      });
+    command('upload')
+      .argument(argument('<...files>', { cast: (files) => files.length }))
+      .action((count) => {
+        expectTypeOf(count).toEqualTypeOf<number>();
+      });
+    // @ts-expect-error required arrays cannot have defaults
+    argument('<...files>', { default: ['file'] });
+    // @ts-expect-error required arrays cannot have defaults
+    command('upload').argument('<...files>', { default: ['file'] });
   });
 });

@@ -554,7 +554,7 @@ describe('deferred middleware validation', () => {
       .length(2)
       .transform((items) => items.join(','));
     const validate = vi.spyOn(cast['~standard'], 'validate');
-    const app = breadc('cli').option('--items [...item]', '', { default: ['invalid default'], cast });
+    const app = breadc('cli').option('--items <...item>', '', { default: ['invalid default'], cast });
     app
       .command('run')
       .argument('[...items]', { default: ['invalid default'], cast })
@@ -612,7 +612,7 @@ describe('deferred middleware validation', () => {
   it('rejects schema failures after the unknown-command chain instead of returning success', async () => {
     const cast = z.array(z.string()).length(3);
     const validate = vi.spyOn(cast['~standard'], 'validate');
-    const app = breadc('cli').option('--items [...item]', '', { cast });
+    const app = breadc('cli').option('--items <...item>', '', { cast });
     const seen: string[] = [];
     for (const value of ['a', 'b']) {
       app.onUnknownCommand((context) => {
@@ -644,5 +644,85 @@ describe('deferred middleware validation', () => {
       issues: [{ code: ErrorCode.MISSING_OPTION_VALUE }]
     });
     expect(cast).not.toHaveBeenCalled();
+  });
+});
+
+describe('runtime/run: array options', () => {
+  it('shows optional options with one or more required values in help', async () => {
+    const app = breadc('cli').option('-i, --include <...value>', 'Include files');
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const help = await app.run(['--help']);
+      expect(help).toContain('Usage: cli [OPTIONS]');
+      expect(help).toContain('-i, --include <...value>');
+    } finally {
+      output.mockRestore();
+    }
+  });
+
+  it('exposes raw arrays to middleware and converts once before the action', async () => {
+    const cast = vi.fn((values: string[]) => values.join(','));
+    const app = breadc('cli').option('-i, --include <...value>', '', { cast });
+    const seen: unknown[] = [];
+    app.use((context, next) => {
+      seen.push(context.options.get('include')?.value());
+      expect(cast).not.toHaveBeenCalled();
+      return next();
+    });
+    app.command('build <target>').action((target, options) => [target, options]);
+    await expect(app.run(['build', 'target', '-i', 'a', 'b', '--include=c', '--', 'x', '--foo'])).resolves.toEqual([
+      'target',
+      { include: 'a,b,c', '--': ['x', '--foo'] }
+    ]);
+    expect(seen).toEqual([['a', 'b', 'c']]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b', 'c']);
+  });
+
+  it.each(['--help', '--version'])('skips array casts for %s but still diagnoses empty occurrences', async (flag) => {
+    const cast = vi.fn((values: string[]) => values);
+    const action = vi.fn();
+    const middleware = vi.fn((context, next) => next());
+    const app = breadc('cli').option('--include <...value>', '', { cast }).use(middleware);
+    app.command('build <target>').action(action);
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      app.parse(['build', '--include', 'a', 'b', flag]);
+      await app.run(['build', '--include', 'a', 'b', flag]);
+      await expect(app.run(['build', '--include', flag])).rejects.toThrow('Missing required option value');
+      expect(cast).not.toHaveBeenCalled();
+      expect(action).not.toHaveBeenCalled();
+      expect(middleware).not.toHaveBeenCalled();
+    } finally {
+      output.mockRestore();
+    }
+  });
+});
+
+describe('runtime/run: required spread arguments', () => {
+  it('passes a converted array to the action', async () => {
+    const app = breadc('cli');
+    const cast = vi.fn((files: string[]) => new Set(files));
+    app
+      .command('upload')
+      .argument('<...files>', { cast })
+      .action((files, options) => [files, options['--']]);
+    await expect(app.run(['upload', 'a', 'b', '--', 'c'])).resolves.toEqual([new Set(['a', 'b']), ['c']]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b']);
+  });
+
+  it.each(['--help', '--version'])('allows %s before required-array validation and conversion', async (flag) => {
+    const app = breadc('cli');
+    const cast = vi.fn((files: string[]) => files);
+    const action = vi.fn();
+    app.command('upload').argument('<...files>', { cast }).action(action);
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const text = await app.run(['upload', flag]);
+      if (flag === '--help') expect(text).toContain('upload <...files>');
+      expect(cast).not.toHaveBeenCalled();
+      expect(action).not.toHaveBeenCalled();
+    } finally {
+      output.mockRestore();
+    }
   });
 });

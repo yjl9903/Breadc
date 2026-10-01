@@ -150,7 +150,7 @@ export type InternalOption = Option & {
   argument?: string | undefined;
 };
 
-export type ArgumentType = 'required' | 'optional' | 'spread';
+export type ArgumentType = 'required' | 'optional' | 'spread' | 'required-spread';
 
 export type InternalArgument = Argument & {
   type: ArgumentType;

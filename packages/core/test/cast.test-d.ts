@@ -22,7 +22,7 @@ it('accepts narrow schema inputs and extracts precise outputs', () => {
     .option('--mode <value>', '', { cast: mode })
     .option('--default-mode <value>', '', { default: 'dev', cast: mode })
     .option('--object [value]', '', { default: 'name', cast: object })
-    .option('--files [...value]', '', { cast: files })
+    .option('--files <...value>', '', { cast: files })
     .option('--flag', '', { cast: mini.boolean() });
   expectTypeOf(app.parse([]).options).toEqualTypeOf<{
     mode: 'dev' | 'prod' | undefined;
@@ -128,7 +128,7 @@ it('keeps function contextual inputs stable beside the schema union', () => {
         return value?.length ?? 0;
       }
     })
-    .option('--files [...value]', '', {
+    .option('--files <...value>', '', {
       cast: (value) => {
         expectTypeOf(value).toEqualTypeOf<string[]>();
         return new Set(value);
@@ -196,7 +196,7 @@ it('does not loosen raw default or function input types for schemas', () => {
   // @ts-expect-error boolean defaults must be booleans
   option('--flag', '', { default: 'true', cast: z.coerce.boolean() });
   // @ts-expect-error array defaults must be string arrays
-  option('--files [...value]', '', { default: 'file', cast: z.array(z.string()) });
+  option('--files <...value>', '', { default: 'file', cast: z.array(z.string()) });
   // @ts-expect-error required arguments cannot have defaults
   argument('<name>', { default: 'name', cast: z.string() });
   // @ts-expect-error optional arguments require string defaults

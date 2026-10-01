@@ -918,7 +918,7 @@ describe('runtime/parser: options', () => {
 
   it('parses spread option values', () => {
     const app = breadc('cli');
-    app.option('-s, --include [...value]');
+    app.option('-s, --include <...value>');
 
     const result = app.parse<unknown[], { include: string[] }>(['-s=a', '-s=b']);
     expect(result.options.include).toMatchInlineSnapshot(`
@@ -1587,7 +1587,7 @@ describe('runtime/parser: boolean option forms', () => {
   it.each(['--no-all', '--[no-]all', '-a, --no-all', '-a, --[no-]all'])(
     'rejects value arguments on %s on every parse',
     (spec) => {
-      for (const suffix of ['<value>', '[value]', '[...value]']) {
+      for (const suffix of ['<value>', '[value]', '<...value>']) {
         const app = breadc('cli').option(`${spec} ${suffix}`);
         for (let i = 0; i < 2; i++) {
           expect(() => app.parse([])).toThrow(expect.objectContaining({ code: ErrorCode.INVALID_OPTION_SPEC }));
@@ -1799,7 +1799,7 @@ describe('runtime/parser: short option combinations', () => {
   it.each([
     ['-o, --output <value>', 'file'],
     ['-o, --output [value]', 'file'],
-    ['-o, --output [...value]', ['file']]
+    ['-o, --output <...value>', ['file']]
   ])('supports all attached forms for %s', (spec, output) => {
     const app = breadc('cli').option('-a, --all').option(spec);
     for (const argv of [['-aofile'], ['-ao=file'], ['-ao', 'file']]) {
@@ -1831,7 +1831,7 @@ describe('runtime/parser: short option combinations', () => {
   });
 
   it('accumulates repeated spread options', () => {
-    const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
+    const app = breadc('cli').option('-a, --all').option('-s, --include <...value>');
     expect(app.parse(['-asfirst', '-s=second', '-s', 'third', '-s=']).options).toEqual({
       all: true,
       include: ['first', 'second', 'third', '']
@@ -1840,7 +1840,7 @@ describe('runtime/parser: short option combinations', () => {
   });
 
   it.each(['--include', '-s', '-as'])('requires a value for every spread occurrence of %s', (flag) => {
-    const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
+    const app = breadc('cli').option('-a, --all').option('-s, --include <...value>');
     for (const tail of [[], ['--all'], ['--help'], ['--unknown'], ['--', 'file']]) {
       for (const prefix of [[], ['--include', 'first']]) {
         expect(() => app.parse([...prefix, flag, ...tail])).toThrow(`Missing required option value: --include`);
@@ -1849,7 +1849,7 @@ describe('runtime/parser: short option combinations', () => {
   });
 
   it('preserves explicit empty spread values and normal accumulation', () => {
-    const app = breadc('cli').option('-a, --all').option('-s, --include [...value]');
+    const app = breadc('cli').option('-a, --all').option('-s, --include <...value>');
     expect(app.parse([]).options.include).toEqual([]);
     expect(app.parse(['--include', 'a', '--include', 'b']).options.include).toEqual(['a', 'b']);
     for (const argv of [['--include='], ['--include', ''], ['-s='], ['-s', ''], ['-as='], ['-as', '']]) {
@@ -1859,7 +1859,7 @@ describe('runtime/parser: short option combinations', () => {
 
   it('requires spread values even when default values are configured', () => {
     for (const init of [{ default: ['seed'] }, { default: [] }]) {
-      const app = breadc('cli').option('--include [...value]', '', init);
+      const app = breadc('cli').option('--include <...value>', '', init);
       expect(app.parse([]).options.include).toEqual(init.default);
       expect(() => app.parse(['--include'])).toThrow(`Missing required option value: --include`);
     }
@@ -1979,22 +1979,22 @@ describe('runtime/parser: option value boundaries', () => {
     }
   });
 
-  it.each(['<value>', '[value]', '[...value]'] as const)('preserves negative decimal strings for %s', (kind) => {
+  it.each(['<value>', '[value]', '<...value>'] as const)('preserves negative decimal strings for %s', (kind) => {
     const app = breadc('cli').option('-a, --all').option(`-o, --output ${kind}`);
     for (const value of [...negativeNumbers, '-', '', '2foo']) {
       for (const output of ['--output', '-o', '-ao']) {
         expect(app.parse([output, value]).options.output, `${output} ${value}`).toEqual(
-          kind === '[...value]' ? [value] : value
+          kind === '<...value>' ? [value] : value
         );
       }
     }
   });
 
-  it.each(['<value>', '[value]', '[...value]'] as const)('accepts explicit option-like values for %s', (kind) => {
+  it.each(['<value>', '[value]', '<...value>'] as const)('accepts explicit option-like values for %s', (kind) => {
     const app = breadc('cli').option('-a, --all').option(`-o, --output ${kind}`);
     for (const value of [...optionLikeValues, '--']) {
       for (const arg of [`--output=${value}`, `-o${value}`, `-ao=${value}`]) {
-        expect(app.parse([arg]).options.output, arg).toEqual(kind === '[...value]' ? [value] : value);
+        expect(app.parse([arg]).options.output, arg).toEqual(kind === '<...value>' ? [value] : value);
       }
     }
   });
@@ -2162,7 +2162,7 @@ describe('runtime/parser: aggregated input diagnostics', () => {
   });
 
   it('reports duplicate and malformed values together without losing later options or escapes', () => {
-    const app = breadc('cli').option('-n, --number <value>').option('-a, --all').option('-s, --spread [...value]');
+    const app = breadc('cli').option('-n, --number <value>').option('-a, --all').option('-s, --spread <...value>');
     const error = inputError(() => app.parse(['-n', '-n', '-a', '-a=bad', '-s', '-sok', '--', '--escaped']));
     expect(error.issues.map((issue) => issue.code)).toEqual([
       ErrorCode.MISSING_OPTION_VALUE,
@@ -2226,5 +2226,302 @@ describe('runtime/parser: aggregated input diagnostics', () => {
     expect(() => app.parse(['--unknown', 'run'])).toThrow(
       expect.objectContaining({ name: 'DefinitionError', code: ErrorCode.REQUIRED_AFTER_OPTIONAL })
     );
+  });
+});
+
+describe('runtime/parser: multi-value array options', () => {
+  const makeApp = () =>
+    breadc('cli', { builtin: { version: false } })
+      .option('-i, --include <...value>')
+      .option('-v, --verbose');
+
+  it.each([
+    { argv: ['--include', 'a', 'b', 'c'], values: ['a', 'b', 'c'] },
+    { argv: ['-i', 'a', 'b', '--include', 'c', 'a'], values: ['a', 'b', 'c', 'a'] },
+    { argv: ['--include', 'a', 'b', '--include', 'c', 'd'], values: ['a', 'b', 'c', 'd'] },
+    { argv: ['-i', 'a', 'b', '--include=c'], values: ['a', 'b', 'c'] },
+    { argv: ['--include', '', 'a b', 'a,b'], values: ['', 'a b', 'a,b'] },
+    {
+      argv: ['--include', '-1', '-2.5', '-3e2', '-.5', '-1E-2', '-'],
+      values: ['-1', '-2.5', '-3e2', '-.5', '-1E-2', '-']
+    },
+    { argv: ['--include=-foo', '--include=--bar'], values: ['-foo', '--bar'] },
+    { argv: ['-vi', 'a', 'b'], values: ['a', 'b'] }
+  ])('collects complete occurrences: $argv', ({ argv, values }) => {
+    const result = makeApp().parse(argv);
+    expect(result.options.include).toEqual(values);
+    expect(result.args).toEqual([]);
+  });
+
+  it.each(['--include=a', '-i=a', '-ia', '-via', '-vi=a', '--include=', '-i=', '-vi='])(
+    'ends attached occurrence %s before positional matching',
+    (flag) => {
+      const app = makeApp();
+      app.command('build <target>');
+      const result = app.parse(['build', flag, 'target']);
+      expect(result.options.include).toEqual([flag.endsWith('=') ? '' : 'a']);
+      expect(result.args).toEqual(['target']);
+      expect(result.options.verbose).toBe(flag.startsWith('-v'));
+    }
+  );
+
+  it.each([
+    ['build', 'target', '--include', 'a', 'b'],
+    ['build', '--include', 'a', 'b', '--verbose', 'target']
+  ])('ends collection at option boundaries without resuming: %j', (...argv) => {
+    const app = makeApp();
+    app.command('build <target>');
+    const result = app.parse(argv);
+    expect(result.options.include).toEqual(['a', 'b']);
+    expect(result.args).toEqual(['target']);
+  });
+
+  it.each([['target'], ['--', 'target']])('does not reserve or recover positionals from %j', (...tail) => {
+    const cast = vi.fn((values: string[]) => values);
+    const app = breadc('cli').option('--include <...value>', '', { cast });
+    app.command('build <target>');
+    expect(() => app.parse(['build', '--include', 'a', 'b', ...tail])).toThrow(
+      expect.objectContaining({ issues: [expect.objectContaining({ code: ErrorCode.MISSING_ARGUMENT })] })
+    );
+    expect(cast).not.toHaveBeenCalled();
+  });
+
+  it('preserves raw passthrough without matching commands or options', () => {
+    const app = makeApp();
+    app.command('build <target>');
+    const result = app.parse(['build', 'target', '--include', 'a', 'b', '--', 'x', '--foo', 'build', '-v']);
+    expect(result.args).toEqual(['target']);
+    expect(result.options).toEqual({ include: ['a', 'b'], verbose: false });
+    expect(result['--']).toEqual(['x', '--foo', 'build', '-v']);
+  });
+
+  it.each(['--unknown', '-x', '-foo'])('leaves %s to unknown-option errors and middleware', (flag) => {
+    const app = makeApp();
+    app.command('build <target>');
+    expect(() => app.parse(['build', '--include', 'a', 'b', flag, 'target'])).toThrow(
+      expect.objectContaining({ issues: [expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION, name: flag })] })
+    );
+    const middleware = vi.fn((context, name) => {
+      expect(context.options.get('include')?.value()).toEqual(['a', 'b']);
+      expect(name).toBe(flag.replace(/^-+/, ''));
+      return { name, value: true, type: 'boolean' as const };
+    });
+    app.allowUnknownOption(middleware);
+    const result = app.parse(['build', '--include', 'a', 'b', flag, 'target']);
+    expect(result.args).toEqual(['target']);
+    expect(result.options.include).toEqual(['a', 'b']);
+    expect(middleware).toHaveBeenCalledTimes(1);
+  });
+
+  it('aggregates missing occurrences independently of earlier values and defaults', () => {
+    const cast = vi.fn((values: string[]) => values);
+    const app = breadc('cli')
+      .option('-i, --include <...value>', '', { default: ['seed'], cast })
+      .option('--verbose');
+    let error: InputError | undefined;
+    try {
+      app.parse(['--include', '--verbose', '-i', 'a', 'b', '--include', '--unknown', '-i', '--', 'tail']);
+    } catch (caught) {
+      if (!(caught instanceof InputError)) throw caught;
+      error = caught;
+    }
+    expect(error?.issues.map(({ code }) => code)).toEqual([
+      ErrorCode.MISSING_OPTION_VALUE,
+      ErrorCode.MISSING_OPTION_VALUE,
+      ErrorCode.UNKNOWN_OPTION,
+      ErrorCode.MISSING_OPTION_VALUE
+    ]);
+    expect(
+      error?.issues
+        .filter(({ code }) => code === ErrorCode.MISSING_OPTION_VALUE)
+        .map((issue) => 'name' in issue && issue.name)
+    ).toEqual(['include', 'include', 'i']);
+    expect(error?.context?.options.get('include')?.value()).toEqual(['a', 'b']);
+    expect(error?.context?.remaining).toEqual(['tail']);
+    expect(cast).not.toHaveBeenCalled();
+  });
+
+  it('consumes command names as values only during space-separated collection', () => {
+    const app = makeApp();
+    app.command('build');
+    const collected = app.parse(['--include', 'a', 'build']);
+    expect(collected.options.include).toEqual(['a', 'build']);
+    expect(collected.context.command).toBeUndefined();
+    expect(collected.context.pieces).toEqual([]);
+    for (const argv of [
+      ['--include=a', 'build'],
+      ['build', '--include', 'a']
+    ]) {
+      const result = app.parse(argv);
+      expect(result.context.command?.spec).toBe('build');
+      expect(result.options.include).toEqual(['a']);
+    }
+  });
+
+  it('does not reinterpret collected words as longer command candidates', () => {
+    const app = makeApp();
+    app.command('tool');
+    app.command('tool build deep');
+    const result = app.parse(['tool', '--include', 'a', 'build', 'deep']);
+    expect(result.context.command?.spec).toBe('tool');
+    expect(result.context.pieces).toEqual(['tool']);
+    expect(result.options.include).toEqual(['a', 'build', 'deep']);
+    expect(app.parse(['--include=a', 'tool', 'build', 'deep']).context.command?.spec).toBe('tool build deep');
+  });
+
+  it('preserves partial multi-word matching without reclaiming consumed words', () => {
+    const app = makeApp();
+    app.command('tool build');
+    const result = app.parse(['tool', '--include', 'a', 'build']);
+    expect(result.context.command).toBeUndefined();
+    expect(result.context.pieces).toEqual(['tool']);
+    expect(result.options.include).toEqual(['a', 'build']);
+  });
+
+  it.each([false, true])('collects once on the final default-command path (grouped=%s)', (grouped) => {
+    const cast = vi.fn((values: string[]) => values.join(','));
+    const app = breadc('cli');
+    const scope = grouped
+      ? app.group('tool').option('-i, --include <...value>', '', { cast })
+      : app.option('-i, --include <...value>', '', { cast });
+    scope.command('[target]');
+    scope.command('build');
+    const result = app.parse<unknown[], { include: string }>([
+      ...(grouped ? ['tool'] : []),
+      '--include',
+      'a',
+      'build',
+      '-i=c'
+    ]);
+    expect(result.context.command?.spec).toBe('[target]');
+    expect(result.args).toEqual([undefined]);
+    expect(result.options.include).toBe('a,build,c');
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'build', 'c']);
+  });
+
+  it.each([false, true])('uses array options declared by fallback commands (grouped=%s)', (grouped) => {
+    const cast = vi.fn((values: string[]) => values);
+    const app = breadc('cli');
+    const scope = grouped ? app.group('tool') : app;
+    scope.command('').option('--include <...value>', '', { cast });
+    scope.command('build');
+    const result = app.parse<unknown[], { include: string[] }>([...(grouped ? ['tool'] : []), '--include', 'a', 'b']);
+    expect(result.options.include).toEqual(['a', 'b']);
+    expect(result.args).toEqual([]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b']);
+  });
+
+  it('preserves option scope and aliases when a command shadows a group array', () => {
+    const app = makeApp();
+    const group = app.group('tool').option('-g, --include <...value>');
+    group.command('build').option('-c, --include <...value>');
+    const result = app.parse(['--include=root', 'tool', '-g=group', 'build', '-c', 'a', 'b', '--include=c']);
+    expect(result.options.include).toEqual(['a', 'b', 'c']);
+    expect(() => app.parse(['tool', 'build', '-g=x'])).toThrow('Unknown option: -g');
+  });
+
+  it.each([{ fallback: undefined }, { fallback: [] }, { fallback: ['seed'] }])(
+    'isolates defaults, cast mutations and repeated parses: $fallback',
+    ({ fallback }) => {
+      const original = fallback?.slice();
+      const cast = vi.fn((values: string[]) => {
+        values.push('cast');
+        return values;
+      });
+      const app = breadc('cli').option('--include <...value>', '', { default: fallback, cast });
+      const first = app.parse([]).options.include;
+      expect(first).toEqual([...(fallback ?? []), 'cast']);
+      first.push('caller');
+      expect(app.parse(['--include', 'a', 'b', '--include=c']).options.include).toEqual(['a', 'b', 'c', 'cast']);
+      expect(app.parse([]).options.include).toEqual([...(fallback ?? []), 'cast']);
+      expect(cast).toHaveBeenCalledTimes(3);
+      expect(fallback).toEqual(original);
+
+      const raw = breadc('cli').option('--include <...value>', '', { default: fallback });
+      raw.parse([]).options.include.push('caller');
+      expect(raw.parse([]).options.include).toEqual(fallback ?? []);
+    }
+  );
+
+  it('propagates cast failures without retrying defaults or allocating values to positionals', () => {
+    const failure = new Error('invalid array');
+    const cast = vi.fn(() => {
+      throw failure;
+    });
+    const app = breadc('cli').option('--include <...value>', '', { default: ['seed'], cast });
+    app.command('build [target]');
+    expect(() => app.parse(['build', '--include', 'a', 'b', 'target'])).toThrow(failure);
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b', 'target']);
+  });
+});
+
+describe('runtime/parser: required spread arguments', () => {
+  it.each(['inline', 'method', 'instance'])('collects one or more values with %s declarations', (kind) => {
+    const app = breadc('cli');
+    const cmd = app.command(kind === 'inline' ? 'upload <...files>' : 'upload');
+    if (kind === 'method') cmd.argument('<...files>');
+    if (kind === 'instance') cmd.argument(argument('<...files>'));
+    for (const files of [['a'], ['a', 'b'], ['', '-1', 'a b', 'a,b']]) {
+      expect(app.parse(['upload', ...files]).args).toEqual([files]);
+    }
+    for (const tail of [[], ['--', 'a']]) {
+      expect(() => app.parse(['upload', ...tail])).toThrow(
+        expect.objectContaining({ issues: [expect.objectContaining({ code: ErrorCode.MISSING_ARGUMENT })] })
+      );
+    }
+    const passed = app.parse(['upload', 'a', '--', 'b', '--other']);
+    expect(passed.args).toEqual([['a']]);
+    expect(passed['--']).toEqual(['b', '--other']);
+  });
+
+  it.each(['command', 'default', 'group'])('converts once after validating the final %s path', (kind) => {
+    const cast = vi.fn((files: string[]) => files.join(','));
+    const app = breadc('cli');
+    const scope = kind === 'group' ? app.group('tool') : app;
+    scope.command(kind === 'command' ? 'upload <owner>' : '<owner>').argument('<...files>', { cast });
+    scope.command('other');
+    const prefix = kind === 'command' ? ['upload'] : kind === 'group' ? ['tool'] : [];
+    expect(app.parse([...prefix, 'owner', 'a', 'b']).args).toEqual(['owner', 'a,b']);
+    expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b']);
+    expect(() => app.parse([...prefix, 'owner'])).toThrow('Missing required argument');
+    expect(cast).toHaveBeenCalledTimes(1);
+  });
+
+  it('checks array option collection and required positionals before conversion', () => {
+    const cast = vi.fn((files: string[]) => files);
+    const app = breadc('cli').option('--include <...value>', '', { cast });
+    app.command('upload').argument('<...files>', { cast });
+    expect(() => app.parse(['upload', '--include', 'a', 'b'])).toThrow('Missing required argument');
+    expect(cast).not.toHaveBeenCalled();
+    expect(app.parse(['upload', '--include=a', 'b', 'c']).args).toEqual([['b', 'c']]);
+    expect(cast.mock.calls).toEqual([[['a']], [['b', 'c']]]);
+  });
+
+  it('reports all missing positionals before casting and keeps separate parse arrays', () => {
+    const cast = vi.fn((files: string[]) => {
+      files.push('cast');
+      return files;
+    });
+    const app = breadc('cli');
+    app.command('upload <owner>').argument('<...files>', { cast });
+    expect(() => app.parse(['upload'])).toThrow(
+      expect.objectContaining({
+        issues: [
+          expect.objectContaining({
+            code: ErrorCode.MISSING_ARGUMENT,
+            argument: expect.objectContaining({ name: 'owner' })
+          }),
+          expect.objectContaining({
+            code: ErrorCode.MISSING_ARGUMENT,
+            argument: expect.objectContaining({ name: 'files' })
+          })
+        ]
+      })
+    );
+    expect(cast).not.toHaveBeenCalled();
+    const first = app.parse(['upload', 'owner', 'a']).args[1] as string[];
+    first.push('caller');
+    expect(app.parse(['upload', 'owner', 'b']).args).toEqual(['owner', ['b', 'cast']]);
+    expect(first).toEqual(['a', 'cast', 'caller']);
   });
 });

@@ -77,7 +77,11 @@ export function parse(app: Breadc<any, any>, argv: string[]) {
         const matchedArgument = new MatchedArgument(argument);
         const value: string | undefined = args[i];
 
-        if (argument.type === 'spread') {
+        if (argument.type === 'spread' || argument.type === 'required-spread') {
+          if (argument.type === 'required-spread' && value === undefined) {
+            context.issues.push({ code: ErrorCode.MISSING_ARGUMENT, message: 'Missing required argument', argument });
+          }
+
           for (; i < args.length; i++) {
             matchedArgument.accept(context, args[i]);
           }

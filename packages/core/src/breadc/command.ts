@@ -107,8 +107,9 @@ export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
   let name: string | undefined;
 
   if ('<' === spec[0] && '>' === spec[spec.length - 1]) {
-    type = 'required';
-    name = spec.slice(1, spec.length - 1);
+    const spread = spec[1] === '.' && spec[2] === '.' && spec[3] === '.';
+    type = spread ? 'required-spread' : 'required';
+    name = spec.slice(spread ? 4 : 1, spec.length - 1);
   } else if ('[' === spec[0] && ']' === spec[spec.length - 1]) {
     if (spec[1] === '.' && spec[2] === '.') {
       type = 'spread';
@@ -128,6 +129,12 @@ export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
       `Resolving invalid argument at the command "${spec}", position -1`,
       { details: { spec, position: -1 } }
     );
+  }
+
+  if (type === 'required-spread' && init?.default !== undefined) {
+    throw new DefinitionError(ErrorCode.INVALID_DEFAULT_VALUE, 'Required spread arguments cannot have defaults', {
+      details: { spec }
+    });
   }
 
   const result = {
