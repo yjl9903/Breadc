@@ -12,6 +12,6 @@
   "devDependencies": {
     "vitepress": "2.0.0-alpha.20",
     "vue": "3.5.43",
-    "wrangler": "4.143.1"
+    "wrangler": "4.144.0"
   }
 }
