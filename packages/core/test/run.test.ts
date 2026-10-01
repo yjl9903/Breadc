@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { vi, describe, it, expect, beforeAll } from 'vitest';
 
 import { options as colorOptions } from '@breadc/color';
@@ -313,31 +314,34 @@ describe('runtime/run: conversion boundaries', () => {
     { name: 'all', value: 'invalid', argv: [], code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE },
     { name: 'port', value: '2', argv: ['--port=1'], code: ErrorCode.DUPLICATE_OPTION }
   ])('middleware input errors: $code', ({ name, value, argv, code }) => {
-    it.each([false, true])('stops immediately before downstream execution (explicit next=%s)', async (explicitNext) => {
-      const afterAccept = vi.fn();
-      const downstream = vi.fn(async (context) => context);
-      const action = vi.fn();
-      const app = breadc('cli').option('--port <port>').option('--all');
-      app.use(async (context, next) => {
-        context.options.get(name)!.accept(context, name, value);
-        afterAccept();
-        return explicitNext ? next() : context;
-      });
-      app.use(downstream);
-      app.command('run').action(action);
+    it.each([false, true])(
+      'reports middleware syntax errors before the action (explicit next=%s)',
+      async (explicitNext) => {
+        const afterAccept = vi.fn();
+        const downstream = vi.fn(async (context) => context);
+        const action = vi.fn();
+        const app = breadc('cli').option('--port <port>').option('--all');
+        app.use(async (context, next) => {
+          context.options.get(name)!.accept(context, name, value);
+          afterAccept();
+          return explicitNext ? next() : context;
+        });
+        app.use(downstream);
+        app.command('run').action(action);
 
-      await expect(app.run(['run', ...argv])).rejects.toMatchObject({
-        name: 'InputError',
-        code: ErrorCode.INVALID_INPUT,
-        issues: [expect.objectContaining({ code, name })],
-        context: expect.objectContaining({ command: expect.anything() })
-      });
-      expect(afterAccept).not.toHaveBeenCalled();
-      expect(downstream).not.toHaveBeenCalled();
-      expect(action).not.toHaveBeenCalled();
-    });
+        await expect(app.run(['run', ...argv])).rejects.toMatchObject({
+          name: 'InputError',
+          code: ErrorCode.INVALID_INPUT,
+          issues: [expect.objectContaining({ code, name })],
+          context: expect.objectContaining({ command: expect.anything() })
+        });
+        expect(afterAccept).toHaveBeenCalledTimes(1);
+        expect(downstream).toHaveBeenCalledTimes(1);
+        expect(action).not.toHaveBeenCalled();
+      }
+    );
 
-    it('stops before subsequent unknown-command handlers', async () => {
+    it('reports syntax errors after the unknown-command handler chain', async () => {
       const afterAccept = vi.fn();
       const downstream = vi.fn();
       const app = breadc('cli').option('--port <port>').option('--all');
@@ -351,44 +355,41 @@ describe('runtime/run: conversion boundaries', () => {
         name: 'InputError',
         issues: [expect.objectContaining({ code, name })]
       });
-      expect(afterAccept).not.toHaveBeenCalled();
-      expect(downstream).not.toHaveBeenCalled();
+      expect(afterAccept).toHaveBeenCalledTimes(1);
+      expect(downstream).toHaveBeenCalledTimes(1);
     });
   });
 
-  it.each(['argument', 'option'])(
-    'propagates %s conversion failures directly from middleware assignment',
-    async (kind) => {
-      const failure = new Error('invalid input');
-      const cast = vi.fn(() => {
-        throw failure;
-      });
-      const action = vi.fn();
-      const afterAccept = vi.fn();
-      const app = breadc('cli');
-      app
-        .command('run')
-        .argument('[count]', { cast })
-        .option('--port <port>', '', { cast })
-        .use(async (context) => {
-          if (kind === 'argument') {
-            context.arguments[0].accept(context, 'invalid');
-          } else {
-            context.options.get('port')!.accept(context, 'port', 'invalid');
-          }
-          afterAccept();
-          return context;
-        })
-        .action(action);
+  it.each(['argument', 'option'])('propagates %s conversion failures at the action boundary', async (kind) => {
+    const failure = new Error('invalid input');
+    const cast = vi.fn(() => {
+      throw failure;
+    });
+    const action = vi.fn();
+    const afterAccept = vi.fn();
+    const app = breadc('cli');
+    app
+      .command('run')
+      .argument('[count]', { cast })
+      .option('--port <port>', '', { cast })
+      .use(async (context) => {
+        if (kind === 'argument') {
+          context.arguments[0].accept(context, 'invalid');
+        } else {
+          context.options.get('port')!.accept(context, 'port', 'invalid');
+        }
+        afterAccept();
+        return context;
+      })
+      .action(action);
 
-      await expect(app.run(['run'])).rejects.toBe(failure);
-      expect(cast).toHaveBeenCalledExactlyOnceWith('invalid');
-      expect(afterAccept).not.toHaveBeenCalled();
-      expect(action).not.toHaveBeenCalled();
-    }
-  );
+    await expect(app.run(['run'])).rejects.toBe(failure);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('invalid');
+    expect(afterAccept).toHaveBeenCalledTimes(1);
+    expect(action).not.toHaveBeenCalled();
+  });
 
-  it('converts input supplied by action middleware after initial finalization', async () => {
+  it('converts input supplied by action middleware at the action boundary', async () => {
     const optionCast = vi.fn(Number);
     const argumentCast = vi.fn(Number);
     const app = breadc('cli');
@@ -400,7 +401,9 @@ describe('runtime/run: conversion boundaries', () => {
         context.arguments[0].accept(context, '2');
         const port = context.options.get('port')!;
         port.accept(context, 'port', '8080');
-        expect(port.value()).toBe(8080);
+        expect(port.raw).toBe('8080');
+        expect(optionCast).not.toHaveBeenCalled();
+        expect(argumentCast).not.toHaveBeenCalled();
         return context;
       })
       .action((count, options) => [count, options.port]);
@@ -484,21 +487,22 @@ describe('runtime/run: conversion boundaries', () => {
     }
   );
 
-  it('converts once before unknown-command handlers and reuses the results', async () => {
+  it('converts once after all unknown-command handlers', async () => {
     const cast = vi.fn(Number);
     const app = breadc('cli').option('--count <value>', '', { default: '2', cast });
-    const seen: number[] = [];
+    const seen: unknown[] = [];
     app.onUnknownCommand((context) => {
-      seen.push(context.options.get('count')!.value());
+      seen.push(context.options.get('count')!.raw);
+      expect(cast).not.toHaveBeenCalled();
       expect(context.arguments[0].value()).toBe('unknown');
     });
     app.onUnknownCommand((context) => {
-      context.options.get('count')!.finalize();
-      seen.push(context.options.get('count')!.value());
+      seen.push(context.options.get('count')!.raw);
+      expect(cast).not.toHaveBeenCalled();
       return 'handled';
     });
     await expect(app.run(['unknown'])).resolves.toBe('handled');
-    expect(seen).toEqual([2, 2]);
+    expect(seen).toEqual(['2', '2']);
     expect(cast).toHaveBeenCalledExactlyOnceWith('2');
   });
 
@@ -522,7 +526,7 @@ describe('runtime/run: conversion boundaries', () => {
     expect(unknown).not.toHaveBeenCalled();
   });
 
-  it('propagates conversion failure before unknown handlers, action middleware or actions', async () => {
+  it('propagates conversion failure after middleware and skips the action', async () => {
     const failure = { cast: 'failed' };
     const cast = vi.fn(() => {
       throw failure;
@@ -537,8 +541,108 @@ describe('runtime/run: conversion boundaries', () => {
     app.command('run').action(action);
     await expect(app.run(['unknown'])).rejects.toBe(failure);
     await expect(app.run(['run'])).rejects.toBe(failure);
-    expect(unknown).not.toHaveBeenCalled();
-    expect(middleware).not.toHaveBeenCalled();
+    expect(unknown).toHaveBeenCalledTimes(1);
+    expect(middleware).toHaveBeenCalledTimes(1);
     expect(action).not.toHaveBeenCalled();
+  });
+});
+
+describe('deferred middleware validation', () => {
+  it.each([false, true])('validates only the final spread arrays (explicit next=%s)', async (explicitNext) => {
+    const cast = z
+      .array(z.string())
+      .length(2)
+      .transform((items) => items.join(','));
+    const validate = vi.spyOn(cast['~standard'], 'validate');
+    const app = breadc('cli').option('--items [...item]', '', { default: ['invalid default'], cast });
+    app
+      .command('run')
+      .argument('[...items]', { default: ['invalid default'], cast })
+      .use(async (context, next) => {
+        context.options.get('items')!.accept(context, 'items', 'a');
+        context.arguments[0].accept(context, 'a');
+        expect(validate).not.toHaveBeenCalled();
+        return explicitNext ? next() : context;
+      })
+      .use(async (context, next) => {
+        context.options.get('items')!.accept(context, 'items', 'b');
+        context.arguments[0].accept(context, 'b');
+        expect(validate).not.toHaveBeenCalled();
+        return explicitNext ? next() : context;
+      })
+      .action((items, options) => [items, options.items]);
+    await expect(app.run(['run'])).resolves.toEqual(['a,b', 'a,b']);
+    expect(validate).toHaveBeenCalledTimes(2);
+    expect(validate.mock.calls.map(([items]) => items)).toEqual([
+      ['a', 'b'],
+      ['a', 'b']
+    ]);
+  });
+
+  it.each([false, true])(
+    'aggregates final schema issues before the action (explicit next=%s)',
+    async (explicitNext) => {
+      const cast = z.coerce.number();
+      const action = vi.fn();
+      const downstream = vi.fn(async (context) => context);
+      const app = breadc('cli').option('--port <value>', '', { cast });
+      app
+        .command('run')
+        .argument('[count]', { cast })
+        .use(async (context, next) => {
+          context.options.get('port')!.accept(context, 'port', 'invalid');
+          context.arguments[0].accept(context, 'invalid');
+          return explicitNext ? next() : context;
+        })
+        .use(downstream)
+        .action(action);
+      await expect(app.run(['run'])).rejects.toMatchObject({
+        name: 'InputError',
+        context: expect.anything(),
+        issues: [
+          { code: ErrorCode.INVALID_OPTION_VALUE, value: 'invalid' },
+          { code: ErrorCode.INVALID_ARGUMENT_VALUE, value: 'invalid' }
+        ]
+      });
+      expect(downstream).toHaveBeenCalledTimes(1);
+      expect(action).not.toHaveBeenCalled();
+    }
+  );
+
+  it('rejects schema failures after the unknown-command chain instead of returning success', async () => {
+    const cast = z.array(z.string()).length(3);
+    const validate = vi.spyOn(cast['~standard'], 'validate');
+    const app = breadc('cli').option('--items [...item]', '', { cast });
+    const seen: string[] = [];
+    for (const value of ['a', 'b']) {
+      app.onUnknownCommand((context) => {
+        context.options.get('items')!.accept(context, 'items', value);
+        expect(validate).not.toHaveBeenCalled();
+        seen.push(value);
+        return 'success';
+      });
+    }
+    await expect(app.run(['unknown'])).rejects.toMatchObject({
+      name: 'InputError',
+      issues: [{ code: ErrorCode.INVALID_OPTION_VALUE, value: ['a', 'b'] }]
+    });
+    expect(seen).toEqual(['a', 'b']);
+    expect(validate).toHaveBeenCalledExactlyOnceWith(['a', 'b']);
+  });
+
+  it('checks middleware syntax diagnostics before running any converters', async () => {
+    const cast = vi.fn(Number);
+    const app = breadc('cli').option('--port <value>', '', { default: '1', cast });
+    app
+      .command('run')
+      .use(async (context) => {
+        context.options.get('port')!.accept(context, 'port', undefined);
+        return context;
+      })
+      .action(() => {});
+    await expect(app.run(['run'])).rejects.toMatchObject({
+      issues: [{ code: ErrorCode.MISSING_OPTION_VALUE }]
+    });
+    expect(cast).not.toHaveBeenCalled();
   });
 });

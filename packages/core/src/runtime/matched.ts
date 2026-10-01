@@ -1,7 +1,7 @@
 import type { Option, Argument } from '../breadc/types/app.ts';
 import type { InternalOption, InternalArgument, OptionType } from '../breadc/types/internal.ts';
 
-import { InputError, InternalError, ErrorCode, type InputIssue } from '../error.ts';
+import { InputError, InternalError, ErrorCode } from '../error.ts';
 
 import { executeCast, type CastResult } from './cast.ts';
 
@@ -77,10 +77,7 @@ export class MatchedArgument {
 
     this.dirty = true;
 
-    if (this.result !== undefined) {
-      this.result = undefined;
-      this.finalize();
-    }
+    this.result = undefined;
 
     return this;
   }
@@ -158,7 +155,7 @@ export class MatchedOption {
     if (duplicate) {
       const label =
         this.option.type === 'boolean' ? 'Boolean' : this.option.type === 'optional' ? 'Optional' : 'Required';
-      this.reportIssue(context, {
+      context.issues.push({
         code: ErrorCode.DUPLICATE_OPTION,
         message: `${label} option can only be assigned once`,
         option: this.option,
@@ -174,7 +171,7 @@ export class MatchedOption {
         if (FALSE_OPTION.includes(normalized)) {
           boolean = false;
         } else if (!TRUE_OPTION.includes(normalized)) {
-          this.reportIssue(context, {
+          context.issues.push({
             code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
             message: `Invalid boolean option value: --${this.option.long}`,
             option: this.option,
@@ -190,7 +187,7 @@ export class MatchedOption {
       }
     } else {
       if (this.option.type !== 'optional' && value === undefined) {
-        this.reportIssue(context, {
+        context.issues.push({
           code: ErrorCode.MISSING_OPTION_VALUE,
           message: `Missing required option value: --${this.option.long}`,
           option: this.option,
@@ -211,20 +208,9 @@ export class MatchedOption {
       }
     }
 
-    if (!duplicate && this.result !== undefined) {
-      this.result = undefined;
-      this.finalize();
-    }
+    if (!duplicate) this.result = undefined;
 
     return this;
-  }
-
-  private reportIssue(context: Context, issue: InputIssue) {
-    // After conversion, the parser's aggregate syntax check has already completed.
-    if (this.result !== undefined) {
-      throw new InputError([issue], { context });
-    }
-    context.issues.push(issue);
   }
 }
 

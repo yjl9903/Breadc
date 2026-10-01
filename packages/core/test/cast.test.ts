@@ -284,7 +284,7 @@ describe('Standard Schema cast', () => {
     expect(validate).not.toHaveBeenCalled();
   });
 
-  it('converts only the final fallback command and supplies cached values to middleware', async () => {
+  it('converts the final fallback command after middleware and before the action', async () => {
     const validate = vi.fn(z.string().transform(Number)['~standard'].validate);
     const app = breadc('cli').option('--port <value>', '', { default: '12', cast: schema(validate) });
     app.command('named').action(() => {});
@@ -292,10 +292,13 @@ describe('Standard Schema cast', () => {
       .command('')
       .argument('[count]', { default: '3', cast: z.string().transform(Number) })
       .use(async (context, next) => {
+        expect(context.options.get('port')!.raw).toBe('12');
+        expect(context.arguments[0].raw).toBe('3');
+        expect(validate).not.toHaveBeenCalled();
+        const result = await next();
         expect(context.options.get('port')!.value()).toBe(12);
         expect(context.arguments[0].value()).toBe(3);
-        finalizeInput(context);
-        return next();
+        return result;
       })
       .action((count, options) => ({ count, port: options.port }));
     expect(await app.run([])).toEqual({ count: 3, port: 12 });
@@ -332,8 +335,10 @@ describe('Standard Schema cast', () => {
     expect(success).toEqual({ value: ['a'] });
     expect(matched.finalize()).toBe(success);
     accept('b');
-    expect(() => matched.value()).toThrow(InputError);
+    expect(matched.value()).toEqual(['a', 'b']);
+    expect(validate).toHaveBeenCalledTimes(2);
     const updatedFailure = matched.finalize();
+    expect(() => matched.value()).toThrow(InputError);
     expect(updatedFailure.issues).toHaveLength(1);
     expect(updatedFailure).not.toBe(failure);
     expect(matched.finalize()).toBe(updatedFailure);

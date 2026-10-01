@@ -35,13 +35,12 @@ export async function run(app: Breadc, argv: string[]) {
     });
   }
 
-  finalizeInput(context);
-
   if (!command) {
     let res: any;
     for (const middleware of breadc._unknownCommandMiddlewares) {
       res = await middleware(context);
     }
+    finalizeInput(context);
     return res;
   }
 
@@ -55,12 +54,18 @@ export async function run(app: Breadc, argv: string[]) {
   // 5. Run
 
   const actionFn = command._actionFn!;
-  if (actionMiddlewares.length === 0) {
+  const invokeAction = async () => {
+    // Input validity is guaranteed at action entry. Changes made by middleware
+    // after the action completes (after awaiting next()) are not revalidated.
+    finalizeInput(context);
     const args = resolveArgs(context);
     const options = resolveOptions(context);
     options['--'] = context.remaining;
-    const output = await actionFn(...args, options, context);
-    return output;
+    return actionFn(...args, options, context);
+  };
+
+  if (actionMiddlewares.length === 0) {
+    return invokeAction();
   } else {
     const invoked: boolean[] = [];
     const makeNextFn = (index: number): ActionMiddlewareNextFn => {
@@ -70,10 +75,7 @@ export async function run(app: Breadc, argv: string[]) {
         }
         invoked[index] = true;
         if (index === actionMiddlewares.length) {
-          const args = resolveArgs(context);
-          const options = resolveOptions(context);
-          options['--'] = context.remaining;
-          context.output = await actionFn(...args, options, context);
+          context.output = await invokeAction();
         } else {
           const next = makeNextFn(index + 1);
           await actionMiddlewares[index](context, next);
@@ -84,6 +86,7 @@ export async function run(app: Breadc, argv: string[]) {
         return context;
       }) as ActionMiddlewareNextFn;
     };
+
     await makeNextFn(0)(undefined);
     return context.output;
   }

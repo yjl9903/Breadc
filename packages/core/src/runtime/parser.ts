@@ -117,6 +117,10 @@ export function parse(app: Breadc<any, any>, argv: string[]) {
 
 /** Convert validated input only after the caller has decided it is needed. */
 export function finalizeInput(context: Context<any>) {
+  // Middleware can add syntax diagnostics after the parser's initial check.
+  const [syntaxIssue, ...syntaxIssues] = context.issues;
+  if (syntaxIssue) throw new InputError([syntaxIssue, ...syntaxIssues], { context });
+
   const issues: InputIssue[] = [];
   for (const matched of [...context.options.values(), ...context.arguments]) {
     const result = matched.finalize();

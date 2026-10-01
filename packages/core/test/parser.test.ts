@@ -479,7 +479,7 @@ describe('runtime/parser: arguments', () => {
     expect(cast).toHaveBeenCalledExactlyOnceWith('8080');
   });
 
-  it('converts options before arguments in declaration order and reuses results in middleware/action', async () => {
+  it('converts options before arguments at the action boundary and reuses results after next', async () => {
     const order: string[] = [];
     const app = breadc('cli');
     app.option('--flag', '', {
@@ -505,8 +505,8 @@ describe('runtime/parser: arguments', () => {
       });
     cmd
       .use(async (context, next) => {
-        expect(resolveArgs(context)).toEqual([1, 3000]);
-        expect(resolveArgs(context)).toEqual([1, 3000]);
+        expect(context.arguments.map((argument) => argument.raw)).toEqual(['a', '3000']);
+        expect(order).toEqual([]);
         const result = await next();
         expect(resolveArgs(context)).toEqual([1, 3000]);
         return result;
