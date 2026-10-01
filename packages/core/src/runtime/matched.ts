@@ -39,6 +39,7 @@ export class MatchedArgument {
       this.result = shouldCast && this.argument.init.cast ? this.argument.init.cast(this.raw!) : this.raw;
       this.resolved = true;
     }
+
     return this;
   }
 
@@ -65,7 +66,15 @@ export class MatchedArgument {
       }
       this.raw = value;
     }
+
     this.dirty = true;
+
+    if (this.resolved) {
+      this.resolved = false;
+      this.result = undefined;
+      this.finalize();
+    }
+
     return this;
   }
 }
@@ -110,6 +119,7 @@ export class MatchedOption {
       this.result = shouldCast && this.option.init.cast ? this.option.init.cast(this.raw) : this.raw;
       this.resolved = true;
     }
+
     return this;
   }
 
@@ -187,6 +197,13 @@ export class MatchedOption {
         this.dirty = true;
       }
     }
+
+    if (!duplicate && this.resolved) {
+      this.resolved = false;
+      this.result = undefined;
+      this.finalize();
+    }
+
     return this;
   }
 }
