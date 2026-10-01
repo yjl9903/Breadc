@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-import { ErrorCode } from '../src/error.ts';
+import { ErrorCode, InputError } from '../src/error.ts';
 import { breadc } from '../src/breadc/app.ts';
 import { option } from '../src/breadc/option.ts';
 import { argument } from '../src/breadc/command.ts';
@@ -110,13 +110,13 @@ describe('runtime/matched: option', () => {
     matched.accept(ctx, 'all', undefined);
     expect(cast).toHaveBeenCalledTimes(2);
     expect(matched.value()).toBe('on');
-    matched.accept(ctx, 'all', 'false');
+    expect(() => matched.accept(ctx, 'all', 'false')).toThrow(InputError);
     expect(matched.finalize()).toEqual({ value: 'on' });
     expect(cast).toHaveBeenCalledTimes(2);
 
     const invalid = new MatchedOption(opt);
     invalid.finalize();
-    invalid.accept(ctx, 'all', 'invalid');
+    expect(() => invalid.accept(ctx, 'all', 'invalid')).toThrow(InputError);
     expect(invalid.value()).toBe('off');
     expect(cast).toHaveBeenCalledTimes(3);
   });
@@ -130,7 +130,7 @@ describe('runtime/matched: option', () => {
     matched.finalize();
     matched.accept(ctx, 'include', 'b');
     expect(matched.finalize()).toEqual({ value: 'a,b' });
-    matched.accept(ctx, 'include', undefined);
+    expect(() => matched.accept(ctx, 'include', undefined)).toThrow(InputError);
     expect(matched.finalize()).toEqual({ value: 'a,b' });
     expect(cast).toHaveBeenCalledTimes(2);
   });
