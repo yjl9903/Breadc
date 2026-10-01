@@ -18,7 +18,6 @@ type OptionBinding = { option: InternalOption; inverted: boolean };
 interface ParseResult {
   args: string[];
   unmatchedArgs: string[];
-  unknownOption?: { name: string; value: string | undefined };
 }
 
 export function parse(app: Breadc, argv: string[]) {
@@ -56,92 +55,74 @@ export function parse(app: Breadc, argv: string[]) {
   }
 
   // 5. Validate the final pass and bind arguments
-  const { args, unmatchedArgs, unknownOption } = result;
+  const { args, unmatchedArgs } = result;
   const { command } = context;
 
-  if (unknownOption) {
-    throw new InputError(
-      [{ code: ErrorCode.UNKNOWN_OPTION, message: `Unknown option: ${unknownOption.name}`, ...unknownOption }],
-      { context }
-    );
-  }
+  // Explicit help/version skips positional requirements, but still reports scan diagnostics.
+  if (!isHelp(context) && !isVersion(context)) {
+    if (command) {
+      if (unmatchedArgs.length > 0) {
+        context.issues.push({
+          code: ErrorCode.UNEXPECTED_ARGUMENTS,
+          message: 'Detect unexpected redundant arguments',
+          command,
+          values: unmatchedArgs
+        });
+      }
 
-  if (isHelp(context) || isVersion(context)) {
-    return context;
-  }
+      // Fulfill the matched arguments, collecting all missing requirements.
+      let i = 0;
+      for (; i < command._arguments.length; i++) {
+        const argument = command._arguments[i];
+        const matchedArgument = new MatchedArgument(argument);
+        const value: string | undefined = args[i];
 
-  if (command) {
-    if (unmatchedArgs.length > 0) {
-      throw new InputError(
-        [
-          {
-            code: ErrorCode.UNEXPECTED_ARGUMENTS,
-            message: 'Detect unexpected redundant arguments',
-            command,
-            values: unmatchedArgs
+        if (argument.type === 'spread') {
+          for (; i < args.length; i++) {
+            matchedArgument.accept(context, args[i]);
           }
-        ],
-        { context }
-      );
-    }
-
-    // Fulfill the matched arguments
-    let i = 0;
-    for (; i < command._arguments.length; i++) {
-      const argument = command._arguments[i];
-      const matchedArgument = new MatchedArgument(argument);
-      const value: string | undefined = args[i];
-
-      if (argument.type === 'required') {
-        if (value === undefined) {
-          throw new InputError([{ code: ErrorCode.MISSING_ARGUMENT, message: 'Missing required argument', argument }], {
-            context
-          });
-        }
-        matchedArgument.accept(context, value);
-        context.arguments.push(matchedArgument);
-      } else if (argument.type === 'optional') {
-        if (value !== undefined) {
+        } else if (value !== undefined) {
           matchedArgument.accept(context, value);
-        }
-        context.arguments.push(matchedArgument);
-      } else {
-        for (; i < args.length; i++) {
-          matchedArgument.accept(context, args[i]);
+        } else if (argument.type === 'required') {
+          context.issues.push({ code: ErrorCode.MISSING_ARGUMENT, message: 'Missing required argument', argument });
         }
         context.arguments.push(matchedArgument);
       }
-    }
-    if (i < args.length) {
-      throw new InputError(
-        [
-          {
-            code: ErrorCode.UNEXPECTED_ARGUMENTS,
-            message: 'Detect unexpected redundant arguments',
-            command,
-            values: args.slice(i)
-          }
-        ],
-        { context }
+
+      if (i < args.length) {
+        context.issues.push({
+          code: ErrorCode.UNEXPECTED_ARGUMENTS,
+          message: 'Detect unexpected redundant arguments',
+          command,
+          values: args.slice(i)
+        });
+      }
+    } else {
+      // Fill missing unknown arguments
+      context.arguments.push(
+        ...unmatchedArgs.map((arg, idx) =>
+          new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(context, arg)
+        )
       );
     }
-  } else {
-    // Fill missing unknown arguments
-    context.arguments.push(
-      ...unmatchedArgs.map((arg, idx) =>
-        new MatchedArgument(rawArgument('required', `arg_${idx}`)).accept(context, arg)
-      )
-    );
   }
 
+  const [firstIssue, ...otherIssues] = context.issues;
+  if (firstIssue) {
+    throw new InputError([firstIssue, ...otherIssues], { context });
+  }
+
+  return context;
+}
+
+/** Convert validated input only after the caller has decided it is needed. */
+export function finalizeInput(context: Context<any>) {
   for (const option of context.options.values()) {
     option.finalize();
   }
   for (const argument of context.arguments) {
     argument.finalize();
   }
-
-  return context;
 }
 
 export function resolveArgs(context: Context<any>) {
@@ -202,7 +183,7 @@ function* parseShortOptions(
   }
 }
 
-// Match one pass into context. Defer unknown-option validation and argument binding
+// Match one pass into context. Defer diagnostic reporting and argument binding
 // until the caller has selected the final pass, including any default-command fallback.
 function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   const { breadc, tokens, options: matchedOptions } = context;
@@ -222,7 +203,6 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   const registeredOptions: Map<string, InternalOption> = new Map();
   const args: string[] = [];
   const unmatchedArgs: string[] = [];
-  let unknownOption: ParseResult['unknownOption'];
 
   const registerOption = (option: InternalOption) => {
     const previous = registeredOptions.get(option.long);
@@ -428,8 +408,9 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
               break;
             }
           }
-          if (!accepted && !unknownOption) {
-            unknownOption = { name: isLong ? `--${key}` : `-${key}`, value };
+          if (!accepted) {
+            const name = isLong ? `--${key}` : `-${key}`;
+            context.issues.push({ code: ErrorCode.UNKNOWN_OPTION, message: `Unknown option: ${name}`, name, value });
           }
         }
       }
@@ -450,5 +431,5 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
   context.group = matchedGroup;
   context.command = matchedCommand;
 
-  return { args, unmatchedArgs, unknownOption };
+  return { args, unmatchedArgs };
 }

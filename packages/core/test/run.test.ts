@@ -221,10 +221,15 @@ describe('runtime/run', () => {
       const fail = () => {
         throw failure;
       };
-      const optionApp = breadc('cli').option('--value <value>', '', { cast: fail });
+      const optionApp = breadc('cli')
+        .option('--value <value>', '', { cast: fail })
+        .onUnknownCommand(() => {});
       await expect(optionApp.run(['--value=x'])).rejects.toBe(failure);
       const argumentApp = breadc('cli');
-      argumentApp.command('run').argument('<file>', { cast: fail });
+      argumentApp
+        .command('run')
+        .argument('<file>', { cast: fail })
+        .action(() => {});
       await expect(argumentApp.run(['run', 'x'])).rejects.toBe(failure);
       await expect(breadc('cli').allowUnknownOption(fail).run(['--typo'])).rejects.toBe(failure);
       await expect(breadc('cli').onUnknownCommand(fail).run(['unknown'])).rejects.toBe(failure);
@@ -299,5 +304,139 @@ describe('runtime/run', () => {
     await expect(app.run(['ping', '--help'])).resolves.toMatchInlineSnapshot(`"command-help"`);
     await expect(app.run(['ping', '--version'])).resolves.toMatchInlineSnapshot(`"command-version"`);
     expect(action).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('runtime/run: conversion boundaries', () => {
+  it.each(['--help', '--version'])('skips all casts and execution for explicit %s in parse and run', async (flag) => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const cast = vi.fn(() => {
+        throw new Error('must not convert');
+      });
+      const action = vi.fn();
+      const middleware = vi.fn();
+      const unknown = vi.fn();
+      const app = breadc('cli')
+        .option('--count <value>', '', { default: '1', cast })
+        .use(middleware)
+        .onUnknownCommand(unknown);
+      app.command('run').argument('<file>', { cast }).action(action);
+      expect(app.parse(['run', flag]).args).toEqual([]);
+      await app.run(['run', 'file', 'extra', flag]);
+      await app.run([flag]);
+      expect(cast).not.toHaveBeenCalled();
+      expect(action).not.toHaveBeenCalled();
+      expect(middleware).not.toHaveBeenCalled();
+      expect(unknown).not.toHaveBeenCalled();
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it('only run skips conversion for automatic help, while ordinary parse still converts', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const cast = vi.fn(Number);
+      const app = breadc('cli').option('--count <value>', '', { default: '2', cast });
+      app.group('tool').command('run');
+      for (const argv of [[], ['unknown'], ['tool'], ['--count=3']]) {
+        await expect(app.run(argv)).resolves.toContain('Usage: cli');
+      }
+      expect(cast).not.toHaveBeenCalled();
+      expect(app.parse([]).options.count).toBe(2);
+      expect(cast).toHaveBeenCalledExactlyOnceWith('2');
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it.each([[], ['--help'], ['--version'], ['run']])(
+    'reports syntax errors before casts, help or any execution: %j',
+    async (...prefix) => {
+      const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+      try {
+        const cast = vi.fn(Number);
+        const action = vi.fn();
+        const middleware = vi.fn();
+        const unknown = vi.fn();
+        const app = breadc('cli').option('--count <value>', '', { default: '2', cast }).use(middleware);
+        app.command('run').action(action);
+        const argv = [...prefix, '--typo', '--other'];
+        await expect(app.run(argv)).rejects.toMatchObject({
+          issues: [
+            { code: ErrorCode.UNKNOWN_OPTION, name: '--typo' },
+            { code: ErrorCode.UNKNOWN_OPTION, name: '--other' }
+          ]
+        });
+        app.onUnknownCommand(unknown);
+        await expect(app.run(argv)).rejects.toMatchObject({ code: ErrorCode.INVALID_INPUT });
+        expect(cast).not.toHaveBeenCalled();
+        expect(action).not.toHaveBeenCalled();
+        expect(middleware).not.toHaveBeenCalled();
+        expect(unknown).not.toHaveBeenCalled();
+        expect(log).not.toHaveBeenCalled();
+      } finally {
+        log.mockRestore();
+      }
+    }
+  );
+
+  it('converts once before unknown-command handlers and reuses the results', async () => {
+    const cast = vi.fn(Number);
+    const app = breadc('cli').option('--count <value>', '', { default: '2', cast });
+    const seen: number[] = [];
+    app.onUnknownCommand((context) => {
+      seen.push(context.options.get('count')!.value());
+      expect(context.arguments[0].value()).toBe('unknown');
+    });
+    app.onUnknownCommand((context) => {
+      context.options.get('count')!.finalize();
+      seen.push(context.options.get('count')!.value());
+      return 'handled';
+    });
+    await expect(app.run(['unknown'])).resolves.toBe('handled');
+    expect(seen).toEqual([2, 2]);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('2');
+  });
+
+  it('checks action presence before any conversion or execution', async () => {
+    const cast = vi.fn(() => {
+      throw new Error('must not convert');
+    });
+    const middleware = vi.fn();
+    const unknown = vi.fn();
+    const app = breadc('cli')
+      .option('--count <value>', '', { default: '2', cast })
+      .use(middleware)
+      .onUnknownCommand(unknown);
+    app.command('run').argument('<file>', { cast });
+    await expect(app.run(['run', 'file'])).rejects.toMatchObject({
+      name: 'DefinitionError',
+      code: ErrorCode.MISSING_COMMAND_ACTION
+    });
+    expect(cast).not.toHaveBeenCalled();
+    expect(middleware).not.toHaveBeenCalled();
+    expect(unknown).not.toHaveBeenCalled();
+  });
+
+  it('propagates conversion failure before unknown handlers, action middleware or actions', async () => {
+    const failure = { cast: 'failed' };
+    const cast = vi.fn(() => {
+      throw failure;
+    });
+    const unknown = vi.fn();
+    const middleware = vi.fn();
+    const action = vi.fn();
+    const app = breadc('cli')
+      .option('--count <value>', '', { default: '2', cast })
+      .onUnknownCommand(unknown)
+      .use(middleware);
+    app.command('run').action(action);
+    await expect(app.run(['unknown'])).rejects.toBe(failure);
+    await expect(app.run(['run'])).rejects.toBe(failure);
+    expect(unknown).not.toHaveBeenCalled();
+    expect(middleware).not.toHaveBeenCalled();
+    expect(action).not.toHaveBeenCalled();
   });
 });

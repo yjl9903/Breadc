@@ -87,32 +87,29 @@ describe('runtime/matched: argument', () => {
 });
 
 describe('runtime/matched: option', () => {
-  it.each([false, true])('rejects invalid boolean values without changing state (inverted=%s)', (inverted) => {
+  it.each([false, true])('records invalid boolean values without assigning them (inverted=%s)', (inverted) => {
     const opt = option('--all', '', { default: true });
     resolveOption(opt);
-    const ctx = makeContext(breadc('cli'), []);
-    const matched = new MatchedOption(opt);
     const name = inverted ? 'no-all' : 'all';
 
     for (const value of ['abc', '', ' ', ' true', 'false ', '2', '-1']) {
-      expect(() => matched.accept(ctx, name, value, inverted)).toThrow(
-        expect.objectContaining({
-          message: `Invalid boolean option value: --all`,
-          issues: [expect.objectContaining({ code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE, option: opt, name, value })],
-          context: ctx
-        })
-      );
-      expect({ dirty: matched.dirty, raw: matched.raw }).toMatchInlineSnapshot(`
-        {
-          "dirty": false,
-          "raw": true,
-        }
-      `);
-    }
+      const ctx = makeContext(breadc('cli'), []);
+      const matched = new MatchedOption(opt);
+      expect(matched.accept(ctx, name, value, inverted)).toBe(matched);
+      expect(ctx.issues).toEqual([
+        expect.objectContaining({ code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE, option: opt, name, value })
+      ]);
+      expect(matched.dirty).toBe(false);
+      expect(matched.raw).toBe(true);
 
-    matched.accept(ctx, name, '0', inverted);
-    expect(matched.value()).toBe(inverted);
-    expect(matched.dirty).toMatchInlineSnapshot(`true`);
+      matched.accept(ctx, name, '0', inverted);
+      expect(ctx.issues.map((issue) => issue.code)).toEqual([
+        ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
+        ErrorCode.DUPLICATE_OPTION
+      ]);
+      expect(matched.dirty).toBe(false);
+      expect(matched.raw).toBe(true);
+    }
   });
 
   it('reads optional value from next token', () => {
@@ -134,13 +131,10 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt);
-    expect(() => matched.accept(ctx, 'n', undefined)).toThrow(
-      expect.objectContaining({
-        message: `Missing required option value: --number`,
-        issues: [expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE, option: opt, name: 'n' })],
-        context: ctx
-      })
-    );
+    matched.accept(ctx, 'n', undefined);
+    expect(ctx.issues).toEqual([
+      expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE, option: opt, name: 'n' })
+    ]);
     expect(matched.dirty).toBe(false);
   });
 
@@ -160,7 +154,8 @@ describe('runtime/matched: option', () => {
     const ctx = makeContext(breadc('cli'), [value]);
     const matched = new MatchedOption(opt);
 
-    expect(() => matched.accept(ctx, 'output', undefined)).toThrow('Missing required option value');
+    matched.accept(ctx, 'output', undefined);
+    expect(ctx.issues).toEqual([expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE })]);
     expect(ctx.tokens.peek()?.toRaw()).toBe(value);
     expect(matched.dirty).toBe(false);
   });
@@ -172,7 +167,9 @@ describe('runtime/matched: option', () => {
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt);
-    expect(() => matched.accept(ctx, 'n', undefined)).toThrow('Missing required option value');
+    matched.accept(ctx, 'n', undefined);
+    expect(ctx.issues).toEqual([expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE })]);
+    expect(matched.raw).toBe('seed');
   });
 
   it('interprets negated boolean option with explicit false text', () => {
@@ -195,34 +192,40 @@ describe('runtime/matched: option', () => {
     expect(matched.value()).toMatchInlineSnapshot(`false`);
   });
 
-  it('throws when required option is accepted twice', () => {
+  it('records a diagnostic when required option is accepted twice', () => {
     const app = breadc('cli');
     const opt = option('-n, --number <value>');
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'n', '1');
-    expect(() => matched.accept(ctx, '-n', '2')).toThrow('Required option can only be assigned once');
+    matched.accept(ctx, '-n', '2');
+    expect(ctx.issues).toEqual([expect.objectContaining({ code: ErrorCode.DUPLICATE_OPTION, value: '2' })]);
+    expect(matched.raw).toBe('1');
   });
 
-  it('throws when boolean option is accepted twice', () => {
+  it('records a diagnostic when boolean option is accepted twice', () => {
     const app = breadc('cli');
     const opt = option('--open');
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'open', undefined);
-    expect(() => matched.accept(ctx, 'open', undefined)).toThrow('Boolean option can only be assigned once');
+    matched.accept(ctx, 'open', undefined);
+    expect(ctx.issues).toEqual([expect.objectContaining({ code: ErrorCode.DUPLICATE_OPTION })]);
+    expect(matched.raw).toBe(true);
   });
 
-  it('throws when optional option is accepted twice', () => {
+  it('records a diagnostic when optional option is accepted twice', () => {
     const app = breadc('cli');
     const opt = option('-o, --output [value]');
     resolveOption(opt);
 
     const ctx = makeContext(app, []);
     const matched = new MatchedOption(opt).accept(ctx, 'o', 'first');
-    expect(() => matched.accept(ctx, 'o', 'second')).toThrow('Optional option can only be assigned once');
+    matched.accept(ctx, 'o', 'second');
+    expect(ctx.issues).toEqual([expect.objectContaining({ code: ErrorCode.DUPLICATE_OPTION, value: 'second' })]);
+    expect(matched.raw).toBe('first');
   });
 
   it('accumulates spread option values', () => {
@@ -266,12 +269,11 @@ describe('runtime/matched: option', () => {
       const matched = new MatchedOption(opt);
 
       const rejectMissing = () => {
-        expect(() => matched.accept(ctx, 's', undefined)).toThrow(
-          expect.objectContaining({
-            message: `Missing required option value: --include`,
-            issues: [expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE, option: opt, name: 's' })],
-            context: ctx
-          })
+        const count = ctx.issues.length;
+        matched.accept(ctx, 's', undefined);
+        expect(ctx.issues).toHaveLength(count + 1);
+        expect(ctx.issues.at(-1)).toEqual(
+          expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE, option: opt, name: 's' })
         );
         expect(ctx.tokens.peek()?.toRaw()).toBe(next);
       };
