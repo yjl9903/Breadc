@@ -1,6 +1,6 @@
 # 🥪 Breadc
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yjl9903/Breadc)
+[![Ask DeepWiki](https://raw.githubusercontent.com/yjl9903/Breadc/main/assets/deepwiki.svg)](https://deepwiki.com/yjl9903/Breadc)
 [![version](https://img.shields.io/npm/v/breadc?label=Breadc)](https://www.npmjs.com/package/breadc)
 [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/yjl9903/Breadc/branch/main/graph/badge.svg?token=F7PGOG62EF)](https://codecov.io/gh/yjl9903/Breadc)
