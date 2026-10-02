@@ -35,7 +35,8 @@
   "scripts": {
     "build": "tsdown",
     "test": "vitest",
-    "test:ci": "vitest --run",
+    "test:ci": "vitest --run --typecheck",
+    "test:coverage": "vitest run --coverage --typecheck",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -43,5 +44,9 @@
     "@breadc/core": "workspace:*",
     "@breadc/death": "workspace:*",
     "@breadc/tui": "workspace:*"
+  },
+  "devDependencies": {
+    "@standard-schema/spec": "^1.1.0",
+    "zod": "^4.6.5"
   }
 }

@@ -2,7 +2,7 @@ import { beforeEach, afterEach, vi, describe, it, expect } from 'vitest';
 
 import { options as colorOptions } from '@breadc/color';
 
-import { breadc } from '../src/breadc/index.ts';
+import { breadc, printHelp, printVersion } from '../src/index.ts';
 
 beforeEach(() => {
   colorOptions.enabled = false;
@@ -16,7 +16,7 @@ afterEach(() => {
 
 describe('breadc/builtin: version', () => {
   it('print unknown version', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const log = vi.mocked(console.log);
 
     const app = breadc('cli');
     const output = await app.run<string>(['-v']);
@@ -26,7 +26,7 @@ describe('breadc/builtin: version', () => {
   });
 
   it('print passed version', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const log = vi.mocked(console.log);
 
     const app = breadc('cli', { version: '1.0.0' });
     const output = await app.run<string>(['--version']);
@@ -37,8 +37,66 @@ describe('breadc/builtin: version', () => {
 });
 
 describe('breadc/builtin: help', () => {
+  it('reads unvisited group declarations without building them or running user code', async () => {
+    const cast = vi.fn(Number);
+    const action = vi.fn((first, second, options) => [first, second, options.count]);
+    const middleware = vi.fn((_context, next) => next());
+    const app = breadc('cli').use(middleware);
+    const group = app.group('tool');
+    const command = group.command('run <first>', 'Run a tool').alias('r').option('--count <value>', '', { cast });
+    group.command('upload').argument('<...files>');
+    group.command('list').argument('[...paths]');
+
+    const firstHelp = await app.run<string>(['--help']);
+    expect(firstHelp).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli <COMMAND> [OPTIONS]
+
+      Commands:
+        cli tool run <first>        Run a tool
+        cli tool upload <...files>  
+        cli tool list [...paths]    
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+
+    command.argument('<second>').action(action);
+    const help = await app.run<string>(['--help']);
+    expect(help).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli <COMMAND> [OPTIONS]
+
+      Commands:
+        cli tool run <first> <second>  Run a tool
+        cli tool upload <...files>     
+        cli tool list [...paths]       
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+    for (const fn of [cast, action, middleware]) expect(fn).not.toHaveBeenCalled();
+
+    await expect(app.run(['tool', 'r', 'one', 'two', '--count=2'])).resolves.toMatchInlineSnapshot(`
+      [
+        "one",
+        "two",
+        2,
+      ]
+    `);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('2');
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(await app.run(['--help'])).toBe(help);
+  });
+
   it('print default help', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const log = vi.mocked(console.log);
 
     const app = breadc('cli');
     const output = await app.run<string>(['-h']);
@@ -57,7 +115,7 @@ describe('breadc/builtin: help', () => {
   });
 
   it('print help when no commands matched', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const log = vi.mocked(console.log);
 
     const app = breadc('cli');
     app.command('ping').action(() => 'pong');
@@ -81,8 +139,6 @@ describe('breadc/builtin: help', () => {
   });
 
   it('generate rich help message output', async () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-
     const app = breadc('cli', {
       version: '1.0.0',
       description: 'This is a cli app.'
@@ -110,8 +166,6 @@ describe('breadc/builtin: help', () => {
   });
 
   it('support custom builtin spec/description', async () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-
     const app = breadc('cli', {
       builtin: {
         help: {
@@ -131,15 +185,13 @@ describe('breadc/builtin: help', () => {
       Usage: cli [OPTIONS]
 
       Options:
-        -H, --HELP           Print help
-            --build-version  Print version
+        -H, --HELP           Show usage information
+            --build-version  Show build version
       "
     `);
   });
 
   it('collects root/group/command options for group help', async () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-
     const app = breadc('cli').option('--host <addr>', 'Host address');
     const store = app.group('store').option('--region <id>', 'Region');
     store.command('ls', 'List files').option('--long', 'Long list');
@@ -157,10 +209,10 @@ describe('breadc/builtin: help', () => {
         cli store rm  Remove files
 
       Options:
-            --host <addr>  Host address
-            --region <id>  Region
         -h, --help         Print help
         -v, --version      Print version
+            --host <addr>  Host address
+            --region <id>  Region
       "
     `);
   });
@@ -171,7 +223,20 @@ describe('breadc/builtin: help', () => {
     app.command('build');
 
     const output = await app.run<string>(['--help']);
-    expect(output).toContain('Usage: cli [COMMAND] [OPTIONS]');
+    expect(output).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [COMMAND] [OPTIONS]
+
+      Commands:
+        cli [file]  
+        cli build   
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
   });
 
   it('formats default command args in help output', async () => {
@@ -233,7 +298,6 @@ describe('breadc/builtin: help', () => {
       Usage: cli [OPTIONS]
       "
     `);
-    expect(output.includes('Options:')).toBe(false);
   });
 
   it('supports custom help spec for both short and long forms', async () => {
@@ -285,12 +349,11 @@ describe('breadc/builtin: help', () => {
         cli build test  Build and test
 
       Options:
-            --host <addr>  Host address
         -h, --help         Print help
         -v, --version      Print version
+            --host <addr>  Host address
       "
     `);
-    expect(output.includes('--open')).toBe(false);
   });
 
   it('formats required/spread command args in help output', async () => {
@@ -308,9 +371,9 @@ describe('breadc/builtin: help', () => {
         cli deploy <env> [...files]  
 
       Options:
-        -c, --config <path>  Config path
         -h, --help           Print help
         -v, --version        Print version
+        -c, --config <path>  Config path
       "
     `);
   });
@@ -353,10 +416,10 @@ describe('breadc/builtin: help', () => {
         cli build test  Build test
 
       Options:
-            --host <addr>  Host address
-            --watch        Watch mode
         -h, --help         Print help
         -v, --version      Print version
+            --host <addr>  Host address
+            --watch        Watch mode
       "
     `);
   });
@@ -378,11 +441,11 @@ describe('breadc/builtin: help', () => {
         cli store rm      Remove files
 
       Options:
+        -h, --help         Print help
+        -v, --version      Print version
             --host <addr>  Host address
             --region <id>  Region
             --long         Long list
-        -h, --help         Print help
-        -v, --version      Print version
       "
     `);
   });
@@ -404,19 +467,107 @@ describe('breadc/builtin: help', () => {
         cli build run  Build app
 
       Options:
-            --host <addr>  Host address
         -h, --help         Print help
         -v, --version      Print version
+            --host <addr>  Host address
       "
     `);
-    expect(output.includes('--region')).toBe(false);
-    expect(output.includes('--long')).toBe(false);
+  });
+
+  it('expands paired boolean forms in help output', async () => {
+    const app = breadc('cli')
+      .option('-a, --[no-]all', 'Include everything')
+      .option('--[no-]cache', 'Use cache')
+      .option('--no-open', 'Do not open');
+    const output = vi.mocked(console.log);
+    await app.run(['--help']);
+    const text = output.mock.calls.map((args) => args.join(' ')).join('\n');
+    expect(text).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS]
+
+      Options:
+        -h, --help               Print help
+        -v, --version            Print version
+        -a, --all, --no-all      Include everything
+            --cache, --no-cache  Use cache
+            --no-open            Do not open
+      "
+    `);
+  });
+
+  it('prints builtin help before resolving required command args', async () => {
+    const app = breadc('cli');
+    app.command('sub-command <param>');
+
+    await expect(app.run(['sub-command', '-h'])).resolves.toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli sub-command <param> [OPTIONS]
+
+      Commands:
+        cli sub-command <param>  
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+  });
+
+  it('shows array option values in help', async () => {
+    const app = breadc('cli').option('-i, --include <...value>', 'Include files');
+    const help = await app.run(['--help']);
+    expect(help).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS]
+
+      Options:
+        -h, --help                Print help
+        -v, --version             Print version
+        -i, --include <...value>  Include files
+      "
+    `);
+  });
+
+  it('honors builtin display configuration and scoped overrides in help', async () => {
+    const app = breadc('cli', {
+      builtin: { help: { description: 'Show usage' }, version: { description: 'Show release' } }
+    });
+    const text = await app.run<string>(['--help']);
+    expect(text).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli [OPTIONS]
+
+      Options:
+        -h, --help     Show usage
+        -v, --version  Show release
+      "
+    `);
+    app.command('run').option('--version', 'Local version');
+    const scoped = await app.run<string>(['run', '--help']);
+    expect(scoped).toMatchInlineSnapshot(`
+      "cli/unknown
+
+      Usage: cli run [OPTIONS]
+
+      Commands:
+        cli run  
+
+      Options:
+        -h, --help     Show usage
+            --version  Local version
+      "
+    `);
   });
 });
 
 describe('breadc/builtin: i18n', () => {
   it('print chinese help', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const log = vi.mocked(console.log);
 
     const app = breadc('cli', { i18n: 'zh' });
     const output = await app.run<string>(['-h']);
@@ -457,6 +608,85 @@ describe('breadc/builtin: i18n', () => {
       选项:
         -h, --help     显示帮助信息
         -v, --version  显示版本信息
+      "
+    `);
+  });
+
+  it('renders direct helpers with an explicit locale', () => {
+    const app = breadc('cli', { i18n: 'zh', version: '3' });
+    const { context } = app.parse(['--help']);
+    expect(printHelp(context, { i18n: 'zh' })).toMatchInlineSnapshot(`
+      "cli/3
+
+      用法: cli [选项]
+
+      选项:
+        -h, --help     显示帮助信息
+        -v, --version  显示版本信息
+      "
+    `);
+    expect(printHelp(context)).toMatchInlineSnapshot(`
+      "cli/3
+
+      Usage: cli [OPTIONS]
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+    expect(printVersion(context)).toMatchInlineSnapshot(`"cli/3"`);
+  });
+
+  it('keeps locale and disabled builtins isolated between instances and runs', async () => {
+    const chinese = breadc('zh', { i18n: 'zh' });
+    const english = breadc('en');
+    const disabled = breadc('bare', { builtin: { help: false, version: false } });
+    await expect(chinese.run(['--help'])).resolves.toMatchInlineSnapshot(`
+      "zh/unknown
+
+      用法: zh [选项]
+
+      选项:
+        -h, --help     显示帮助信息
+        -v, --version  显示版本信息
+      "
+    `);
+    await expect(english.run(['--help'])).resolves.toMatchInlineSnapshot(`
+      "en/unknown
+
+      Usage: en [OPTIONS]
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+    await expect(chinese.run([])).resolves.toMatchInlineSnapshot(`
+      "zh/unknown
+
+      用法: zh [选项]
+
+      选项:
+        -h, --help     显示帮助信息
+        -v, --version  显示版本信息
+      "
+    `);
+    await expect(english.run([])).resolves.toMatchInlineSnapshot(`
+      "en/unknown
+
+      Usage: en [OPTIONS]
+
+      Options:
+        -h, --help     Print help
+        -v, --version  Print version
+      "
+    `);
+    await expect(disabled.run(['--help'])).rejects.toThrow('Unknown option');
+    await expect(disabled.run([])).resolves.toMatchInlineSnapshot(`
+      "bare/unknown
+
+      Usage: bare [OPTIONS]
       "
     `);
   });

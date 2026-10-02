@@ -1,14 +1,22 @@
+export type { BreadcInit } from './types.ts';
+
+export { breadc } from './app.ts';
+
+export { printHelp } from './builtin/help.ts';
+
+export { printVersion } from './builtin/version.ts';
+
 export type {
   Cast,
   InferCastOutput,
   BreadcErrorOptions,
   InputIssue,
   Breadc,
-  BreadcInit,
   Group,
   GroupInit,
   Option,
   OptionInit,
+  OptionActionInit,
   Command,
   CommandInit,
   Argument,
@@ -20,13 +28,12 @@ export type {
 } from '@breadc/core';
 
 export {
-  breadc,
+  parse,
+  run,
   group,
   option,
   command,
   argument,
-  printHelp,
-  printVersion,
   BreadcError,
   DefinitionError,
   InputError,

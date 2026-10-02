@@ -17,51 +17,6 @@ export type BreadcInit = {
    * CLI app description
    */
   description?: string;
-
-  /**
-   * I18n language or custom i18n function
-   *
-   * @default 'en'
-   */
-  i18n?: 'en' | 'zh';
-
-  /**
-   * Logger
-   */
-  // logger?: LoggerInit;
-
-  /**
-   * Builtin command configuration
-   */
-  builtin?: {
-    version?:
-      | boolean
-      | {
-          /**
-           * @default '-v, --version'
-           */
-          spec?: string;
-
-          /**
-           *
-           */
-          description?: string;
-        };
-
-    help?:
-      | boolean
-      | {
-          /**
-           * @default '-h, --help'
-           */
-          spec?: string;
-
-          /**
-           *
-           */
-          description?: string;
-        };
-  };
 };
 
 export type OptionInit<Spec extends string, Output = unknown> = {

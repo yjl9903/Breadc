@@ -24,7 +24,9 @@ it('accepts narrow schema inputs and extracts precise outputs', () => {
     .option('--object [value]', '', { default: 'name', cast: object })
     .option('--files <...value>', '', { cast: files })
     .option('--flag', '', { cast: mini.boolean() });
-  expectTypeOf(app.parse([]).options).toEqualTypeOf<{
+  const parsed = app.parse([]);
+
+  expectTypeOf(parsed.options).toEqualTypeOf<{
     mode: 'dev' | 'prod' | undefined;
     defaultMode: 'dev' | 'prod';
     object: z.output<typeof object>;
@@ -55,7 +57,8 @@ it('preserves standalone declarations in every registration overload', () => {
   const cast = z.enum(['dev', 'prod']);
   const opt = option('--mode <value>', '', { default: 'dev', cast });
   const arg = argument('[name]', { default: 'dev', cast });
-  expectTypeOf(breadc('cli').option(opt).parse([]).options.mode).toEqualTypeOf<'dev' | 'prod'>();
+  const parsed = breadc('cli').option(opt).parse([]);
+  expectTypeOf(parsed.options.mode).toEqualTypeOf<'dev' | 'prod'>();
   group('tool')
     .option(opt)
     .command('run')
@@ -88,19 +91,18 @@ it('combines output undefined/null with definite and possibly absent defaults', 
   expectTypeOf<InferOptionType<'--value <value>', Maybe>>().toEqualTypeOf<'dev' | 'prod' | undefined>();
   expectTypeOf<InferArgumentType<'[value]', Maybe>>().toEqualTypeOf<'dev' | 'prod' | undefined>();
   const fallback: string | undefined = Math.random() > 0.5 ? 'dev' : undefined;
-  expectTypeOf(
-    breadc('cli').option('--mode <value>', '', { default: fallback, cast: mode }).parse([]).options.mode
-  ).toEqualTypeOf<'dev' | 'prod' | undefined>();
+  const parsed = breadc('cli').option('--mode <value>', '', { default: fallback, cast: mode }).parse([]);
+  expectTypeOf(parsed.options.mode).toEqualTypeOf<'dev' | 'prod' | undefined>();
   const defaults = z.string().default('schema default');
-  expectTypeOf(breadc('cli').option('--mode [value]', '', { cast: defaults }).parse([]).options.mode).toEqualTypeOf<
-    string | undefined
-  >();
+  const optional = breadc('cli').option('--mode [value]', '', { cast: defaults }).parse([]);
+  expectTypeOf(optional.options.mode).toEqualTypeOf<string | undefined>();
   command('run')
     .argument('[name]', { cast: defaults })
     .action((name) => {
       expectTypeOf(name).toEqualTypeOf<string | undefined>();
     });
-  expectTypeOf(breadc('cli').option('--flag', '', { cast: undefined }).parse([]).options.flag).toEqualTypeOf<boolean>();
+  const flag = breadc('cli').option('--flag', '', { cast: undefined }).parse([]);
+  expectTypeOf(flag.options.flag).toEqualTypeOf<boolean>();
   command('run')
     .argument('[name]', { cast: undefined })
     .action((name) => {

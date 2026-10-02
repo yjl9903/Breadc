@@ -1,4 +1,4 @@
-import type { Context } from '../../runtime/context';
+import type { BreadcInit } from '../types.ts';
 
 export const en: Record<string, string> = {
   OPTIONS: 'OPTIONS',
@@ -20,8 +20,8 @@ export const zh: Record<string, string> = {
   'Print version': '显示版本信息'
 } as const;
 
-export const i18n = (context: Context<any>, key: string, fallback?: string) => {
-  if (context.breadc._init.i18n === 'zh') {
+export const i18n = (locale: BreadcInit['i18n'], key: string, fallback?: string) => {
+  if (locale === 'zh') {
     return zh[key] || fallback || key;
   }
   return en[key] || fallback || key;

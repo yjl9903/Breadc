@@ -77,6 +77,13 @@ export type InferOptionType<S extends string, C extends OptionInit<S>> = C exten
       : InferOptionRawType<S>
     : InferOptionRawType<S>;
 
+/** An action receives an explicitly supplied option, so absence adds no undefined. */
+export type InferOptionActionValue<S extends string, C extends OptionInit<S>> = C extends {
+  cast: infer Converter extends Cast<any>;
+}
+  ? InferCastOutput<Converter>
+  : InferOptionCastInput<S>;
+
 export type InferOption<S extends string, C extends OptionInit<S>> = {
   [K in InferOptionName<S>]: InferOptionType<S, C>;
 };

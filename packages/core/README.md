@@ -12,7 +12,7 @@ Yet another **Command Line Application Framework** desgined for **[TypeScript](h
 - **Group**: organize commands by modules and build large multi-command CLI applications with clear structure
 - **Option**: support boolean, required, optional, spread options, explicit `--no-*` / `--[no-]*` boolean forms, and `--` passthrough arguments
 - **Middleware**: support middleware pipeline and unknown option handling
-- **Builtin CLI Features**: provide common help / version options and i18n support out of the box
+- **Minimal Runtime**: parsing, validation, option actions, and command execution; use `breadc` for help/version and localized output
 
 ![vscode](https://raw.githubusercontent.com/yjl9903/Breadc/v1.0.0-beta.1/assets/typescript.png)
 

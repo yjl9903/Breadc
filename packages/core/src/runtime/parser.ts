@@ -3,8 +3,6 @@ import type { Breadc, InternalBreadc, InternalOption, InternalGroup, InternalCom
 import { camelCase, splitOnce } from '../utils/string.ts';
 import { rawOption } from '../breadc/option.ts';
 import { rawArgument } from '../breadc/command.ts';
-import { buildHelpOption } from '../breadc/builtin/help.ts';
-import { buildVersionOption } from '../breadc/builtin/version.ts';
 import { InputError, DefinitionError, ErrorCode, type InputIssue } from '../error.ts';
 
 import { MatchedArgument, MatchedOption } from './matched.ts';
@@ -20,8 +18,8 @@ interface ParseResult {
   unmatchedArgs: string[];
 }
 
-export function parse(app: Breadc<any, any>, argv: string[]) {
-  const context = makeContext<any>(app as InternalBreadc, argv);
+export function parse(app: Breadc<any, any>, argv: string[]): Context {
+  const context = makeContext(app as InternalBreadc, argv);
 
   // 1. Prepare root commands
   buildApp(context.breadc);
@@ -41,7 +39,7 @@ export function parse(app: Breadc<any, any>, argv: string[]) {
   // 3. Parse without default command
   let result = doParse(context, onlyDefaultCommand ? { command: defaultCommand } : undefined);
 
-  if (context.command || isVersion(context) || isHelp(context)) {
+  if (context.command || context.actionOption) {
     // 4.1. No fallback needed
   } else if (context.group) {
     // 4.2. Parse with group default command
@@ -58,8 +56,8 @@ export function parse(app: Breadc<any, any>, argv: string[]) {
   const { args, unmatchedArgs } = result;
   const { command } = context;
 
-  // Explicit help/version skips positional requirements, but still reports scan diagnostics.
-  if (!isHelp(context) && !isVersion(context)) {
+  // Option actions skip positional binding, but still report every scan diagnostic.
+  if (!context.actionOption) {
     if (command) {
       if (unmatchedArgs.length > 0) {
         context.issues.push({
@@ -145,24 +143,18 @@ export function resolveOptions(context: Context<any>) {
   return options;
 }
 
-export function isHelp(context: Context<any>) {
-  const help = context.breadc._help;
-  if (help) {
-    const matched = context.options.get(help.long);
-    return matched?.option === help && matched.value<boolean>();
-  } else {
-    return false;
+/** Select by effective declaration identity and registration order, never by argv order. */
+export function selectActionOption(context: Context, options: Iterable<InternalOption>) {
+  let actionOption: MatchedOption | undefined;
+  for (const option of options) {
+    const matched = context.options.get(option.long);
+    if (!option._actionFn || matched?.option !== option || !matched.dirty) continue;
+    if (option.type === 'boolean' && matched.raw !== true) continue;
+    if (!actionOption || (option._actionPriority ?? 0) > (actionOption.option._actionPriority ?? 0)) {
+      actionOption = matched;
+    }
   }
-}
-
-export function isVersion(context: Context<any>) {
-  const version = context.breadc._version;
-  if (version) {
-    const matched = context.options.get(version.long);
-    return matched?.option === version && matched.value<boolean>();
-  } else {
-    return false;
-  }
+  return actionOption;
 }
 
 // Short option boundaries depend on declarations, so resolve them here rather than in the lexer.
@@ -226,6 +218,7 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
         pendingShortOptions.delete(previous.short);
       }
     }
+    registeredOptions.delete(option.long);
     registeredOptions.set(option.long, option);
 
     if (option.form !== 'negative') {
@@ -243,8 +236,10 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
     for (const option of options) {
       registerOption(option);
 
-      // Add to matched options
-      matchedOptions.set(option.long, new MatchedOption(option));
+      // Preserve explicit input when the same declaration is reused in a narrower scope.
+      if (matchedOptions.get(option.long)?.option !== option) {
+        matchedOptions.set(option.long, new MatchedOption(option));
+      }
     }
   };
   const addPendingCommand = (command: InternalGroup | InternalCommand, alias: number) => {
@@ -287,12 +282,6 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
 
   // 1. Prepare global options
   addPendingOptions(breadc._options);
-  if (breadc._init.builtin?.version !== false) {
-    registerOption(buildVersionOption(context));
-  }
-  if (breadc._init.builtin?.help !== false) {
-    registerOption(buildHelpOption(context));
-  }
 
   // 2. Prepare root commands and options
   if (defaultCommand) {
@@ -439,6 +428,7 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
 
   context.group = matchedGroup;
   context.command = matchedCommand;
+  context.actionOption = selectActionOption(context, registeredOptions.values());
 
   return { args, unmatchedArgs };
 }

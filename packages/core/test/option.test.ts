@@ -11,6 +11,7 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "action": [Function],
         "description": undefined,
         "form": "positive",
         "init": {},
@@ -27,6 +28,7 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "action": [Function],
         "argument": "<value>",
         "description": undefined,
         "init": {},
@@ -44,6 +46,7 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "action": [Function],
         "argument": "[value]",
         "description": undefined,
         "init": {},
@@ -61,6 +64,7 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "action": [Function],
         "argument": "<...value>",
         "description": undefined,
         "init": {},
@@ -77,6 +81,7 @@ describe('runtime/builder: option', () => {
 
     expect(opt).toMatchInlineSnapshot(`
       {
+        "action": [Function],
         "description": undefined,
         "form": "negative",
         "init": {},
@@ -119,24 +124,6 @@ describe('runtime/builder: option', () => {
 });
 
 describe('option input selection and conversion', () => {
-  it.each([
-    { spec: '--verbose', raw: false },
-    { spec: '--no-verbose', raw: true },
-    { spec: '--[no-]verbose', raw: false }
-  ] as const)('casts builtin and explicit defaults for $spec', ({ spec, raw }) => {
-    const cast = vi.fn((value: boolean) => Number(value));
-    const app = breadc('cli').option(spec, '', { cast });
-    expect(app.parse([]).options.verbose).toBe(Number(raw));
-    expect(cast).toHaveBeenCalledExactlyOnceWith(raw);
-
-    for (const fallback of [false, true]) {
-      cast.mockClear();
-      const withDefault = breadc('cli').option(spec, '', { default: fallback, cast });
-      expect(withDefault.parse([]).options.verbose).toBe(Number(fallback));
-      expect(cast).toHaveBeenCalledExactlyOnceWith(fallback);
-    }
-  });
-
   it.each(['true', 't', 'yes', 'y', 'on', '1', 'false', 'f', 'no', 'n', 'off', '0'])(
     'normalizes explicit boolean %s before cast without consuming another word',
     (text) => {
@@ -269,12 +256,17 @@ describe('option input selection and conversion', () => {
   it('isolates unconverted arrays across parses and from configuration', () => {
     const fallback = ['seed'];
     const app = breadc('cli').option('--include <...value>', '', { default: fallback });
-    app.parse([]).options.include.push('mutated');
-    app.parse(['--include=provided']).options.include.push('mutated');
+    for (const argv of [[], ['--include=provided']]) {
+      const result = app.parse(argv);
+
+      result.options.include.push('mutated');
+    }
     expect(app.parse([]).options.include).toEqual(['seed']);
     expect(fallback).toEqual(['seed']);
     const empty = breadc('cli').option('--include <...value>');
-    empty.parse([]).options.include.push('mutated');
+    const result = empty.parse([]);
+
+    result.options.include.push('mutated');
     expect(empty.parse([]).options.include).toEqual([]);
   });
 
@@ -324,26 +316,6 @@ describe('option conversion lifecycle', () => {
     expect(app.parse(['tool', 'run']).options).toEqual({ root: 'app', group: 'group', command: 'command' });
     for (const cast of [appCast, groupCast, commandCast]) expect(cast).toHaveBeenCalledExactlyOnceWith(false);
     expect(unrelated).not.toHaveBeenCalled();
-  });
-
-  it.each(['--help', '--version'])('skips user casts for %s in parse and run', async (flag) => {
-    const cast = vi.fn(() => {
-      throw new Error('must not convert');
-    });
-    const action = vi.fn();
-    const middleware = vi.fn();
-    const app = breadc('cli', { version: '1.0.0' }).option('--value [value]', '', { default: 'seed', cast });
-    app.command('<required>').action(action).use(middleware);
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      app.parse(['--value', flag]);
-      await app.run(['--value', flag]);
-      expect(cast).not.toHaveBeenCalled();
-      expect(action).not.toHaveBeenCalled();
-      expect(middleware).not.toHaveBeenCalled();
-    } finally {
-      log.mockRestore();
-    }
   });
 
   it('validates all syntax before casting', () => {

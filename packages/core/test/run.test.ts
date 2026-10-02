@@ -1,32 +1,26 @@
 import { z } from 'zod';
-import { vi, describe, it, expect, beforeAll } from 'vitest';
+import { vi, describe, it, expect, afterEach } from 'vitest';
 
-import { options as colorOptions } from '@breadc/color';
-
-import { breadc } from '../src/breadc/index.ts';
+import { breadc, option, type InternalBreadc } from '../src/breadc/index.ts';
+import { parse, run } from '../src/index.ts';
+import { context as makeContext, reset } from '../src/runtime/context.ts';
 import { ErrorCode } from '../src/error.ts';
 
-beforeAll(() => {
-  colorOptions.enabled = false;
-});
-
 describe('runtime/run', () => {
-  it('expands paired boolean forms in help output', async () => {
-    const app = breadc('cli')
-      .option('-a, --[no-]all', 'Include everything')
-      .option('--[no-]cache', 'Use cache')
-      .option('--no-open', 'Do not open');
-    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      await app.run(['--help']);
-      const text = output.mock.calls.map((args) => args.join(' ')).join('\n');
-      expect(text).toContain('-a, --all, --no-all');
-      expect(text).toContain('--cache, --no-cache');
-      expect(text).toContain('--no-open');
-      expect(text).not.toContain('[no-]');
-    } finally {
-      output.mockRestore();
-    }
+  it('keeps public parsing separate from execution without scanning twice', async () => {
+    const cast = vi.fn(Number);
+    const unknown = vi.fn((_context, name, value) => ({ name, value }));
+    const action = vi.fn((_options, context) => context.options.get('port')?.value());
+    const app = breadc('cli').option('--port <value>', '', { cast }).allowUnknownOption(unknown);
+    app.command('run').action(action);
+    const context = parse(app, ['run', '--port=42', '--extra']);
+    expect(context.options.get('port')?.raw).toBe('42');
+    expect(cast).not.toHaveBeenCalled();
+    expect(action).not.toHaveBeenCalled();
+    await expect(run(context)).resolves.toBe(42);
+    expect(cast).toHaveBeenCalledExactlyOnceWith('42');
+    expect(unknown).toHaveBeenCalledTimes(1);
+    expect(action).toHaveBeenCalledTimes(1);
   });
 
   it('passes arguments to action and returns result', async () => {
@@ -42,13 +36,6 @@ describe('runtime/run', () => {
         },
       ]
     `);
-  });
-
-  it('rejects disabled builtin options', async () => {
-    const app = breadc('cli', { builtin: { version: false, help: false } });
-
-    await expect(app.run(['-v'])).rejects.toThrow(`Unknown option: -v`);
-    await expect(app.run(['-h'])).rejects.toThrow(`Unknown option: -h`);
   });
 
   it('rejects unknown options without invoking the action', async () => {
@@ -70,18 +57,6 @@ describe('runtime/run', () => {
     );
     expect(action).not.toHaveBeenCalled();
   });
-
-  it.each([[], ['--all'], ['--help'], ['-2foo']])(
-    'rejects missing required option values before %j without invoking the action',
-    async (...tail) => {
-      const app = breadc('cli');
-      const action = vi.fn();
-      app.command('echo').option('--output <value>').option('--all').action(action);
-
-      await expect(app.run(['echo', '--output', ...tail])).rejects.toThrow(`Missing required option value: --output`);
-      expect(action).not.toHaveBeenCalled();
-    }
-  );
 
   it('rejects excess positional arguments without invoking the action', async () => {
     const app = breadc('cli');
@@ -272,40 +247,6 @@ describe('runtime/run', () => {
     `
     );
   });
-
-  it('prioritizes builtin help/version over matched command action', async () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-
-    const app = breadc('cli');
-    const action = vi.fn(() => 'pong');
-    app.command('ping').action(action);
-
-    await expect(app.run(['ping', '--help'])).resolves.toContain('Usage: cli ping [OPTIONS]');
-    await expect(app.run(['ping', '--version'])).resolves.toMatchInlineSnapshot(`"cli/unknown"`);
-    expect(action).not.toHaveBeenCalled();
-  });
-
-  it('prints builtin help before resolving required command args', async () => {
-    vi.spyOn(console, 'log').mockImplementation(() => {});
-
-    const app = breadc('cli');
-    app.command('sub-command <param>');
-
-    await expect(app.run(['sub-command', '-h'])).resolves.toContain('Usage: cli sub-command <param> [OPTIONS]');
-  });
-
-  it('does not treat command-scoped help/version options as builtin flags', async () => {
-    const app = breadc('cli');
-    const action = vi.fn((options: { help: boolean; version: boolean }) =>
-      options.help ? 'command-help' : 'command-version'
-    );
-
-    app.command('ping').option('--help').option('--version').action(action);
-
-    await expect(app.run(['ping', '--help'])).resolves.toMatchInlineSnapshot(`"command-help"`);
-    await expect(app.run(['ping', '--version'])).resolves.toMatchInlineSnapshot(`"command-version"`);
-    expect(action).toHaveBeenCalledTimes(2);
-  });
 });
 
 describe('runtime/run: conversion boundaries', () => {
@@ -412,80 +353,6 @@ describe('runtime/run: conversion boundaries', () => {
     expect(argumentCast).toHaveBeenCalledExactlyOnceWith('2');
     expect(optionCast).toHaveBeenCalledExactlyOnceWith('8080');
   });
-
-  it.each(['--help', '--version'])('skips all casts and execution for explicit %s in parse and run', async (flag) => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      const cast = vi.fn(() => {
-        throw new Error('must not convert');
-      });
-      const action = vi.fn();
-      const middleware = vi.fn();
-      const unknown = vi.fn();
-      const app = breadc('cli')
-        .option('--count <value>', '', { default: '1', cast })
-        .use(middleware)
-        .onUnknownCommand(unknown);
-      app.command('run').argument('<file>', { cast }).action(action);
-      expect(app.parse(['run', flag]).args).toEqual([]);
-      await app.run(['run', 'file', 'extra', flag]);
-      await app.run([flag]);
-      expect(cast).not.toHaveBeenCalled();
-      expect(action).not.toHaveBeenCalled();
-      expect(middleware).not.toHaveBeenCalled();
-      expect(unknown).not.toHaveBeenCalled();
-    } finally {
-      log.mockRestore();
-    }
-  });
-
-  it('only run skips conversion for automatic help, while ordinary parse still converts', async () => {
-    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      const cast = vi.fn(Number);
-      const app = breadc('cli').option('--count <value>', '', { default: '2', cast });
-      app.group('tool').command('run');
-      for (const argv of [[], ['unknown'], ['tool'], ['--count=3']]) {
-        await expect(app.run(argv)).resolves.toContain('Usage: cli');
-      }
-      expect(cast).not.toHaveBeenCalled();
-      expect(app.parse([]).options.count).toBe(2);
-      expect(cast).toHaveBeenCalledExactlyOnceWith('2');
-    } finally {
-      log.mockRestore();
-    }
-  });
-
-  it.each([[], ['--help'], ['--version'], ['run']])(
-    'reports syntax errors before casts, help or any execution: %j',
-    async (...prefix) => {
-      const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-      try {
-        const cast = vi.fn(Number);
-        const action = vi.fn();
-        const middleware = vi.fn();
-        const unknown = vi.fn();
-        const app = breadc('cli').option('--count <value>', '', { default: '2', cast }).use(middleware);
-        app.command('run').action(action);
-        const argv = [...prefix, '--typo', '--other'];
-        await expect(app.run(argv)).rejects.toMatchObject({
-          issues: [
-            { code: ErrorCode.UNKNOWN_OPTION, name: '--typo' },
-            { code: ErrorCode.UNKNOWN_OPTION, name: '--other' }
-          ]
-        });
-        app.onUnknownCommand(unknown);
-        await expect(app.run(argv)).rejects.toMatchObject({ code: ErrorCode.INVALID_INPUT });
-        expect(cast).not.toHaveBeenCalled();
-        expect(action).not.toHaveBeenCalled();
-        expect(middleware).not.toHaveBeenCalled();
-        expect(unknown).not.toHaveBeenCalled();
-        expect(log).not.toHaveBeenCalled();
-      } finally {
-        log.mockRestore();
-      }
-    }
-  );
 
   it('converts once after all unknown-command handlers', async () => {
     const cast = vi.fn(Number);
@@ -648,18 +515,6 @@ describe('deferred middleware validation', () => {
 });
 
 describe('runtime/run: array options', () => {
-  it('shows optional options with one or more required values in help', async () => {
-    const app = breadc('cli').option('-i, --include <...value>', 'Include files');
-    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      const help = await app.run(['--help']);
-      expect(help).toContain('Usage: cli [OPTIONS]');
-      expect(help).toContain('-i, --include <...value>');
-    } finally {
-      output.mockRestore();
-    }
-  });
-
   it('exposes raw arrays to middleware and converts once before the action', async () => {
     const cast = vi.fn((values: string[]) => values.join(','));
     const app = breadc('cli').option('-i, --include <...value>', '', { cast });
@@ -677,25 +532,6 @@ describe('runtime/run: array options', () => {
     expect(seen).toEqual([['a', 'b', 'c']]);
     expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b', 'c']);
   });
-
-  it.each(['--help', '--version'])('skips array casts for %s but still diagnoses empty occurrences', async (flag) => {
-    const cast = vi.fn((values: string[]) => values);
-    const action = vi.fn();
-    const middleware = vi.fn((context, next) => next());
-    const app = breadc('cli').option('--include <...value>', '', { cast }).use(middleware);
-    app.command('build <target>').action(action);
-    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      app.parse(['build', '--include', 'a', 'b', flag]);
-      await app.run(['build', '--include', 'a', 'b', flag]);
-      await expect(app.run(['build', '--include', flag])).rejects.toThrow('Missing required option value');
-      expect(cast).not.toHaveBeenCalled();
-      expect(action).not.toHaveBeenCalled();
-      expect(middleware).not.toHaveBeenCalled();
-    } finally {
-      output.mockRestore();
-    }
-  });
 });
 
 describe('runtime/run: required spread arguments', () => {
@@ -709,20 +545,318 @@ describe('runtime/run: required spread arguments', () => {
     await expect(app.run(['upload', 'a', 'b', '--', 'c'])).resolves.toEqual([new Set(['a', 'b']), ['c']]);
     expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b']);
   });
+});
 
-  it.each(['--help', '--version'])('allows %s before required-array validation and conversion', async (flag) => {
-    const app = breadc('cli');
-    const cast = vi.fn((files: string[]) => files);
+describe('runtime/run: option actions', () => {
+  // Business casts must never be reached by an unrelated option action.
+  function businessCast() {
+    return vi.fn(() => {
+      throw new Error('unrelated business cast');
+    });
+  }
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('converts only the selected value, awaits the handler, and preserves command context', async () => {
+    const unrelated = businessCast();
+    const selectedCast = vi.fn((value: string) => Number(value));
+    const handler = vi.fn(async (value, context) => {
+      expect(context.command?.spec).toBe('upload');
+      expect(context.pieces).toEqual(['tool', 'upload']);
+      expect(context.group?.spec).toBe('tool');
+      expect(context.arguments).toEqual([]);
+      expect(context.remaining).toEqual(['--inspect=9']);
+      expect(context.data).toEqual({});
+      return value + 1;
+    });
+    const inspect = option('-i, --inspect <value>', '', { cast: selectedCast }).action(handler);
+    const app = breadc('cli').option(inspect).option('--business', '', { cast: unrelated });
+    const middleware = vi.fn(async (_context, next) => next({ data: { injected: true } }));
     const action = vi.fn();
-    app.command('upload').argument('<...files>', { cast }).action(action);
-    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      const text = await app.run(['upload', flag]);
-      if (flag === '--help') expect(text).toContain('upload <...files>');
-      expect(cast).not.toHaveBeenCalled();
-      expect(action).not.toHaveBeenCalled();
-    } finally {
-      output.mockRestore();
+    const unknown = vi.fn();
+    app.use(middleware).onUnknownCommand(unknown);
+    app
+      .group('tool')
+      .use(middleware)
+      .command('upload')
+      .argument('<...files>', { cast: unrelated })
+      .use(middleware)
+      .action(action);
+
+    await expect(app.run(['tool', 'upload', '--business', '--inspect=4', '--', '--inspect=9'])).resolves.toBe(5);
+    expect(selectedCast).toHaveBeenCalledExactlyOnceWith('4');
+    expect(handler).toHaveBeenCalledTimes(1);
+    for (const fn of [unrelated, middleware, action, unknown]) expect(fn).not.toHaveBeenCalled();
+  });
+
+  it.each([[], ['--inspect=false'], ['--', '--inspect']].map((argv) => ({ argv })))(
+    'does not trigger on absent, false or escaped input: $argv',
+    async ({ argv }) => {
+      const handler = vi.fn();
+      const command = vi.fn(() => 'command');
+      const app = breadc('cli').option(option('--inspect', '', { default: true }).action(handler));
+      app.command('').action(command);
+      await expect(app.run(argv)).resolves.toBe('command');
+      expect(handler).not.toHaveBeenCalled();
     }
+  );
+
+  it('does not trigger a defaulted value action', async () => {
+    const handler = vi.fn();
+    const app = breadc('cli').option(option('--inspect <value>', '', { default: 'seed' }).action(handler));
+    app.command('').action(() => 'command');
+    await expect(app.run([])).resolves.toBe('command');
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { spec: '--inspect [value]', argv: ['--inspect'], expected: undefined },
+    { spec: '--inspect <value>', argv: ['--inspect='], expected: '' },
+    { spec: '--inspect <value>', argv: ['--inspect=0'], expected: '0' }
+  ])('uses explicit presence for value options: $spec $argv', async ({ spec, argv, expected }) => {
+    const handler = vi.fn((value) => value);
+    const app = breadc('cli').option(option(spec).action(handler));
+    app.command('<required>');
+    await expect(app.run(argv)).resolves.toBe(expected);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['--inspect', true],
+    ['--no-inspect', false],
+    ['--no-inspect=false', true],
+    ['-i=false', false]
+  ] as const)('uses raw positive boolean value for %s', async (flag, triggered) => {
+    const cast = vi.fn((value: boolean) => !value);
+    const handler = vi.fn((value) => value);
+    const app = breadc('cli').option(option('-i, --[no-]inspect', '', { cast }).action(handler));
+    app.command('').action(() => 'command');
+    await expect(app.run([flag])).resolves.toBe(triggered ? false : 'command');
+    expect(handler).toHaveBeenCalledTimes(triggered ? 1 : 0);
+  });
+
+  it('does not trigger the implicit true of a negative-only declaration', async () => {
+    const handler = vi.fn(() => 'option');
+    const app = breadc('cli').option(option('-i, --no-inspect').action(handler));
+    app.command('').action(() => 'command');
+    await expect(app.run([])).resolves.toBe('command');
+    await expect(app.run(['-i'])).resolves.toBe('command');
+    await expect(app.run(['-i=false'])).resolves.toBe('option');
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('chooses highest priority, then registration order independently of argv order', async () => {
+    const first = vi.fn(() => 'first');
+    const second = vi.fn(() => 'second');
+    const last = vi.fn(() => 'last');
+    const app = breadc('cli')
+      .option(option('-a, --first').action(first))
+      .option(option('-b, --second').action(second))
+      .option(option('-c, --last').action(last, { priority: 5 }));
+    await expect(app.run(['-ba'])).resolves.toBe('first');
+    await expect(app.run(['-abc'])).resolves.toBe('last');
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).not.toHaveBeenCalled();
+    expect(last).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses final scoped instances and their registration positions', async () => {
+    const root = vi.fn();
+    const group = vi.fn();
+    const child = vi.fn(() => 'child');
+    const earlier = vi.fn(() => 'earlier');
+    const app = breadc('cli').option(option('-r, --inspect').action(root, { priority: 100 }));
+    const tool = app.group('tool').option(option('-g, --inspect').action(group, { priority: 50 }));
+    tool
+      .command('run')
+      .option(option('-e, --earlier').action(earlier))
+      .option(option('-c, --inspect').action(child))
+      .action(() => 'command');
+    await expect(app.run(['-r', 'tool', '-g', 'run'])).resolves.toBe('command');
+    await expect(app.run(['tool', 'run', '-c'])).resolves.toBe('child');
+    await expect(app.run(['tool', 'run', '-ce'])).resolves.toBe('earlier');
+    await expect(app.run(['tool', 'run', '-g'])).rejects.toThrow('Unknown option: -g');
+    expect(root).not.toHaveBeenCalled();
+    expect(group).not.toHaveBeenCalled();
+  });
+
+  it('retains explicit input when the identical option instance is reused in nested scopes', async () => {
+    const handler = vi.fn(() => 'shared');
+    const shared = option('--inspect').action(handler);
+    const app = breadc('cli').option(shared);
+    app.group('tool').option(shared).command('run <required>').option(shared);
+    await expect(app.run(['--inspect', 'tool', 'run'])).resolves.toBe('shared');
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips converters on losing actions, including invalid defaults', async () => {
+    const cast = businessCast();
+    const handler = vi.fn();
+    const app = breadc('cli')
+      .option(option('--loser <value>', '', { cast }).action(handler))
+      .option(option('--default <value>', '', { default: 'invalid', cast }).action(handler))
+      .option(option('--winner').action(() => 'winner', { priority: 1 }));
+    await expect(app.run(['--loser=value', '--winner'])).resolves.toBe('winner');
+    expect(cast).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('passes falsy converter outputs through to the action', async () => {
+    for (const converted of [false, 0, '', null, undefined]) {
+      const handler = vi.fn((value) => value);
+      const app = breadc('cli').option(option('--inspect <value>', '', { cast: () => converted }).action(handler));
+      await expect(app.run(['--inspect=value'])).resolves.toBe(converted);
+      expect(handler).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('allows an ordinary scoped option to shadow an action', async () => {
+    const handler = vi.fn();
+    const app = breadc('cli').option(option('--inspect').action(handler));
+    app
+      .command('run')
+      .option('--inspect')
+      .action((options) => options.inspect);
+    await expect(app.run(['run', '--inspect'])).resolves.toBe(true);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it.each(['root', 'group'])(
+    'reselects after %s default-command fallback and discards provisional diagnostics',
+    async (scope) => {
+      const handler = vi.fn((_value, _context) => 'selected');
+      const app = breadc('cli').option('--inspect');
+      const owner = scope === 'group' ? app.group('tool') : app;
+      owner.command('other').action(() => {});
+      const command = owner.command('<required>').option(option('--inspect <value>').action(handler));
+      const prefix = scope === 'group' ? ['tool'] : [];
+      await expect(app.run([...prefix, '--inspect=value'])).resolves.toBe('selected');
+      expect(handler.mock.calls[0]?.[1].command).toBe(command);
+      await expect(app.run([...prefix, '--inspect=value', '--typo'])).rejects.toMatchObject({
+        issues: [expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION })]
+      });
+      expect(handler).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('selects before default-command fallback if a root action already matches', async () => {
+    const handler = vi.fn((_value, context) => context.command);
+    const app = breadc('cli').option(option('--inspect').action(handler));
+    app.command('other');
+    app.command('<required>').option('--inspect <value>');
+    await expect(app.run(['--inspect'])).resolves.toBeUndefined();
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('aggregates the whole scan before conversion or execution, skipping positional requirements', async () => {
+    const cast = vi.fn((value: boolean) => value);
+    const handler = vi.fn();
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const app = breadc('cli')
+      .option(option('--inspect', '', { cast }).action(handler))
+      .option('--include <...value>')
+      .option('--flag');
+    app.command('run <required>');
+    await expect(
+      app.run(['--inspect', 'run', '--unknown', '--include', '--flag=bad', '--flag', '--inspect'])
+    ).rejects.toMatchObject({
+      issues: [
+        expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION }),
+        expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE }),
+        expect.objectContaining({ code: ErrorCode.INVALID_BOOLEAN_OPTION_VALUE }),
+        expect.objectContaining({ code: ErrorCode.DUPLICATE_OPTION }),
+        expect.objectContaining({ code: ErrorCode.DUPLICATE_OPTION })
+      ]
+    });
+    for (const fn of [cast, handler, output]) expect(fn).not.toHaveBeenCalled();
+  });
+
+  it('retains schema conversion diagnostics for only the selected option', async () => {
+    const handler = vi.fn();
+    const unrelated = businessCast();
+    const app = breadc('cli')
+      .option('--business', '', { cast: unrelated })
+      .option(option('--inspect <value>', '', { cast: z.coerce.number().int().positive() }).action(handler));
+    await expect(app.run(['--inspect=bad'])).rejects.toMatchObject({
+      context: expect.objectContaining({ actionOption: expect.anything() }),
+      issues: [expect.objectContaining({ code: ErrorCode.INVALID_OPTION_VALUE, value: 'bad' })]
+    });
+    expect(handler).not.toHaveBeenCalled();
+    expect(unrelated).not.toHaveBeenCalled();
+  });
+
+  it('propagates function conversion and async handler failures without executing commands', async () => {
+    const failure = new Error('conversion failed');
+    const handler = vi.fn();
+    const app = breadc('cli').option(
+      option('--inspect', '', {
+        cast: () => {
+          throw failure;
+        }
+      }).action(handler)
+    );
+    await expect(app.run(['--inspect'])).rejects.toBe(failure);
+    expect(handler).not.toHaveBeenCalled();
+    const failing = breadc('cli').option(
+      option('--inspect').action(async () => {
+        throw failure;
+      })
+    );
+    await expect(failing.run(['--inspect'])).rejects.toBe(failure);
+  });
+
+  it('does not leak selected actions or converted arrays across repeated runs', async () => {
+    const defaults = ['seed'];
+    const cast = vi.fn((values: string[]) => {
+      values.push('converted');
+      return values;
+    });
+    const handler = vi.fn((values) => values);
+    const app = breadc('cli').option(
+      option('-i, --inspect <...value>', '', { default: defaults, cast }).action(handler)
+    );
+    app.command('').action(() => 'command');
+    await expect(app.run(['-i', 'one', 'two', '-i=three'])).resolves.toEqual(['one', 'two', 'three', 'converted']);
+    await expect(app.run([])).resolves.toBe('command');
+    await expect(app.run(['-i=four'])).resolves.toEqual(['four', 'converted']);
+    expect(defaults).toEqual(['seed']);
+    expect(cast).toHaveBeenCalledTimes(3);
+    expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps raw parsing separate from app.parse conversion without executing handlers', () => {
+    const cast = vi.fn(Number);
+    const handler = vi.fn();
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const app = breadc('cli')
+      .option('--business <value>', '', { default: '12', cast })
+      .option(option('--inspect <value>', '', { cast }).action(handler));
+    app.command('run <required>');
+    const context = parse(app, ['run', '--inspect=4']);
+    expect(context.actionOption?.raw).toBe('4');
+    expect(cast).not.toHaveBeenCalled();
+    const result = app.parse(['run', '--inspect=4']);
+    expect(result.options).toEqual({ business: 12, inspect: 4 });
+    expect(result.args).toEqual([]);
+    expect(cast.mock.calls).toEqual([['12'], ['4']]);
+    for (const fn of [handler, output]) expect(fn).not.toHaveBeenCalled();
+    expect(reset(context).actionOption).toBeUndefined();
+    expect(makeContext(app, []).actionOption).toBeUndefined();
+  });
+
+  it('has no runtime output policy when assembly provides no fallback', async () => {
+    const app = breadc('cli') as InternalBreadc;
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await expect(app.run([])).resolves.toBeUndefined();
+    expect(output).not.toHaveBeenCalled();
+  });
+
+  it('restores the declared option identity after an unknown short spelling uses its key', async () => {
+    const action = vi.fn(() => 'declared');
+    const inspect = option('--inspect').action(action);
+    const app = breadc('cli').option(inspect).allowUnknownOption();
+    await expect(app.run(['-inspect', '--inspect'])).resolves.toBe('declared');
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(action.mock.calls[0]?.length).toBe(2);
   });
 });

@@ -1,31 +1,25 @@
-import type { Breadc } from '../breadc/types/app.ts';
+import type { Context } from './context.ts';
 import type { ActionMiddleware, ActionMiddlewareNextFn } from '../breadc/types/middleware.ts';
 
-import { printHelp } from '../breadc/builtin/help.ts';
-import { printVersion } from '../breadc/builtin/version.ts';
+import { DefinitionError, InputError, ErrorCode } from '../error.ts';
 
-import { DefinitionError, ErrorCode } from '../error.ts';
+import { finalizeInput, resolveArgs, resolveOptions } from './parser.ts';
 
-import { parse, finalizeInput, isHelp, isVersion, resolveArgs, resolveOptions } from './parser.ts';
-
-export async function run(app: Breadc, argv: string[]) {
-  // 1. Parse arguments
-  const context = parse(app, argv);
-
-  // 2. Check builtin version and help command
-  if (isVersion(context)) {
-    return printVersion(context);
-  }
-
-  if (isHelp(context)) {
-    return printHelp(context);
+/** Execute an already matched input context without scanning argv again. */
+export async function run(context: Context) {
+  // 2. Option actions finalize only their own input and bypass command execution.
+  const { actionOption } = context;
+  if (actionOption) {
+    const result = actionOption.finalize();
+    if (result.issues) throw new InputError(result.issues, { context });
+    return actionOption.option._actionFn!(result.value, context);
   }
 
   // 3. Decide whether execution is needed before converting user input.
   const { breadc, command } = context;
 
   if (!command && breadc._unknownCommandMiddlewares.length === 0) {
-    return printHelp(context);
+    return;
   }
 
   if (command && !command._actionFn) {
@@ -52,7 +46,6 @@ export async function run(app: Breadc, argv: string[]) {
   ];
 
   // 5. Run
-
   const actionFn = command._actionFn!;
   const invokeAction = async () => {
     // Input validity is guaranteed at action entry. Changes made by middleware

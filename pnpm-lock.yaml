@@ -259,6 +259,13 @@ importers:
       '@breadc/tui':
         specifier: workspace:*
         version: link:../tui
+    devDependencies:
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   packages/color: {}
 
@@ -276,9 +283,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@breadc/color':
-        specifier: workspace:*
-        version: link:../color
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0

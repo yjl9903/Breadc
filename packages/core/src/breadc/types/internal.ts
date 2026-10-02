@@ -1,3 +1,5 @@
+import type { Context } from '../../runtime/context.ts';
+
 import type { BreadcInit, GroupInit } from './init.ts';
 import type { Breadc, Option, Group, Command, Argument } from './app.ts';
 import type { ActionMiddleware, UnknownCommandMiddleware, UnknownOptionMiddleware } from './middleware.ts';
@@ -15,16 +17,6 @@ export type InternalBreadc = Breadc<any, any> & {
    * @internal
    */
   _commands: (InternalCommand | InternalGroup)[];
-
-  /**
-   * @internal
-   */
-  _version?: InternalOption;
-
-  /**
-   * @internal
-   */
-  _help?: InternalOption;
 
   /**
    * @internal
@@ -139,6 +131,10 @@ export type OptionType = 'boolean' | 'required' | 'optional' | 'spread';
 export type BooleanForm = 'positive' | 'negative' | 'both';
 
 export type InternalOption = Option & {
+  _actionFn?: (value: any, context: Context) => unknown;
+
+  _actionPriority?: number;
+
   type: OptionType;
 
   form?: BooleanForm;

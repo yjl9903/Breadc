@@ -9,7 +9,7 @@ import type {
   ArgumentInit,
   CheckedArgumentInit
 } from './init.ts';
-import type { InferOption, InferArgumentType, InferArgumentsType } from './infer.ts';
+import type { InferOption, InferOptionActionValue, InferArgumentType, InferArgumentsType } from './infer.ts';
 import type {
   ActionMiddleware,
   ActionMiddlewareNextFn,
@@ -75,7 +75,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
   allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Breadc<Data, Options>;
 
   /**
-   * Parse CLI options
+   * Parse and convert CLI input without executing actions or middleware.
    *
    * @param argv CLI arguments
    */
@@ -85,7 +85,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
     args: PArgs;
     options: Prettify<Options & POpts>;
     '--': string[];
-    context: Context<Data>;
+    context: Context;
   };
 
   /**
@@ -94,6 +94,11 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
    * @param argv CLI arguments
    */
   run<T>(argv: string[]): Promise<T>;
+};
+
+export type OptionActionInit = {
+  /** Higher priorities run first; ties follow option registration order. Defaults to 0. */
+  priority?: number;
 };
 
 export type Group<
@@ -217,6 +222,12 @@ export type Option<Spec extends string = string, Init extends OptionInit<Spec> =
   spec: Spec;
   description?: string;
   init: Init;
+
+  /** Runs for explicit input, before command middleware; only this option is converted. */
+  action<R>(
+    handler: (value: InferOptionActionValue<Spec, Init>, context: Context) => Promise<R> | R,
+    init?: OptionActionInit
+  ): Option<Spec, Init>;
 };
 
 type InferOptionFromInstance<Opt extends Option<any, any>> =

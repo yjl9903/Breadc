@@ -4,7 +4,7 @@ import type { InternalBreadc } from '../src/breadc/index.ts';
 
 import { breadc } from '../src/breadc/app.ts';
 import { argument } from '../src/breadc/command.ts';
-import { parse, finalizeInput, isHelp, resolveArgs, resolveOptions } from '../src/runtime/parser.ts';
+import { parse, finalizeInput, resolveArgs, resolveOptions } from '../src/runtime/parser.ts';
 import { DefinitionError, InputError, ErrorCode } from '../src/error.ts';
 
 describe('runtime/parser: command matching', () => {
@@ -121,93 +121,6 @@ describe('runtime/parser: command matching', () => {
       [
         "readme.md",
       ]
-    `);
-  });
-
-  it('registers builtin help option when custom spec is provided', () => {
-    const app = breadc('cli', {
-      builtin: {
-        help: {
-          spec: '-H, --help'
-        }
-      }
-    });
-
-    app.parse(['-H']);
-    app.parse(['--help']);
-
-    expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
-      {
-        "description": "Print help",
-        "form": "positive",
-        "init": {},
-        "long": "help",
-        "short": "H",
-        "spec": "-H, --help",
-        "type": "boolean",
-      }
-    `);
-  });
-
-  it('registers builtin version option when custom spec is provided', () => {
-    const app = breadc('cli', {
-      builtin: {
-        version: {
-          spec: '-V, --version'
-        }
-      }
-    });
-
-    app.parse(['-V']);
-    app.parse(['--version']);
-
-    expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
-      {
-        "description": "Print version",
-        "form": "positive",
-        "init": {},
-        "long": "version",
-        "short": "V",
-        "spec": "-V, --version",
-        "type": "boolean",
-      }
-    `);
-  });
-
-  it('supports builtin help/version without short aliases', () => {
-    const app = breadc('cli', {
-      builtin: {
-        help: {
-          spec: '--help'
-        },
-        version: {
-          spec: '--version'
-        }
-      }
-    });
-
-    app.parse(['--help']);
-    app.parse(['--version']);
-
-    expect((app as unknown as InternalBreadc)._help).toMatchInlineSnapshot(`
-      {
-        "description": "Print help",
-        "form": "positive",
-        "init": {},
-        "long": "help",
-        "spec": "--help",
-        "type": "boolean",
-      }
-    `);
-    expect((app as unknown as InternalBreadc)._version).toMatchInlineSnapshot(`
-      {
-        "description": "Print version",
-        "form": "positive",
-        "init": {},
-        "long": "version",
-        "spec": "--version",
-        "type": "boolean",
-      }
     `);
   });
 
@@ -514,17 +427,6 @@ describe('runtime/parser: arguments', () => {
       .action((file, port) => [file, port]);
     expect(await app.run(['run', 'a'])).toEqual([1, 3000]);
     expect(order).toEqual(['option', 'file', 'port']);
-  });
-
-  it.each(['--help', '--version'])('skips business argument casts on %s', (flag) => {
-    const app = breadc('cli', { version: '1.0.0' });
-    const cast = vi.fn(() => {
-      throw new Error('must not run');
-    });
-    app.command('run').argument('<file>', { cast }).argument('[port]', { default: '3000', cast });
-    expect(() => app.parse(['run', flag])).not.toThrow();
-    expect(() => app.parse(['run', 'file', flag])).not.toThrow();
-    expect(cast).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -1199,10 +1101,6 @@ describe('runtime/parser: unknown options', () => {
     expect(result['--']).toEqual(['--typo', 'x']);
   });
 
-  it.each(['--help', '--version'])('rejects unknown options alongside %s', (builtin) => {
-    expect(() => breadc('cli').parse(['--typo', builtin])).toThrow(`Unknown option: --typo`);
-  });
-
   it('allows unknown options', () => {
     const app = breadc('cli').allowUnknownOption();
 
@@ -1698,20 +1596,6 @@ describe('runtime/parser: boolean option forms', () => {
     expect(grouped.parse(['tool', '--no-all', 'name']).options).toEqual({ all: false });
   });
 
-  it('does not generate negative forms for default built-ins', () => {
-    for (const name of ['--no-help', '--no-version']) {
-      expect(() => breadc('cli').parse([name])).toThrow(`Unknown option: ${name}`);
-    }
-  });
-
-  it('honors forms in custom built-in specs', () => {
-    const app = breadc('cli', { builtin: { help: { spec: '-h, --[no-]help' }, version: { spec: '--no-version' } } });
-    expect(app.parse(['--no-help']).options).toEqual({ help: false });
-    expect(app.parse(['-h']).options).toEqual({ help: true });
-    expect(app.parse(['--no-version']).options).toEqual({ version: false });
-    expect(() => app.parse(['--version'])).toThrow('Unknown option');
-  });
-
   it('does not infer negation from names accepted by unknown-option middleware', () => {
     const app = breadc('cli').allowUnknownOption((_context, name, value) => ({ name, value, type: 'boolean' }));
     expect(app.parse(['--no-all']).options).toEqual({ noAll: true });
@@ -1839,15 +1723,6 @@ describe('runtime/parser: short option combinations', () => {
     expect(app.parse(['-ss']).options.include).toEqual(['s']);
   });
 
-  it.each(['--include', '-s', '-as'])('requires a value for every spread occurrence of %s', (flag) => {
-    const app = breadc('cli').option('-a, --all').option('-s, --include <...value>');
-    for (const tail of [[], ['--all'], ['--help'], ['--unknown'], ['--', 'file']]) {
-      for (const prefix of [[], ['--include', 'first']]) {
-        expect(() => app.parse([...prefix, flag, ...tail])).toThrow(`Missing required option value: --include`);
-      }
-    }
-  });
-
   it('preserves explicit empty spread values and normal accumulation', () => {
     const app = breadc('cli').option('-a, --all').option('-s, --include <...value>');
     expect(app.parse([]).options.include).toEqual([]);
@@ -1903,11 +1778,6 @@ describe('runtime/parser: short option combinations', () => {
     expect(result.args).toEqual(['name']);
   });
 
-  it('supports built-in options in a combination', () => {
-    expect(createApp().parse(['-ah']).options).toMatchObject({ all: true, help: true });
-    expect(createApp().parse(['-av']).options).toMatchObject({ all: true, version: true });
-  });
-
   it('preserves long options, negative arguments, stdio and escape tokens', () => {
     const app = createApp();
     app.command('[...rest]');
@@ -1957,7 +1827,7 @@ describe('runtime/parser: unknown options in short combinations', () => {
 const negativeNumbers = ['-2', '-0', '-02', '-2.5', '-.5', '-2.', '-2e3', '-2E-3', '-.5e+2', '-2.e-3', '-1e999'];
 const optionLikeValues = [
   '--all',
-  '--help',
+  '--inspect',
   '--unknown',
   '-a',
   '-ab',
@@ -1997,18 +1867,6 @@ describe('runtime/parser: option value boundaries', () => {
         expect(app.parse([arg]).options.output, arg).toEqual(kind === '<...value>' ? [value] : value);
       }
     }
-  });
-
-  it('leaves following flags and unknown options for optional options', () => {
-    const app = breadc('cli').option('-a, --all').option('-o, --output [value]');
-    expect(app.parse(['--output', '--all']).options).toEqual({ all: true, output: undefined });
-    expect(isHelp(app.parse(['--output', '--help']).context)).toBe(true);
-    for (const value of ['--unknown', '-2foo', '-2e']) {
-      expect(() => app.parse(['--output', value])).toThrow(`Unknown option: ${value}`);
-    }
-    const escaped = app.parse(['--output', '--', '-2foo']);
-    expect(escaped.options.output).toBe(undefined);
-    expect(escaped['--']).toEqual(['-2foo']);
   });
 
   it('rejects a missing value before a following option even with a default', () => {
@@ -2194,19 +2052,6 @@ describe('runtime/parser: aggregated input diagnostics', () => {
     ]);
   });
 
-  it.each(['--help', '--version'])('still aggregates scanning errors for %s, skipping argument binding', (flag) => {
-    const cast = vi.fn(Number);
-    const app = breadc('cli').option('--count <value>', '', { default: '1', cast });
-    app.command('run <file>').option('--all');
-    const error = inputError(() => app.parse(['before', 'run', '--all=bad', '--unknown', flag]));
-    expect(error.issues.map((issue) => issue.code)).toEqual([
-      ErrorCode.INVALID_BOOLEAN_OPTION_VALUE,
-      ErrorCode.UNKNOWN_OPTION
-    ]);
-    expect(error.context?.arguments).toEqual([]);
-    expect(cast).not.toHaveBeenCalled();
-  });
-
   it('immediately propagates unknown-option middleware failures after a collected diagnostic', () => {
     const failure = { user: 'middleware error' };
     const app = breadc('cli').allowUnknownOption((_context, name) => {
@@ -2230,10 +2075,7 @@ describe('runtime/parser: aggregated input diagnostics', () => {
 });
 
 describe('runtime/parser: multi-value array options', () => {
-  const makeApp = () =>
-    breadc('cli', { builtin: { version: false } })
-      .option('-i, --include <...value>')
-      .option('-v, --verbose');
+  const makeApp = () => breadc('cli').option('-i, --include <...value>').option('-v, --verbose');
 
   it.each([
     { argv: ['--include', 'a', 'b', 'c'], values: ['a', 'b', 'c'] },
@@ -2429,7 +2271,9 @@ describe('runtime/parser: multi-value array options', () => {
         return values;
       });
       const app = breadc('cli').option('--include <...value>', '', { default: fallback, cast });
-      const first = app.parse([]).options.include;
+      const parsed = app.parse([]);
+
+      const first = parsed.options.include;
       expect(first).toEqual([...(fallback ?? []), 'cast']);
       first.push('caller');
       expect(app.parse(['--include', 'a', 'b', '--include=c']).options.include).toEqual(['a', 'b', 'c', 'cast']);
@@ -2438,7 +2282,9 @@ describe('runtime/parser: multi-value array options', () => {
       expect(fallback).toEqual(original);
 
       const raw = breadc('cli').option('--include <...value>', '', { default: fallback });
-      raw.parse([]).options.include.push('caller');
+      const parsedRaw = raw.parse([]);
+
+      parsedRaw.options.include.push('caller');
       expect(raw.parse([]).options.include).toEqual(fallback ?? []);
     }
   );

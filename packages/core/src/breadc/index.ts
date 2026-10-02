@@ -18,6 +18,7 @@ export type {
   InternalCommand,
   Option,
   OptionInit,
+  OptionActionInit,
   InternalOption,
   Argument,
   ArgumentInit,

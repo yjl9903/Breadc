@@ -1,6 +1,18 @@
-import type { Cast } from '../src/index.ts';
-
+import { z } from 'zod';
 import { describe, it, expectTypeOf } from 'vitest';
+
+import type {
+  InferOptionRawName,
+  InferOptionRawType,
+  InferOptionDefaultType,
+  InferArgumentRawType,
+  InferArgumentDefaultType,
+  InferArgumentCastInput,
+  InferArgumentType
+} from '../src/breadc/types/index.ts';
+import type { Cast, Option } from '../src/index.ts';
+
+import { parse, run } from '../src/index.ts';
 
 import {
   type Breadc,
@@ -17,16 +29,6 @@ import {
   argument,
   Context
 } from '../src';
-
-import type {
-  InferOptionRawName,
-  InferOptionRawType,
-  InferOptionDefaultType,
-  InferArgumentRawType,
-  InferArgumentDefaultType,
-  InferArgumentCastInput,
-  InferArgumentType
-} from '../src/breadc/types/index.ts';
 
 describe('types/command', () => {
   it('infer default command with no arguments', () => {
@@ -809,4 +811,117 @@ describe('types/required spread arguments', () => {
     // @ts-expect-error required arrays cannot have defaults
     command('upload').argument('<...files>', { default: ['file'] });
   });
+});
+
+describe('types/option actions', () => {
+  it('infers explicit raw values for every option shape', () => {
+    option('--flag').action((value, context) => {
+      expectTypeOf(value).toEqualTypeOf<boolean>();
+      expectTypeOf(context).toEqualTypeOf<Context<{}>>();
+      // @ts-expect-error option actions bypass command middleware
+      context.data.injected;
+    });
+    option('-i, --inspect <value>').action((value) => {
+      expectTypeOf(value).toEqualTypeOf<string>();
+    });
+    option('--inspect [value]', '', { default: 'fallback' }).action((value) => {
+      expectTypeOf(value).toEqualTypeOf<string | undefined>();
+    });
+    option('--inspect <...value>').action((value) => {
+      expectTypeOf(value).toEqualTypeOf<string[]>();
+    });
+  });
+
+  it('preserves converter output including undefined, null and false, and supports async actions', () => {
+    const inspect = option('--inspect <value>', '', { cast: (value) => value.length });
+    const result = inspect.action(
+      async (value) => {
+        expectTypeOf(value).toEqualTypeOf<number>();
+        return `${value}`;
+      },
+      { priority: 10 }
+    );
+    expectTypeOf(result).toEqualTypeOf<typeof inspect>();
+    option('--inspect <value>', '', { cast: () => undefined }).action((value) => {
+      expectTypeOf(value).toEqualTypeOf<undefined>();
+    });
+    option('--inspect [value]', '', { cast: (value) => (value ? null : (false as const)) }).action((value) => {
+      expectTypeOf(value).toEqualTypeOf<null | false>();
+    });
+    option('--inspect', '', { cast: (value) => (value ? (1 as const) : undefined) }).action((value) => {
+      expectTypeOf(value).toEqualTypeOf<1 | undefined>();
+    });
+    option('--inspect <...value>', '', { cast: z.array(z.string()).transform((values) => new Set(values)) }).action(
+      (value) => {
+        expectTypeOf(value).toEqualTypeOf<Set<string>>();
+      }
+    );
+    option('--inspect <value>', '', { cast: z.enum(['dev', 'prod']) }).action((value) => {
+      expectTypeOf(value).toEqualTypeOf<'dev' | 'prod'>();
+    });
+  });
+
+  it('preserves registration inference without promising middleware data to option actions', () => {
+    const inspect = option('--inspect <value>', '', { cast: Number }).action((value, context) => {
+      expectTypeOf(value).toEqualTypeOf<number>();
+      expectTypeOf(context.data).toEqualTypeOf<{}>();
+    });
+    breadc('cli')
+      .use(async (_ctx, next) => next({ data: { injected: 1 } }))
+      .option(inspect)
+      .command('run')
+      .action((options, context) => {
+        expectTypeOf(options.inspect).toEqualTypeOf<number | undefined>();
+        expectTypeOf(context.data.injected).toEqualTypeOf<number>();
+      });
+    group('tool')
+      .option(inspect)
+      .command('run')
+      .action((options) => {
+        expectTypeOf(options.inspect).toEqualTypeOf<number | undefined>();
+      });
+    command('run')
+      .option(inspect)
+      .action((options) => {
+        expectTypeOf(options.inspect).toEqualTypeOf<number | undefined>();
+      });
+    expectTypeOf(inspect).toExtend<Option<'--inspect <value>', { cast: NumberConstructor }>>();
+  });
+
+  it('returns converted input types without requiring a narrowing step', () => {
+    const app = breadc('cli')
+      .option('--port <value>', '', { default: '42', cast: Number })
+      .option(option('--inspect').action(() => {}))
+      .use(async (_ctx, next) => next({ data: { injected: 1 } }));
+    const result = app.parse<[number], { local: Date }>(['--inspect']);
+    expectTypeOf(result.options.port).toEqualTypeOf<number>();
+    expectTypeOf(result.options.local).toEqualTypeOf<Date>();
+    expectTypeOf(result.args).toEqualTypeOf<[number]>();
+    expectTypeOf(result.context).toEqualTypeOf<Context>();
+  });
+
+  it('keeps action settings separate from option initialization', () => {
+    // @ts-expect-error priority belongs to action
+    option('--inspect', '', { priority: 10 });
+    // @ts-expect-error no execution phase switch
+    option('--inspect', '', { phase: 'early' });
+    // @ts-expect-error no eager switch
+    option('--inspect', '', { eager: true });
+    // @ts-expect-error no validation bypass switch
+    option('--inspect', '', { skipValidation: true });
+    // @ts-expect-error wrong converted value type
+    option('--inspect', '', { cast: Number }).action((value: string) => value);
+    // @ts-expect-error option actions cannot require middleware data
+    option('--inspect').action((_value, context: Context<{ injected: number }>) => context.data);
+  });
+});
+
+it('supports parsing and running a context as separate steps', () => {
+  const app = breadc('cli').use(async (_ctx, next) => next({ data: { count: 1 } }));
+  const context = parse(app, []);
+  expectTypeOf(context).toEqualTypeOf<Context>();
+  expectTypeOf(context.data).toEqualTypeOf<{}>();
+  // @ts-expect-error parsing does not execute middleware or inject its data
+  context.data.count;
+  expectTypeOf(run(context)).toExtend<Promise<unknown>>();
 });

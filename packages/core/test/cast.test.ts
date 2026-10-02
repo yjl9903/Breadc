@@ -285,27 +285,6 @@ describe('Standard Schema cast', () => {
     }
   });
 
-  it('skips converters for syntax errors, help/version and run paths without execution', async () => {
-    const validate = vi.fn(() => ({ issues: [] }));
-    const app = breadc('cli', { version: '1' }).option('--value <value>', '', { default: 'x', cast: schema(validate) });
-    app
-      .command('run')
-      .argument('<name>', { cast: schema(validate) })
-      .action(vi.fn());
-    for (const argv of [['run', '--value'], ['run'], ['--unknown']]) expect(() => app.parse(argv)).toThrow(InputError);
-    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
-    try {
-      for (const argv of [['--help'], ['--version'], ['run', '--help']]) {
-        app.parse(argv);
-        await app.run(argv);
-      }
-      await app.run([]);
-    } finally {
-      output.mockRestore();
-    }
-    expect(validate).not.toHaveBeenCalled();
-  });
-
   it('converts the final fallback command after middleware and before the action', async () => {
     const validate = vi.fn(z.string().transform(Number)['~standard'].validate);
     const app = breadc('cli').option('--port <value>', '', { default: '12', cast: schema(validate) });

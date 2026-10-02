@@ -10,7 +10,12 @@ export function option<Spec extends string, Init extends OptionInit<Spec>>(
     description,
     init: { ...(init as unknown as InternalOption['init']) },
     type: undefined as unknown as OptionType,
-    long: ''
+    long: '',
+    action(handler, init = {}) {
+      option._actionFn = handler;
+      option._actionPriority = init.priority ?? 0;
+      return option;
+    }
   };
 
   return option as unknown as Option<Spec, Init>;
@@ -24,13 +29,10 @@ export function rawOption(
   short: string | undefined,
   init: InternalOption['init']
 ): InternalOption {
-  return {
-    spec,
-    description,
-    init,
+  return Object.assign(option(spec, description, init), {
     type,
-    form: type === 'boolean' ? 'positive' : undefined,
+    form: type === 'boolean' ? ('positive' as const) : undefined,
     long,
     short
-  } as InternalOption;
+  });
 }

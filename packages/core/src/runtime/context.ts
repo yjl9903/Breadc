@@ -27,6 +27,9 @@ export type Context<Data extends {} = {}> = {
    */
   command?: InternalCommand;
 
+  /** Selected explicit option action; the matched command remains available for context. */
+  actionOption?: MatchedOption;
+
   /**
    * Match command pieces
    */
@@ -84,6 +87,7 @@ export function reset<Data extends {} = {}>(context: Context<Data>): Context<Dat
   context.data = {} as Data;
   context.group = undefined;
   context.command = undefined;
+  context.actionOption = undefined;
   context.pieces.length = 0;
   context.options.clear();
   context.arguments.length = 0;
