@@ -7,6 +7,9 @@ export { printHelp } from './builtin/help.ts';
 export { printVersion } from './builtin/version.ts';
 
 export type {
+  Example,
+  AppDescription,
+  CommandDescription,
   Cast,
   InferCastOutput,
   BreadcErrorOptions,

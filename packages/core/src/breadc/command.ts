@@ -1,6 +1,7 @@
 import { DefinitionError, ErrorCode } from '../error.ts';
 
 import type {
+  CommandDescription,
   ActionMiddleware,
   UnknownOptionMiddleware,
   Option,
@@ -21,6 +22,7 @@ import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts'
 
 export function command<S extends string, I extends CommandInit<S>>(
   spec: S,
+  description?: CommandDescription,
   init?: I
 ): Command<S, I, {}, {}, InferArgumentsType<S>, unknown> {
   /* v8 ignore next -- TODO: remove when direct command invocation is implemented. @preserve */
@@ -33,6 +35,7 @@ export function command<S extends string, I extends CommandInit<S>>(
   const options: InternalOption[] = [];
 
   run.spec = spec;
+  run.description = description;
   run.init = init;
 
   run._aliases = aliases;
@@ -46,9 +49,10 @@ export function command<S extends string, I extends CommandInit<S>>(
 
   run.argument = <Spec extends string, Init extends ArgumentInit<Spec>>(
     spec: Spec | Argument<Spec>,
+    description?: string,
     init?: CheckedArgumentInit<Spec, Init>
   ) => {
-    const arg = typeof spec === 'string' ? argument(spec, init as any) : spec;
+    const arg = typeof spec === 'string' ? argument(spec, description, init) : spec;
     args.push(arg as unknown as InternalArgument);
     return run as any;
   };
@@ -101,6 +105,7 @@ export function rawArgument(type: ArgumentType, name: string): InternalArgument 
 
 export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
   spec: Spec,
+  description?: string,
   init?: CheckedArgumentInit<Spec, Init>
 ): Argument<Spec, Init> {
   let type: ArgumentType | undefined;
@@ -147,6 +152,7 @@ export function argument<Spec extends string, Init extends ArgumentInit<Spec>>(
 
   const result = {
     spec,
+    description,
     type: type!,
     name: name!,
     init: { ...init }

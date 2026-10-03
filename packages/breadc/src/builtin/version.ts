@@ -5,11 +5,10 @@ import { option as makeOption } from '@breadc/core';
 
 export function buildVersionOption(init: BreadcInit) {
   const config = typeof init.builtin?.version === 'object' ? init.builtin.version : undefined;
-
-  return makeOption(config?.spec ?? '-v, --version', config?.description ?? 'Print version').action(
-    (_value, context) => printVersion(context),
-    { priority: 20 }
-  );
+  const option = makeOption(config?.spec ?? '-v, --version').action((_value, context) => printVersion(context), {
+    priority: 20
+  });
+  return Object.assign(option, { _builtin: 'version' as const });
 }
 
 export function printVersion(context: Context) {

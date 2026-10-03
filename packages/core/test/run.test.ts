@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { vi, describe, it, expect, afterEach } from 'vitest';
 
 import { breadc, option, type InternalBreadc } from '../src/breadc/index.ts';
-import { parse, run } from '../src/index.ts';
+import { parse, run, type Context } from '../src/index.ts';
 import { context as makeContext, reset } from '../src/runtime/context.ts';
 import { ErrorCode } from '../src/error.ts';
 
@@ -204,7 +204,7 @@ describe('runtime/run', () => {
       const argumentApp = breadc('cli');
       argumentApp
         .command('run')
-        .argument('<file>', { cast: fail })
+        .argument('<file>', undefined, { cast: fail })
         .action(() => {});
       await expect(argumentApp.run(['run', 'x'])).rejects.toBe(failure);
       await expect(breadc('cli').allowUnknownOption(fail).run(['--typo'])).rejects.toBe(failure);
@@ -311,7 +311,7 @@ describe('runtime/run: conversion boundaries', () => {
     const app = breadc('cli');
     app
       .command('run')
-      .argument('[count]', { cast })
+      .argument('[count]', undefined, { cast })
       .option('--port <port>', '', { cast })
       .use(async (context) => {
         if (kind === 'argument') {
@@ -336,7 +336,7 @@ describe('runtime/run: conversion boundaries', () => {
     const app = breadc('cli');
     app
       .command('run')
-      .argument('[count]', { cast: argumentCast })
+      .argument('[count]', undefined, { cast: argumentCast })
       .option('--port <port>', '', { cast: optionCast })
       .use(async (context) => {
         context.arguments[0].accept(context, '2');
@@ -383,7 +383,7 @@ describe('runtime/run: conversion boundaries', () => {
       .option('--count <value>', '', { default: '2', cast })
       .use(middleware)
       .onUnknownCommand(unknown);
-    app.command('run').argument('<file>', { cast });
+    app.command('run').argument('<file>', undefined, { cast });
     await expect(app.run(['run', 'file'])).rejects.toMatchObject({
       name: 'DefinitionError',
       code: ErrorCode.MISSING_COMMAND_ACTION
@@ -424,7 +424,7 @@ describe('deferred middleware validation', () => {
     const app = breadc('cli').option('--items <...item>', '', { default: ['invalid default'], cast });
     app
       .command('run')
-      .argument('[...items]', { default: ['invalid default'], cast })
+      .argument('[...items]', undefined, { default: ['invalid default'], cast })
       .use(async (context, next) => {
         context.options.get('items')!.accept(context, 'items', 'a');
         context.arguments[0].accept(context, 'a');
@@ -455,7 +455,7 @@ describe('deferred middleware validation', () => {
       const app = breadc('cli').option('--port <value>', '', { cast });
       app
         .command('run')
-        .argument('[count]', { cast })
+        .argument('[count]', undefined, { cast })
         .use(async (context, next) => {
           context.options.get('port')!.accept(context, 'port', 'invalid');
           context.arguments[0].accept(context, 'invalid');
@@ -540,7 +540,7 @@ describe('runtime/run: required spread arguments', () => {
     const cast = vi.fn((files: string[]) => new Set(files));
     app
       .command('upload')
-      .argument('<...files>', { cast })
+      .argument('<...files>', undefined, { cast })
       .action((files, options) => [files, options['--']]);
     await expect(app.run(['upload', 'a', 'b', '--', 'c'])).resolves.toEqual([new Set(['a', 'b']), ['c']]);
     expect(cast).toHaveBeenCalledExactlyOnceWith(['a', 'b']);
@@ -579,7 +579,7 @@ describe('runtime/run: option actions', () => {
       .group('tool')
       .use(middleware)
       .command('upload')
-      .argument('<...files>', { cast: unrelated })
+      .argument('<...files>', undefined, { cast: unrelated })
       .use(middleware)
       .action(action);
 
@@ -746,6 +746,68 @@ describe('runtime/run: option actions', () => {
     app.command('<required>').option('--inspect <value>');
     await expect(app.run(['--inspect'])).resolves.toBeUndefined();
     expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['root', 'group'])(
+    'resolves %s default options before reporting diagnostics for an option action',
+    async (scope) => {
+      const handler = vi.fn((_value, context) => context);
+      const cast = vi.fn((value: boolean) => value);
+      const action = vi.fn(() => 'command');
+      const middleware = vi.fn((_context, next) => next());
+      const app = breadc('cli').option(option('-i, --inspect').action(handler)).use(middleware);
+      const owner = scope === 'group' ? app.group('tool') : app;
+      owner.command('other');
+      const command = owner.command('<required>').option('-d, --dry-run', '', { cast }).action(action);
+      const prefix = scope === 'group' ? ['tool'] : [];
+
+      for (const flags of [['--dry-run', '--inspect'], ['--inspect', '--dry-run'], ['-di'], ['-id']]) {
+        const context = await app.run<Context>([...prefix, ...flags]);
+        expect(context.command).toBe(command);
+        expect(context.options.get('dry-run')?.raw).toBe(true);
+        expect(context.issues).toEqual([]);
+        expect(context.arguments).toEqual([]);
+        expect(context.pieces).toEqual(prefix);
+      }
+      expect(handler).toHaveBeenCalledTimes(4);
+      for (const fn of [cast, action, middleware]) expect(fn).not.toHaveBeenCalled();
+
+      // Repeated calls must not retain the fallback command or selected action.
+      expect((await app.run<Context>([...prefix, '--inspect'])).command).toBeUndefined();
+      await expect(app.run([...prefix, 'input', '--dry-run'])).resolves.toBe('command');
+      expect(cast).toHaveBeenCalledExactlyOnceWith(true);
+      expect(action).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each(['root', 'group'])('retains final scan errors with a %s default and option action', async (scope) => {
+    const handler = vi.fn();
+    const app = breadc('cli').option(option('--inspect').action(handler));
+    const owner = scope === 'group' ? app.group('tool') : app;
+    owner.command('other');
+    owner.command('<required>').option('--dry-run').option('--output <file>');
+    const prefix = scope === 'group' ? ['tool'] : [];
+
+    await expect(app.run([...prefix, '--dry-run', '--typo', '--output', '--inspect'])).rejects.toMatchObject({
+      issues: [
+        expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION, name: '--typo' }),
+        expect.objectContaining({ code: ErrorCode.MISSING_OPTION_VALUE })
+      ]
+    });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('reselects the effective action when default declarations resolve a provisional missing value', async () => {
+    const root = vi.fn(() => 'root');
+    const child = vi.fn(() => 'default');
+    const app = breadc('cli').option(option('--inspect').action(root)).option('--dry-run <value>');
+    app.command('other');
+    app.command('<required>').option('--dry-run').option(option('--inspect').action(child));
+
+    await expect(app.run(['--dry-run', '--inspect'])).resolves.toBe('default');
+    expect(child).toHaveBeenCalledTimes(1);
+    expect(root).not.toHaveBeenCalled();
+    await expect(app.run(['--inspect'])).resolves.toBe('root');
   });
 
   it('aggregates the whole scan before conversion or execution, skipping positional requirements', async () => {

@@ -38,10 +38,10 @@ it('accepts narrow schema inputs and extracts precise outputs', () => {
     .option('--group <value>', '', { default: 'dev', cast: mode })
     .command('run')
     .option('--command <value>', '', { cast: mode })
-    .argument('<required>', { cast: object })
-    .argument('[optional]', { cast: mode })
-    .argument('[default]', { default: 'dev', cast: mode })
-    .argument('[...files]', { cast: files })
+    .argument('<required>', undefined, { cast: object })
+    .argument('[optional]', undefined, { cast: mode })
+    .argument('[default]', undefined, { default: 'dev', cast: mode })
+    .argument('[...files]', undefined, { cast: files })
     .action((required, optional, fallback, rest, options) => {
       expectTypeOf(required).toEqualTypeOf<z.output<typeof object>>();
       expectTypeOf(optional).toEqualTypeOf<'dev' | 'prod' | undefined>();
@@ -56,7 +56,7 @@ it('accepts narrow schema inputs and extracts precise outputs', () => {
 it('preserves standalone declarations in every registration overload', () => {
   const cast = z.enum(['dev', 'prod']);
   const opt = option('--mode <value>', '', { default: 'dev', cast });
-  const arg = argument('[name]', { default: 'dev', cast });
+  const arg = argument('[name]', undefined, { default: 'dev', cast });
   const parsed = breadc('cli').option(opt).parse([]);
   expectTypeOf(parsed.options.mode).toEqualTypeOf<'dev' | 'prod'>();
   group('tool')
@@ -97,14 +97,14 @@ it('combines output undefined/null with definite and possibly absent defaults', 
   const optional = breadc('cli').option('--mode [value]', '', { cast: defaults }).parse([]);
   expectTypeOf(optional.options.mode).toEqualTypeOf<string | undefined>();
   command('run')
-    .argument('[name]', { cast: defaults })
+    .argument('[name]', undefined, { cast: defaults })
     .action((name) => {
       expectTypeOf(name).toEqualTypeOf<string | undefined>();
     });
   const flag = breadc('cli').option('--flag', '', { cast: undefined }).parse([]);
   expectTypeOf(flag.options.flag).toEqualTypeOf<boolean>();
   command('run')
-    .argument('[name]', { cast: undefined })
+    .argument('[name]', undefined, { cast: undefined })
     .action((name) => {
       expectTypeOf(name).toEqualTypeOf<string | undefined>();
     });
@@ -151,19 +151,19 @@ it('keeps function contextual inputs stable beside the schema union', () => {
         return value;
       }
     })
-    .argument('<required>', {
+    .argument('<required>', undefined, {
       cast: (value) => {
         expectTypeOf(value).toEqualTypeOf<string>();
         return value.length;
       }
     })
-    .argument('[optional]', {
+    .argument('[optional]', undefined, {
       cast: (value) => {
         expectTypeOf(value).toEqualTypeOf<string>();
         return value.length;
       }
     })
-    .argument('[...files]', {
+    .argument('[...files]', undefined, {
       cast: (value) => {
         expectTypeOf(value).toEqualTypeOf<string[]>();
         return new Set(value);
@@ -184,7 +184,7 @@ it('keeps function contextual inputs stable beside the schema union', () => {
       return value;
     }
   });
-  argument('[name]', {
+  argument('[name]', undefined, {
     cast: (value) => {
       expectTypeOf(value).toEqualTypeOf<string>();
       return value;
@@ -200,15 +200,15 @@ it('does not loosen raw default or function input types for schemas', () => {
   // @ts-expect-error array defaults must be string arrays
   option('--files <...value>', '', { default: 'file', cast: z.array(z.string()) });
   // @ts-expect-error required arguments cannot have defaults
-  argument('<name>', { default: 'name', cast: z.string() });
+  argument('<name>', undefined, { default: 'name', cast: z.string() });
   // @ts-expect-error optional arguments require string defaults
-  argument('[name]', { default: 1, cast: z.coerce.number() });
+  argument('[name]', undefined, { default: 1, cast: z.coerce.number() });
   // @ts-expect-error spread arguments require string arrays
-  argument('[...files]', { default: [1], cast: z.array(z.coerce.number()) });
+  argument('[...files]', undefined, { default: [1], cast: z.array(z.coerce.number()) });
   // @ts-expect-error functions must accept the CLI input
   option('--flag', '', { cast: (value: string) => value });
   // @ts-expect-error bare options may pass undefined
   option('--value [value]', '', { cast: (value: string) => value });
   // @ts-expect-error argument functions receive strings
-  argument('[name]', { cast: (value: number) => value });
+  argument('[name]', undefined, { cast: (value: number) => value });
 });

@@ -69,14 +69,14 @@ describe('Standard Schema cast', () => {
       )
       .option('--files <...file>', '', { cast: z.array(z.string()).transform((items) => new Set(items)) })
       .argument(
-        argument('<name>', {
+        argument('<name>', undefined, {
           cast: z
             .string()
             .transform((name) => ({ name }))
             .brand<'Name'>()
         })
       )
-      .argument('[...rest]', { cast: mini.array(mini.string()) })
+      .argument('[...rest]', undefined, { cast: mini.array(mini.string()) })
       .action((name, rest, options) => ({ name, rest, options }));
     expect(await app.run(['tool', 'run', 'hello', 'world', '--files=a', '--files=a'])).toEqual({
       name: { name: 'hello' },
@@ -96,7 +96,7 @@ describe('Standard Schema cast', () => {
     expect(validate.mock.calls.map(([value]) => value)).toEqual(['auto', undefined, 'never', '']);
     validate.mockClear();
     const absent = breadc('cli').option('--color [value]', '', { default: undefined, cast });
-    absent.command('').argument('[color]', { cast });
+    absent.command('').argument('[color]', undefined, { cast });
     expect(absent.parse([])).toMatchObject({ options: { color: undefined }, args: [undefined] });
     expect(validate).not.toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe('Standard Schema cast', () => {
     const validate = vi.fn(() => ({ value }));
     const cast = schema(validate);
     const app = breadc('cli').option('--value <value>', '', { default: 'fallback', cast });
-    app.command('').argument('[value]', { default: 'fallback', cast });
+    app.command('').argument('[value]', undefined, { default: 'fallback', cast });
     const result = app.parse([]);
     expect(result.options.value).toBe(value);
     expect(result.args).toEqual([value]);
@@ -124,7 +124,7 @@ describe('Standard Schema cast', () => {
       .option('--no-cache', '', { cast: z.boolean().transform(String) })
       .option('--empty <...value>', '', { cast })
       .option('--files <...value>', '', { default: defaults, cast });
-    app.command('').argument('[...files]', { default: defaults, cast });
+    app.command('').argument('[...files]', undefined, { default: defaults, cast });
     expect(app.parse([])).toMatchObject({
       options: { flag: 'false', cache: 'true', empty: ['converted'], files: ['fallback', 'converted'] },
       args: [['fallback', 'converted']]
@@ -143,8 +143,8 @@ describe('Standard Schema cast', () => {
     app
       .command('run')
       .option('--flag', '', { cast: z.literal(true) })
-      .argument('<name>', { cast: z.string().min(2) })
-      .argument('[...files]', { cast: z.array(z.string().min(1)) })
+      .argument('<name>', undefined, { cast: z.string().min(2) })
+      .argument('[...files]', undefined, { cast: z.array(z.string().min(1)) })
       .action(action);
     const error = inputError(() => app.parse(['run', 'x', 'ok', '', '--mode=bad']));
     expect(error.issues.map((issue) => issue.code)).toEqual([
@@ -162,7 +162,7 @@ describe('Standard Schema cast', () => {
 
   it('reports invalid built-in empty arrays as input failures', () => {
     const app = breadc('cli').option('--files <...value>', '', { cast: z.array(z.string()).min(1) });
-    app.command('').argument('[...files]', { cast: z.array(z.string()).min(1) });
+    app.command('').argument('[...files]', undefined, { cast: z.array(z.string()).min(1) });
     expect(inputError(() => app.parse([])).issues.map((issue) => issue.code)).toEqual([
       'INVALID_OPTION_VALUE',
       'INVALID_ARGUMENT_VALUE'
@@ -190,8 +190,8 @@ describe('Standard Schema cast', () => {
     const config = { default: 'bad', cast: z.enum(['good']) };
     if (kind === 'option') app.option('--value <value>', '', config);
     const command = app.command('');
-    if (kind === 'argument') command.argument('[value]', config);
-    command.argument('[...later]', { cast: later });
+    if (kind === 'argument') command.argument('[value]', undefined, config);
+    command.argument('[...later]', undefined, { cast: later });
     expect(() => app.parse([])).toThrow(
       expect.objectContaining({
         code: ErrorCode.INVALID_DEFAULT_VALUE,
@@ -291,7 +291,7 @@ describe('Standard Schema cast', () => {
     app.command('named').action(() => {});
     app
       .command('')
-      .argument('[count]', { default: '3', cast: z.string().transform(Number) })
+      .argument('[count]', undefined, { default: '3', cast: z.string().transform(Number) })
       .use(async (context, next) => {
         expect(context.options.get('port')!.raw).toBe('12');
         expect(context.arguments[0].raw).toBe('3');
@@ -309,7 +309,7 @@ describe('Standard Schema cast', () => {
   it('caches validation failures without turning them into successful values', () => {
     const validate = vi.fn(() => ({ issues: [] }));
     const app = breadc('cli').option('--flag', '', { cast: schema(validate) });
-    app.command('').argument('[...files]', { cast: schema(validate) });
+    app.command('').argument('[...files]', undefined, { cast: schema(validate) });
     const context = parse(app, []);
     for (let i = 0; i < 2; i++) expect(inputError(() => finalizeInput(context)).issues).toHaveLength(2);
     expect(() => context.options.get('flag')!.value()).toThrow(InputError);
@@ -323,7 +323,8 @@ describe('Standard Schema cast', () => {
     const context = makeContext(breadc('cli'), []);
     const opt = option('--files <...value>', '', { cast });
     resolveOption(opt);
-    const matched = kind === 'option' ? new MatchedOption(opt) : new MatchedArgument(argument('[...files]', { cast }));
+    const matched =
+      kind === 'option' ? new MatchedOption(opt) : new MatchedArgument(argument('[...files]', undefined, { cast }));
     const accept = (value: string) =>
       matched instanceof MatchedOption ? matched.accept(context, 'files', value) : matched.accept(context, value);
     const failure = matched.finalize();

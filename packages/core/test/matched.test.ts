@@ -12,7 +12,7 @@ describe('runtime/matched: argument', () => {
   it('invalidates a finalized spread conversion without converting on assignment', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn((items: string[]) => items.join(','));
-    const matched = new MatchedArgument(argument('[...items]', { cast }));
+    const matched = new MatchedArgument(argument('[...items]', undefined, { cast }));
     expect(matched.accept(ctx, 'a').finalize()).toEqual({ value: 'a' });
     matched.accept(ctx, 'b');
     expect(cast).toHaveBeenCalledTimes(1);
@@ -24,7 +24,7 @@ describe('runtime/matched: argument', () => {
   it('records input and caches conversion only after finalization', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn(Number);
-    const arg = argument('[count]', { default: '1', cast });
+    const arg = argument('[count]', undefined, { default: '1', cast });
     const matched = new MatchedArgument(arg);
     expect(matched.dirty).toBe(false);
     expect(matched.value()).toBe('1');
@@ -49,10 +49,10 @@ describe('runtime/matched: argument', () => {
 
   it('finalizes default input and skips absent optional input', () => {
     const cast = vi.fn(Number);
-    const fallback = new MatchedArgument(argument('[count]', { default: '3', cast }));
+    const fallback = new MatchedArgument(argument('[count]', undefined, { default: '3', cast }));
     expect(fallback.finalize()).toEqual({ value: 3 });
     expect(cast).toHaveBeenCalledExactlyOnceWith('3');
-    const missing = new MatchedArgument(argument('[count]', { cast }));
+    const missing = new MatchedArgument(argument('[count]', undefined, { cast }));
     expect(missing.finalize()).toEqual({ value: undefined });
     expect(cast).toHaveBeenCalledTimes(1);
   });
@@ -60,7 +60,7 @@ describe('runtime/matched: argument', () => {
   it('collects a complete spread array before converting once', () => {
     const ctx = makeContext(breadc('cli'), []);
     const cast = vi.fn((items: string[]) => items.join(','));
-    const arg = argument('[...items]', { default: ['fallback'], cast });
+    const arg = argument('[...items]', undefined, { default: ['fallback'], cast });
     const matched = new MatchedArgument(arg);
     expect(matched.value()).toEqual(['fallback']);
     matched.accept(ctx, 'a').accept(ctx, '').accept(ctx, 'b');

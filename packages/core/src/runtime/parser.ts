@@ -34,13 +34,17 @@ export function parse(app: Breadc<any, any>, argv: string[]): Context {
   }
 
   const defaultCommand = defaultCommands[0] as unknown as InternalCommand | undefined;
-  const onlyDefaultCommand = defaultCommand !== undefined && context.breadc._commands.length === 1;
+  const onlyDefaultCommand =
+    defaultCommand !== undefined &&
+    context.breadc._commands.length === 1 &&
+    defaultCommand._pieces.every((pieces) => pieces.length === 0);
 
   // 3. Parse without default command
   let result = doParse(context, onlyDefaultCommand ? { command: defaultCommand } : undefined);
 
-  if (context.command || context.actionOption) {
-    // 4.1. No fallback needed
+  if (context.command || (context.actionOption && context.issues.length === 0)) {
+    // 4.1. A clean option action needs no fallback. Otherwise, default-command
+    // declarations may resolve provisional scan errors even when an action matched.
   } else if (context.group) {
     // 4.2. Parse with group default command
     const matchedGroup = context.group;
@@ -291,8 +295,9 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
     addPendingOptions(defaultCommand._options);
   } else {
     for (const command of breadc._commands) {
-      if (!command._default) {
-        for (let alias = 0; alias < command._pieces.length; alias++) {
+      for (let alias = 0; alias < command._pieces.length; alias++) {
+        // Empty paths are reserved for default-command fallback.
+        if (command._pieces[alias].length > 0) {
           addPendingCommand(command, alias);
         }
       }

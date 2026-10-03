@@ -24,5 +24,8 @@ export type {
   ArgumentInit,
   InternalArgument,
   Cast,
-  InferCastOutput
+  InferCastOutput,
+  Example,
+  AppDescription,
+  CommandDescription
 } from './types/index.ts';

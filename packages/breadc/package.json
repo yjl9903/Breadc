@@ -43,10 +43,10 @@
     "@breadc/color": "workspace:*",
     "@breadc/core": "workspace:*",
     "@breadc/death": "workspace:*",
-    "@breadc/tui": "workspace:*"
+    "@breadc/tui": "workspace:*",
+    "fast-string-width": "^3.0.2"
   },
   "devDependencies": {
-    "@standard-schema/spec": "^1.1.0",
     "zod": "^4.6.5"
   }
 }

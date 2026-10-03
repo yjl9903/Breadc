@@ -1,6 +1,7 @@
 import { DefinitionError, ErrorCode } from '../error.ts';
 
 import type {
+  CommandDescription,
   ActionMiddleware,
   UnknownOptionMiddleware,
   Option,
@@ -17,7 +18,11 @@ import type {
 import { command as makeCommand } from './command.ts';
 import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
 
-export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: I): Group<S, I, {}, {}> {
+export function group<S extends string, I extends GroupInit<S>>(
+  spec: S,
+  description?: CommandDescription,
+  init?: I
+): Group<S, I, {}, {}> {
   if (!spec) {
     throw new DefinitionError(
       ErrorCode.EMPTY_GROUP_SPEC,
@@ -33,6 +38,7 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
 
   const group: InternalGroup = {
     spec,
+    description,
     init,
 
     _pieces: undefined!,
@@ -46,9 +52,12 @@ export function group<S extends string, I extends GroupInit<S>>(spec: S, init?: 
       return group;
     },
 
-    command<S extends string, I extends CommandInit<S>>(spec: S | Command<S>, description?: string, init?: I) {
-      const command =
-        typeof spec === 'string' ? makeCommand(spec, description || init ? { description, ...init } : undefined) : spec;
+    command<S extends string, I extends CommandInit<S>>(
+      spec: S | Command<S>,
+      description?: CommandDescription,
+      init?: I
+    ) {
+      const command = typeof spec === 'string' ? makeCommand(spec, description, init) : spec;
       (command as unknown as InternalCommand)._group = group;
       commands.push(command as unknown as InternalCommand);
       return command;

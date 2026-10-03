@@ -9,7 +9,6 @@ import type {
   ArgumentInit,
   CheckedArgumentInit
 } from './init.ts';
-import type { InferOption, InferOptionActionValue, InferArgumentType, InferArgumentsType } from './infer.ts';
 import type {
   ActionMiddleware,
   ActionMiddlewareNextFn,
@@ -18,6 +17,8 @@ import type {
   UnknownOptionMiddleware
 } from './middleware.ts';
 import type { ArgumentType } from './internal.ts';
+import type { CommandDescription } from './description.ts';
+import type { InferOption, InferOptionActionValue, InferArgumentType, InferArgumentsType } from './infer.ts';
 
 /**
  * @public
@@ -30,7 +31,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
   group<GS extends string, G extends Group<GS>>(group: G): G;
   group<GS extends string, GI extends GroupInit<GS>>(
     spec: GS,
-    description?: string,
+    description?: CommandDescription,
     init?: GI
   ): Group<GS, GI, Data, Options>;
 
@@ -49,7 +50,7 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
 
   command<S extends string, I extends CommandInit<S>>(
     spec: S,
-    description?: string,
+    description?: CommandDescription,
     init?: I
   ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
   command<S extends string, I extends CommandInit<S>>(
@@ -109,6 +110,8 @@ export type Group<
 > = {
   spec: Spec;
 
+  description?: CommandDescription;
+
   init: Init | undefined;
 
   /**
@@ -126,7 +129,7 @@ export type Group<
 
   command<S extends string, I extends CommandInit<S>>(
     spec: S,
-    description?: string,
+    description?: CommandDescription,
     init?: I
   ): Command<S, I, Data, Options, InferArgumentsType<S>, unknown>;
   command<S extends string, I extends CommandInit<S>>(
@@ -156,6 +159,8 @@ export type Command<
   Return extends unknown = unknown
 > = {
   spec: Spec;
+
+  description?: CommandDescription;
 
   init: Init | undefined;
 
@@ -189,6 +194,7 @@ export type Command<
   ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentFromInstance<Arg>], Return>;
   argument<AS extends string, AI extends ArgumentInit<AS>>(
     spec: AS,
+    description?: string,
     init?: CheckedArgumentInit<AS, AI>
   ): Command<Spec, Init, Data, Options, [...Arguments, InferArgumentType<AS, AI>], Return>;
 
@@ -238,6 +244,8 @@ type InferArgumentFromInstance<Arg extends Argument<any, any>> =
 
 export type Argument<Spec extends string = string, Init extends ArgumentInit<Spec> = ArgumentInit<Spec>> = {
   spec: Spec;
+
+  description?: string;
 
   type: ArgumentType;
 

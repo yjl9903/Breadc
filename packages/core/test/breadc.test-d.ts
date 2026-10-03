@@ -157,11 +157,11 @@ describe('types/command', () => {
 
     const cmd3 = command('dev <arg0>')
       .argument(argument('<arg1>'))
-      .argument('<arg2>', { cast: (t) => +t })
-      .argument('[arg3]', { default: 'default' })
-      .argument('[arg4]', { default: '0', cast: (t) => (t ? +t : 0) })
-      .argument('[arg5]', { default: 'default' })
-      .argument('[arg6]', { default: '0', cast: (t) => +t })
+      .argument('<arg2>', undefined, { cast: (t) => +t })
+      .argument('[arg3]', undefined, { default: 'default' })
+      .argument('[arg4]', undefined, { default: '0', cast: (t) => (t ? +t : 0) })
+      .argument('[arg5]', undefined, { default: 'default' })
+      .argument('[arg6]', undefined, { default: '0', cast: (t) => +t })
       .argument('[...arg7]')
       .action(() => 1);
     expectTypeOf<
@@ -181,11 +181,11 @@ describe('types/command', () => {
 
     const cmd4 = command('dev <arg0>')
       .argument(argument('<arg1>'))
-      .argument(argument('<arg2>', { cast: (t) => +t }))
-      .argument(argument('[arg3]', { default: 'default' }))
-      .argument(argument('[arg4]', { default: '0', cast: (t) => (t ? +t : 0) }))
-      .argument(argument('[arg5]', { default: 'default' }))
-      .argument(argument('[arg6]', { default: '0', cast: (t) => +t }))
+      .argument(argument('<arg2>', undefined, { cast: (t) => +t }))
+      .argument(argument('[arg3]', undefined, { default: 'default' }))
+      .argument(argument('[arg4]', undefined, { default: '0', cast: (t) => (t ? +t : 0) }))
+      .argument(argument('[arg5]', undefined, { default: 'default' }))
+      .argument(argument('[arg6]', undefined, { default: '0', cast: (t) => +t }))
       .argument(argument('[...arg7]'))
       .action(() => 1);
     expectTypeOf<
@@ -231,14 +231,14 @@ describe('types/argument', () => {
       default?: string;
       cast?: Cast<string, number>;
     }>();
-    const arg = argument('[port]', { default: '3000', cast: Number });
+    const arg = argument('[port]', undefined, { default: '3000', cast: Number });
     expectTypeOf(arg).toEqualTypeOf<Argument<'[port]', { default: '3000'; cast: NumberConstructor }>>();
   });
 
   it('infers string declaration actions and contextual cast inputs', () => {
     command('run')
       .argument('<raw>')
-      .argument('<cast>', {
+      .argument('<cast>', undefined, {
         default: undefined,
         cast: (value) => {
           expectTypeOf(value).toEqualTypeOf<string>();
@@ -246,15 +246,15 @@ describe('types/argument', () => {
         }
       })
       .argument('[raw]')
-      .argument('[default]', { default: '' })
-      .argument('[cast]', {
+      .argument('[default]', undefined, { default: '' })
+      .argument('[cast]', undefined, {
         cast: (value) => {
           expectTypeOf(value).toEqualTypeOf<string>();
           return Number(value);
         }
       })
-      .argument('[convertedDefault]', { default: '3000', cast: Number })
-      .argument('[...files]', {
+      .argument('[convertedDefault]', undefined, { default: '3000', cast: Number })
+      .argument('[...files]', undefined, {
         default: [],
         cast: (values) => {
           expectTypeOf(values).toEqualTypeOf<string[]>();
@@ -276,7 +276,7 @@ describe('types/argument', () => {
     command('run')
       .argument(argument('<raw>'))
       .argument(
-        argument('<cast>', {
+        argument('<cast>', undefined, {
           cast: (value) => {
             expectTypeOf(value).toEqualTypeOf<string>();
             return value.length;
@@ -284,18 +284,18 @@ describe('types/argument', () => {
         })
       )
       .argument(argument('[raw]'))
-      .argument(argument('[default]', { default: '' }))
+      .argument(argument('[default]', undefined, { default: '' }))
       .argument(
-        argument('[cast]', {
+        argument('[cast]', undefined, {
           cast: (value) => {
             expectTypeOf(value).toEqualTypeOf<string>();
             return Number(value);
           }
         })
       )
-      .argument(argument('[convertedDefault]', { default: '3000', cast: Number }))
+      .argument(argument('[convertedDefault]', undefined, { default: '3000', cast: Number }))
       .argument(
-        argument('[...files]', {
+        argument('[...files]', undefined, {
           cast: (values) => {
             expectTypeOf(values).toEqualTypeOf<string[]>();
             return values.length;
@@ -317,13 +317,13 @@ describe('types/argument', () => {
     const fallback = '' as string | undefined;
     const cast = (_value: string): number | null | false | '' | undefined => undefined;
     command('run')
-      .argument('<required>', { cast })
-      .argument('[raw]', { default: fallback })
-      .argument('[cast]', { default: fallback, cast: Number })
-      .argument('[result]', { default: '1', cast })
-      .argument('[undefined]', { default: '1', cast: () => undefined })
-      .argument('[explicitUndefined]', { default: undefined, cast: Number })
-      .argument('[...files]', { default: [], cast: (): null | undefined => null })
+      .argument('<required>', undefined, { cast })
+      .argument('[raw]', undefined, { default: fallback })
+      .argument('[cast]', undefined, { default: fallback, cast: Number })
+      .argument('[result]', undefined, { default: '1', cast })
+      .argument('[undefined]', undefined, { default: '1', cast: () => undefined })
+      .argument('[explicitUndefined]', undefined, { default: undefined, cast: Number })
+      .argument('[...files]', undefined, { default: [], cast: (): null | undefined => null })
       .action((required, raw, converted, result, missing, explicit, spread) => {
         expectTypeOf(required).toEqualTypeOf<number | null | false | '' | undefined>();
         expectTypeOf(raw).toEqualTypeOf<string | undefined>();
@@ -334,11 +334,11 @@ describe('types/argument', () => {
         expectTypeOf(spread).toEqualTypeOf<null | undefined>();
       });
     command('run')
-      .argument(argument('<required>', { default: undefined, cast }))
-      .argument(argument('[raw]', { default: fallback }))
-      .argument(argument('[cast]', { default: fallback, cast: Number }))
-      .argument(argument('[result]', { default: '', cast }))
-      .argument(argument('[...files]', { default: [], cast: (): false | undefined => false }))
+      .argument(argument('<required>', undefined, { default: undefined, cast }))
+      .argument(argument('[raw]', undefined, { default: fallback }))
+      .argument(argument('[cast]', undefined, { default: fallback, cast: Number }))
+      .argument(argument('[result]', undefined, { default: '', cast }))
+      .argument(argument('[...files]', undefined, { default: [], cast: (): false | undefined => false }))
       .action((required, raw, converted, result, spread) => {
         expectTypeOf(required).toEqualTypeOf<number | null | false | '' | undefined>();
         expectTypeOf(raw).toEqualTypeOf<string | undefined>();
@@ -792,7 +792,7 @@ describe('types/required spread arguments', () => {
       expectTypeOf(files).toEqualTypeOf<string[]>();
     });
     command('upload')
-      .argument('<...files>', {
+      .argument('<...files>', undefined, {
         cast: (files) => {
           expectTypeOf(files).toEqualTypeOf<string[]>();
           return new Set(files);
@@ -802,14 +802,14 @@ describe('types/required spread arguments', () => {
         expectTypeOf(files).toEqualTypeOf<Set<string>>();
       });
     command('upload')
-      .argument(argument('<...files>', { cast: (files) => files.length }))
+      .argument(argument('<...files>', undefined, { cast: (files) => files.length }))
       .action((count) => {
         expectTypeOf(count).toEqualTypeOf<number>();
       });
     // @ts-expect-error required arrays cannot have defaults
-    argument('<...files>', { default: ['file'] });
+    argument('<...files>', undefined, { default: ['file'] });
     // @ts-expect-error required arrays cannot have defaults
-    command('upload').argument('<...files>', { default: ['file'] });
+    command('upload').argument('<...files>', undefined, { default: ['file'] });
   });
 });
 

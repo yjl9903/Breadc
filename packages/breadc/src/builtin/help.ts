@@ -1,250 +1,203 @@
 import { bold, underline } from '@breadc/color';
-import { option as makeOption, type Context } from '@breadc/core';
+import stringWidth from 'fast-string-width';
+import { option as makeOption, type Context, type AppDescription, type CommandDescription } from '@breadc/core';
 
 import type { BreadcInit } from '../types.ts';
 
-import { i18n } from './i18n.ts';
+import { i18n, type TranslationKey } from './i18n.ts';
+import { list, wrap, formatExamples } from './layout.ts';
 
 type Command = NonNullable<Context['command']>;
 type Group = NonNullable<Context['group']>;
-type Option = Context['breadc']['_options'][number];
+type Option = Context['breadc']['_options'][number] & { _builtin?: 'help' | 'version' };
+type HelpOption = { option: Option; short?: string };
 
-type HelpBlock = string | Array<[string, string]>;
-
-type HelpMessage = Array<HelpBlock | (() => HelpBlock[] | undefined)>;
-
-function padRight(texts: string[], fill = ' ') {
-  const length = texts.reduce((max, text) => Math.max(max, text.length), 0);
-  return texts.map((text) => text + fill.repeat(length - text.length));
+function displayOrder(option: Option): number {
+  const builtin = option._builtin;
+  return builtin === 'help' ? 1 : builtin === 'version' ? 2 : 0;
 }
 
-function twoColumn(texts: Array<[string, string]>, split = '  ') {
-  const left = padRight(texts.map((text) => text[0]));
-  return left.map((text, index) => text + split + texts[index][1]);
+function summary(description?: CommandDescription): string {
+  const text = typeof description === 'string' ? description : description?.summary;
+  return text?.split(/\r?\n/).find((line) => line.trim()) ?? '';
 }
 
-function expandMessage(message: HelpMessage) {
-  const result: string[] = [];
-  for (const row of message) {
-    if (typeof row === 'function') {
-      const rows = row();
-      if (rows) {
-        result.push(...expandMessage(rows));
-      }
-    } else if (typeof row === 'string') {
-      result.push(row);
-    } else {
-      result.push(...twoColumn(row));
+function prose(description?: AppDescription | CommandDescription): string {
+  if (typeof description === 'string') return description;
+  if (!description) return '';
+  if ('description' in description) return description.description;
+  return [description.summary, description.details].filter(Boolean).join('\n\n');
+}
+
+function startsWith(path: string[], prefix: string[]) {
+  return prefix.every((piece, index) => path[index] === piece);
+}
+
+function argumentSpec(argument: Command['_arguments'][number]) {
+  const name = `${argument.type.includes('spread') ? '...' : ''}${argument.name}`;
+  return argument.type.startsWith('required') ? `<${name}>` : `[${name}]`;
+}
+
+function argumentsSpec(command: Command) {
+  return command._arguments.map(argumentSpec).join(' ');
+}
+
+function groupCommandSpec(group: Group, label: string) {
+  // Child commands are resolved lazily, so a parent page reads their declarations.
+  const names = group._commands.flatMap((child) =>
+    [child.spec, ...child._aliases].map((spec) => spec.split(/[<[]/, 1)[0].trim())
+  );
+  if (!names.some(Boolean)) return '';
+  return names.includes('') ? `[${label}]` : `<${label}>`;
+}
+
+function collect(context: Context) {
+  const prefix = context.pieces;
+  const groupPage = context.group?._pieces[0].length === prefix.length;
+  const scopePage = prefix.length === 0 || groupPage;
+  const commands: Array<{ command: Command | Group; path: string[] }> = [];
+  let current = context.command;
+  const declarations = context.breadc._commands.flatMap((command) =>
+    '_commands' in command && startsWith(prefix, command._pieces[0]) ? command._commands : [command]
+  );
+  for (const command of declarations) {
+    const matching = command._pieces.filter((path) => startsWith(path, prefix));
+    if (!current && !('_commands' in command) && matching.some((path) => path.length === prefix.length)) {
+      current = command;
     }
+    const path = matching.find((path) => path.length > prefix.length);
+    if (path && (command !== current || scopePage)) commands.push({ command, path });
   }
-  return result;
+  return { groupPage, scopePage, current, commands };
 }
 
-function readDescription(locale: BreadcInit['i18n'], value: unknown) {
-  return typeof value === 'string' ? i18n(locale, value) : '';
-}
-
-function formatOption(option: Option) {
-  return option.spec.replace(/--\[no-\]([a-zA-Z0-9-]+)/, '--$1, --no-$1');
-}
-
-// Unvisited group commands still contain their original, unresolved declarations.
-function commandPaths(command: Group | Command): string[][] {
-  if (command._pieces) return command._pieces;
-  const parent = '_group' in command && command._group ? commandPaths(command._group)[0] : [];
-  const specs = '_aliases' in command ? [command.spec, ...command._aliases] : [command.spec];
-  return specs.map((spec) => [...parent, ...spec.split(/[<[]/, 1)[0].split(' ').filter(Boolean)]);
-}
-
-function formatArgument(command: Command) {
-  return command._arguments.map((argument) => {
-    switch (argument.type) {
-      case 'required':
-        return `<${argument.name}>`;
-      case 'optional':
-        return `[${argument.name}]`;
-      case 'required-spread':
-        return `<...${argument.name}>`;
-      case 'spread':
-        return `[...${argument.name}]`;
-    }
-  });
-}
-
-function formatCommand(command: Command) {
-  const pieces = commandPaths(command)[0].join(' ');
-  const inlineArgs = command._pieces ? '' : command.spec.match(/[<[].*$/)?.[0];
-  return [pieces, inlineArgs, ...formatArgument(command)].filter(Boolean).join(' ');
-}
-
-function commandStartsWith(command: Group | Command, prefix: string[]) {
-  if (prefix.length === 0) {
-    return true;
+function collectOptions(declarations: Option[]): HelpOption[] {
+  const options = new Map<string, HelpOption>();
+  const shortOwners = new Map<string, HelpOption>();
+  for (const option of declarations) {
+    // Read declarations consistently: --help can skip resolution of default-command options.
+    const [, short, name] = option.spec.match(/^(?:-([a-zA-Z]), )?--(?:no-|\[no-\])?([a-zA-Z0-9-]+)/)!;
+    const entry: HelpOption = { option, short };
+    options.delete(name);
+    options.set(name, entry);
+    if (short) shortOwners.set(short, entry);
   }
-
-  for (const pieces of commandPaths(command)) {
-    if (pieces.length < prefix.length) {
-      continue;
-    }
-
-    let ok = true;
-    for (let i = 0; i < prefix.length; i++) {
-      if (pieces[i] !== prefix[i]) {
-        ok = false;
-        break;
-      }
-    }
-
-    if (ok) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function commandIncludes(command: Group | Command, prefix: string[]) {
-  for (const pieces of commandPaths(command)) {
-    if (pieces.length > prefix.length) {
-      continue;
-    }
-
-    let ok = true;
-    for (let i = 0; i < pieces.length; i++) {
-      if (pieces[i] !== prefix[i]) {
-        ok = false;
-        break;
-      }
-    }
-
-    if (ok) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function collect(context: Context, pieces: string[]) {
-  const app = context.breadc;
-  const allCommands: Command[] = [];
-  const commands: Command[] = [];
-  const options = new Map<string, Option>();
-
-  const append = (option: Option) => {
-    const name = option.long || option.spec.match(/--(?:no-|\[no-\])?([a-zA-Z0-9-]+)/)?.[1] || option.spec;
-    options.set(name, option);
-  };
-
-  for (const option of app._options) {
-    append(option);
-  }
-
-  for (const command of app._commands) {
-    if ('_commands' in command) {
-      const group = command;
-      allCommands.push(...group._commands);
-
-      if (commandIncludes(group, pieces)) {
-        for (const option of group._options) {
-          append(option);
-        }
-      }
-
-      for (const command of group._commands) {
-        if (commandStartsWith(command, pieces)) {
-          commands.push(command);
-
-          if (commandIncludes(command, pieces)) {
-            for (const option of command._options) {
-              append(option);
-            }
-          }
-        }
-      }
-    } else {
-      allCommands.push(command);
-
-      if (commandStartsWith(command, pieces)) {
-        commands.push(command);
-
-        if (commandIncludes(command, pieces)) {
-          for (const option of command._options) {
-            append(option);
-          }
-        }
-      }
-    }
-  }
-
-  return { app, allCommands, commands, options: [...options.values()] };
+  // Overridden declarations never regain a short alias claimed by a later declaration.
+  return [...options.values()]
+    .map((entry) => ({
+      option: entry.option,
+      short: entry.short && shortOwners.get(entry.short) === entry ? entry.short : undefined
+    }))
+    .sort((a, b) => displayOrder(a.option) - displayOrder(b.option));
 }
 
 export function buildHelpOption(init: BreadcInit) {
   const config = typeof init.builtin?.help === 'object' ? init.builtin.help : undefined;
-  return makeOption(config?.spec ?? '-h, --help', config?.description ?? 'Print help').action(
+  const option = makeOption(config?.spec ?? '-h, --help').action(
     (_value, context) => printHelp(context, { i18n: init.i18n }),
     { priority: 10 }
   );
+  return Object.assign(option, { _builtin: 'help' as const });
 }
 
-/** Print help with an explicit presentation locale; direct calls default to English. */
+/** Print static help for the declarations resolved by the current parse. */
 export function printHelp(context: Context, { i18n: locale = 'en' }: Pick<BreadcInit, 'i18n'> = {}) {
-  const { pieces } = context;
-  const { app, allCommands, commands, options } = collect(context, pieces);
+  // TODO: Read the available output width from the logger when it is integrated.
+  const width = 80;
+  const { groupPage, scopePage, current, commands } = collect(context);
+  const { breadc: app, pieces: prefix, group } = context;
+  // Include the default command shown in Usage even when an option action skipped its resolution.
+  const options = collectOptions([...app._options, ...(group?._options ?? []), ...(current?._options ?? [])]);
+  const path = [app.name, ...prefix].join(' ');
+  const description = groupPage
+    ? group?.description
+    : prefix.length === 0
+      ? app._init.description
+      : current?.description;
+  const output: string[] = [`${app.name}/${app.version ?? 'unknown'}`];
+  const heading = (key: TranslationKey) => bold(underline(i18n(locale, key)));
+  const section = (key: TranslationKey, rows: string[]) => {
+    if (rows.length) output.push('', heading(key), ...rows);
+  };
+  const content = prose(description);
+  if (content) output.push('', ...wrap(content, width));
 
-  const usage =
-    allCommands.length === 0
-      ? `[${i18n(locale, 'OPTIONS')}]`
-      : allCommands.length === 1
-        ? `${formatCommand(allCommands[0])} [${i18n(locale, 'OPTIONS')}]`
-        : app._commands.some((command) => !('_commands' in command) && command._default)
-          ? `[${i18n(locale, 'COMMAND')}] [${i18n(locale, 'OPTIONS')}]`
-          : `<${i18n(locale, 'COMMAND')}> [${i18n(locale, 'OPTIONS')}]`;
-
-  const output: HelpMessage = [
-    `${app.name}/${app.version ?? 'unknown'}`,
-    () => {
-      const description = readDescription(locale, app._init.description);
-      if (description) {
-        return ['', description];
-      }
-      return undefined;
-    },
+  const optionsSpec = `[${i18n(locale, 'OPTIONS')}]`;
+  const commandLabel = i18n(locale, 'COMMAND');
+  const usages: string[] = [];
+  const combineUsages = scopePage && current?._arguments.length === 0 && commands.length > 0;
+  if (current && !combineUsages) {
+    const commandPath = scopePage ? path : [app.name, ...current._pieces[0]].join(' ');
+    usages.push([commandPath, argumentsSpec(current), optionsSpec].filter(Boolean).join(' '));
+  }
+  if (commands.length) {
+    usages.push(`${path} ${combineUsages ? `[${commandLabel}]` : `<${commandLabel}>`} ${optionsSpec}`);
+  }
+  if (!usages.length) usages.push(`${path} ${optionsSpec}`);
+  output.push(
     '',
-    `${bold(underline(i18n(locale, 'Usage:')))} ${bold(app.name)} ${usage}`,
-    () => {
-      if (commands.length === 0) {
-        return undefined;
-      }
-      return [
-        '',
-        bold(underline(i18n(locale, 'Commands:'))),
-        commands.map((command) => [
-          `  ${bold(app.name)} ${bold(formatCommand(command))}`,
-          readDescription(locale, (command.init as { description?: unknown } | undefined)?.description)
-        ])
-      ];
-    },
-    () => {
-      if (options.length === 0) {
-        return undefined;
-      }
-      return [
-        '',
-        bold(underline(i18n(locale, 'Options:'))),
-        options.map((option) => [
-          `  ${!/^-[a-zA-Z], /.test(option.spec) ? '    ' : ''}${bold(formatOption(option))}`,
-          readDescription(locale, option.description)
-        ])
-      ];
-    },
-    ''
-  ];
+    ...(usages.length === 1 && stringWidth(i18n(locale, 'Usage:') + ' ' + usages[0]) <= width
+      ? [`${heading('Usage:')} ${usages[0]}`]
+      : [heading('Usage:'), ...usages.flatMap((usage) => wrap(usage, width - 2).map((line) => `  ${line}`))])
+  );
 
-  const text = expandMessage(output).join('\n');
+  if (current && !scopePage && current._pieces.length > 1) {
+    const aliases = current._pieces
+      .slice(1)
+      .map((pieces) => pieces.join(' '))
+      .join(', ');
+    section(
+      'Aliases:',
+      wrap(aliases, width - 2).map((line) => `  ${line}`)
+    );
+  }
 
+  section(
+    'Commands:',
+    list(
+      commands.map(({ command, path }) => {
+        const suffix = '_commands' in command ? groupCommandSpec(command, commandLabel) : argumentsSpec(command);
+        return [[path.join(' '), suffix].filter(Boolean).join(' '), summary(command.description)];
+      }),
+      width
+    )
+  );
+
+  if (current?._arguments.some((argument) => argument.description?.trim())) {
+    section(
+      'Arguments:',
+      list(
+        current._arguments.map((argument) => [argumentSpec(argument), argument.description ?? '']),
+        width
+      )
+    );
+  }
+
+  section(
+    'Options:',
+    list(
+      options.map(({ option, short }) => {
+        let spec = short ? option.spec : option.spec.replace(/^-[a-zA-Z], /, '');
+        spec = spec.replace(/--\[no-\]([a-zA-Z0-9-]+)/, '--$1, --no-$1');
+        const builtin = option._builtin;
+        const description =
+          builtin === 'help'
+            ? i18n(locale, 'Show help')
+            : builtin === 'version'
+              ? i18n(locale, 'Show version')
+              : option.description;
+        return [`${short ? '' : '    '}${spec}`, description ?? ''];
+      }),
+      width
+    )
+  );
+  if (typeof description === 'object' && description.examples) {
+    section(
+      'Examples:',
+      formatExamples(description.examples, width - 2).map((line) => (line ? `  ${line}` : ''))
+    );
+  }
+  const text = [...output, ''].join('\n');
   console.log(text);
-
   return text;
 }

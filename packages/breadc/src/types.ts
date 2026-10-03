@@ -24,11 +24,6 @@ export type BreadcInit = CoreBreadcInit & {
            * @default '-v, --version'
            */
           spec?: string;
-
-          /**
-           *
-           */
-          description?: string;
         };
 
     help?:
@@ -38,11 +33,6 @@ export type BreadcInit = CoreBreadcInit & {
            * @default '-h, --help'
            */
           spec?: string;
-
-          /**
-           *
-           */
-          description?: string;
         };
   };
 };

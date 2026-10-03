@@ -1,3 +1,5 @@
+export type * from './description.ts';
+
 export * from './cast.ts';
 
 export * from './init.ts';

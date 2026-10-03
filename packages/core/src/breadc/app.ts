@@ -2,6 +2,7 @@ import { parse as doParse, finalizeInput, resolveArgs, resolveOptions } from '..
 import { run as doRun } from '../runtime/run.ts';
 
 import type {
+  CommandDescription,
   Breadc,
   BreadcInit,
   InternalBreadc,
@@ -11,6 +12,7 @@ import type {
   Option,
   OptionInit,
   InternalOption,
+  Group,
   GroupInit,
   InternalGroup,
   Command,
@@ -50,15 +52,18 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       return app;
     },
 
-    group<S extends string, I extends GroupInit<S>>(spec: S, init?: I) {
-      const group = typeof spec === 'string' ? makeGroup(spec, init) : spec;
+    group<S extends string, I extends GroupInit<S>>(spec: S | Group<S>, description?: CommandDescription, init?: I) {
+      const group = typeof spec === 'string' ? makeGroup(spec, description, init) : spec;
       commands.push(group as unknown as InternalGroup);
       return group;
     },
 
-    command<S extends string, I extends CommandInit<S>>(spec: S | Command<S>, description?: string, init?: I) {
-      const command =
-        typeof spec === 'string' ? makeCommand(spec, description || init ? { description, ...init } : undefined) : spec;
+    command<S extends string, I extends CommandInit<S>>(
+      spec: S | Command<S>,
+      description?: CommandDescription,
+      init?: I
+    ) {
+      const command = typeof spec === 'string' ? makeCommand(spec, description, init) : spec;
       commands.push(command as unknown as InternalCommand);
       return command;
     },

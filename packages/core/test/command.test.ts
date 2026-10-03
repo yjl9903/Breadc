@@ -271,18 +271,21 @@ describe('breadc/command', () => {
     expect(cmd._arguments).toMatchInlineSnapshot(`
       [
         {
+          "description": undefined,
           "init": {},
           "name": "arg",
           "spec": "<arg>",
           "type": "required",
         },
         {
+          "description": undefined,
           "init": {},
           "name": "opt",
           "spec": "[opt]",
           "type": "optional",
         },
         {
+          "description": undefined,
           "init": {},
           "name": "rest",
           "spec": "[...rest]",
@@ -564,7 +567,9 @@ describe('required spread argument declarations', () => {
 
   it('rejects configured defaults for required arrays', () => {
     // @ts-expect-error required arguments cannot have defaults
-    expect(() => argument('<...files>', { default: ['a'] })).toThrow('Required spread arguments cannot have defaults');
+    expect(() => argument('<...files>', undefined, { default: ['a'] })).toThrow(
+      'Required spread arguments cannot have defaults'
+    );
   });
 
   it('requires a name for inline required arrays', () => {

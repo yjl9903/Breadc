@@ -255,28 +255,54 @@ describe('runtime/parser: command matching', () => {
     `);
   });
 
-  it('matches default command aliases alongside sub-commands', () => {
+  it.each([false, true])('matches default command aliases with sibling commands: %s', (withSibling) => {
     const app = breadc('cli');
-    app.command('build').alias('');
-    app.command('dev');
+    app.command('build').alias('').alias('b');
+    if (withSibling) {
+      app.command('dev');
 
-    const result1 = app.parse(['dev']);
-    expect(result1.context.command?.spec).toMatchInlineSnapshot(`"dev"`);
-    expect(result1.context.pieces).toMatchInlineSnapshot(`
-      [
-        "dev",
-      ]
-    `);
-    expect(result1.args).toMatchInlineSnapshot(`[]`);
-    expect(result1['--']).toMatchInlineSnapshot(`[]`);
+      const result = app.parse(['dev']);
+      expect(result.context.command?.spec).toBe('dev');
+      expect(result.context.pieces).toEqual(['dev']);
+      expect(result.args).toEqual([]);
+      expect(result['--']).toEqual([]);
+    }
 
-    const result2 = app.parse([]);
-    expect(result2.context.command?.spec).toMatchInlineSnapshot(`"build"`);
-    expect(result2.context.pieces).toMatchInlineSnapshot(`[]`);
-    expect(result2.args).toMatchInlineSnapshot(`[]`);
-    expect(result2['--']).toMatchInlineSnapshot(`[]`);
+    for (const argv of [[], ['build'], ['b']]) {
+      const result = app.parse(argv);
+      expect(result.context.command?.spec).toBe('build');
+      expect(result.context.pieces).toEqual(argv);
+      expect(result.args).toEqual([]);
+      expect(result['--']).toEqual([]);
+    }
+  });
 
-    expect(() => app.parse(['build'])).toThrow('Detect unexpected redundant arguments');
+  it.each(['build [file]', '[file]'])('binds arguments and options for default aliases of %s', (spec) => {
+    const app = breadc('cli');
+    app
+      .command(spec)
+      .alias(spec.startsWith('build') ? '' : 'build')
+      .option('--out <dir>');
+
+    for (const pieces of [[], ['build']]) {
+      const result = app.parse([...pieces, 'input.ts', '--out', 'dist', '--', 'extra']);
+      expect(result.context.command?.spec).toBe(spec);
+      expect(result.context.pieces).toEqual(pieces);
+      expect(result.args).toEqual(['input.ts']);
+      expect(result.options).toEqual({ out: 'dist' });
+      expect(result['--']).toEqual(['extra']);
+    }
+  });
+
+  it('prefers longer literal commands over a named default command', () => {
+    const app = breadc('cli');
+    app.command('build [file]').alias('');
+    app.command('build watch');
+
+    const result = app.parse(['build', 'watch']);
+    expect(result.context.command?.spec).toBe('build watch');
+    expect(result.context.pieces).toEqual(['build', 'watch']);
+    expect(result.args).toEqual([]);
   });
 });
 
@@ -286,7 +312,7 @@ describe('runtime/parser: arguments', () => {
     const cast = vi.fn((value: string) => value.length);
     const optionCast = vi.fn(Boolean);
     app.option('--flag', '', { cast: optionCast });
-    app.command('run').argument('<file>', { default: undefined, cast });
+    app.command('run').argument('<file>', undefined, { default: undefined, cast });
     expect(() => app.parse(['run'])).toThrow('Missing required argument');
     expect(cast).not.toHaveBeenCalled();
     expect(optionCast).not.toHaveBeenCalled();
@@ -298,9 +324,9 @@ describe('runtime/parser: arguments', () => {
     const app = breadc('cli');
     app
       .command('run')
-      .argument('[name]', { default: 'alice' })
-      .argument('[mode]', { default: 'auto' })
-      .argument('[...files]', { default: ['fallback'] });
+      .argument('[name]', undefined, { default: 'alice' })
+      .argument('[mode]', undefined, { default: 'auto' })
+      .argument('[...files]', undefined, { default: ['fallback'] });
     const result = app.parse(['run', 'bob', '--', 'manual', 'file']);
     expect(result.args).toEqual(['bob', 'auto', ['fallback']]);
     expect(result['--']).toEqual(['manual', 'file']);
@@ -310,9 +336,9 @@ describe('runtime/parser: arguments', () => {
     const app = breadc('cli');
     app
       .command('run')
-      .argument('<file>', { cast: () => result })
-      .argument('[port]', { default: '3000', cast: () => result })
-      .argument('[...files]', { default: ['file'], cast: () => result });
+      .argument('<file>', undefined, { cast: () => result })
+      .argument('[port]', undefined, { default: '3000', cast: () => result })
+      .argument('[...files]', undefined, { default: ['file'], cast: () => result });
     expect(app.parse(['run', 'file']).args).toEqual([result, result, result]);
     expect(app.parse(['run', '', '', '']).args).toEqual([result, result, result]);
   });
@@ -323,7 +349,7 @@ describe('runtime/parser: arguments', () => {
     const cast = vi.fn(() => {
       throw failure;
     });
-    app.command('run').argument(spec, { default: spec === '[port]' ? 'bad' : ['bad'], cast });
+    app.command('run').argument(spec, undefined, { default: spec === '[port]' ? 'bad' : ['bad'], cast });
     expect(() => app.parse(['run'])).toThrow(failure);
     expect(() => app.parse(['run', 'input'])).toThrow(failure);
     expect(cast).toHaveBeenCalledTimes(2);
@@ -332,7 +358,7 @@ describe('runtime/parser: arguments', () => {
   it.each([undefined, [], ['default']])('converts complete spread input with default %j', (fallback) => {
     const app = breadc('cli');
     const cast = vi.fn((values: string[]) => ({ values: [...values], count: values.length }));
-    app.command('run').argument(argument('[...files]', { default: fallback, cast }));
+    app.command('run').argument(argument('[...files]', undefined, { default: fallback, cast }));
     expect(app.parse(['run']).args).toEqual([{ values: fallback ?? [], count: fallback?.length ?? 0 }]);
     expect(cast).toHaveBeenCalledExactlyOnceWith(fallback ?? []);
     expect(app.parse(['run', '', 'a', 'b']).args).toEqual([{ values: ['', 'a', 'b'], count: 3 }]);
@@ -347,7 +373,7 @@ describe('runtime/parser: arguments', () => {
       values.push('cast');
       return values;
     });
-    app.command('run').argument('[...files]', { default: fallback, cast });
+    app.command('run').argument('[...files]', undefined, { default: fallback, cast });
     const first = app.parse(['run']);
     first.args[0].push('later');
     expect(app.parse(['run', 'user']).args).toEqual([['user', 'cast']]);
@@ -356,7 +382,7 @@ describe('runtime/parser: arguments', () => {
     expect(cast).toHaveBeenCalledTimes(3);
 
     const raw = breadc('raw');
-    raw.command('run').argument('[...files]', { default: fallback });
+    raw.command('run').argument('[...files]', undefined, { default: fallback });
     raw.parse(['run']).args[0].push('later');
     expect(raw.parse(['run']).args).toEqual([['default']]);
     expect(fallback).toEqual(['default']);
@@ -368,7 +394,7 @@ describe('runtime/parser: arguments', () => {
       if (value === 'invalid') throw new Error('invalid default');
       return Number(value);
     });
-    app.command('run').argument('[port]', { default: 'invalid', cast });
+    app.command('run').argument('[port]', undefined, { default: 'invalid', cast });
     expect(app.parse(['run', '8080']).args).toEqual([8080]);
     expect(cast).toHaveBeenCalledExactlyOnceWith('8080');
   });
@@ -377,11 +403,11 @@ describe('runtime/parser: arguments', () => {
     const app = breadc('cli');
     const cast = vi.fn(Number);
     if (scope === 'root') {
-      app.command('').argument('[port]', { default: '3000', cast });
+      app.command('').argument('[port]', undefined, { default: '3000', cast });
       app.command('other');
     } else {
       const group = app.group('server');
-      group.command('').argument('[port]', { default: '3000', cast });
+      group.command('').argument('[port]', undefined, { default: '3000', cast });
       group.command('other');
     }
     const result = app.parse(scope === 'root' ? ['8080'] : ['server', '8080']);
@@ -403,13 +429,13 @@ describe('runtime/parser: arguments', () => {
     });
     const cmd = app
       .command('run')
-      .argument('<file>', {
+      .argument('<file>', undefined, {
         cast: (value) => {
           order.push('file');
           return value.length;
         }
       })
-      .argument('[port]', {
+      .argument('[port]', undefined, {
         default: '3000',
         cast: (value) => {
           order.push('port');
@@ -436,14 +462,14 @@ describe('runtime/parser: arguments', () => {
   ])('validates syntax before conversion: %j', (...argv) => {
     const app = breadc('cli');
     const cast = vi.fn(Number);
-    app.command('run').argument('<value>', { cast }).option('--flag <value>');
+    app.command('run').argument('<value>', undefined, { cast }).option('--flag <value>');
     expect(() => app.parse(argv)).toThrow();
     expect(cast).not.toHaveBeenCalled();
   });
 
   it.each(['fallback', ''])('uses default %j for an omitted optional argument', (fallback) => {
     const app = breadc('cli');
-    app.command('echo').argument('[file]', { default: fallback });
+    app.command('echo').argument('[file]', undefined, { default: fallback });
 
     const result = app.parse(['echo']);
     expect(result.args).toEqual([fallback]);
@@ -455,7 +481,7 @@ describe('runtime/parser: arguments', () => {
   it('casts the default string for an omitted optional argument', () => {
     const app = breadc('cli');
     const cast = vi.fn((value: string) => value.toUpperCase());
-    app.command('echo').argument('[file]', { default: 'fallback', cast });
+    app.command('echo').argument('[file]', undefined, { default: 'fallback', cast });
 
     expect(app.parse(['echo']).args).toEqual(['FALLBACK']);
     expect(cast).toHaveBeenCalledExactlyOnceWith('fallback');
@@ -468,7 +494,7 @@ describe('runtime/parser: arguments', () => {
   it('skips cast for an omitted optional argument without a default', () => {
     const app = breadc('cli');
     const cast = vi.fn((value: string) => value.toUpperCase());
-    app.command('echo').argument('[file]', { default: undefined, cast });
+    app.command('echo').argument('[file]', undefined, { default: undefined, cast });
 
     expect(app.parse(['echo']).args).toEqual([undefined]);
     expect(cast).not.toHaveBeenCalled();
@@ -495,7 +521,7 @@ describe('runtime/parser: arguments', () => {
 
   it.each([undefined, 'fallback'])('matches omitted optional arguments with default %j', (fallback) => {
     const app = breadc('cli');
-    app.command('echo <first>').argument('[second]', { default: fallback });
+    app.command('echo <first>').argument('[second]', undefined, { default: fallback });
 
     const result1 = app.parse(['echo', 'a']);
     expect(result1.args).toEqual(['a', fallback]);
@@ -532,7 +558,7 @@ describe('runtime/parser: arguments', () => {
 
   it('applies manual argument cast when provided', () => {
     const app = breadc('cli');
-    app.command('echo <first>').argument('<count>', {
+    app.command('echo <first>').argument('<count>', undefined, {
       cast: (t) => Number(t)
     });
 
@@ -629,8 +655,8 @@ describe('runtime/parser: arguments', () => {
     const app = breadc('cli');
     app
       .command('echo')
-      .argument('[name]', { default: init.default })
-      .argument('[...rest]', { default: ['fallback'] });
+      .argument('[name]', undefined, { default: init.default })
+      .argument('[...rest]', undefined, { default: ['fallback'] });
 
     const result1 = app.parse(['echo']);
     expect(result1.args).toEqual([expected, ['fallback']]);
@@ -1933,7 +1959,7 @@ describe('runtime/parser: aggregated input diagnostics', () => {
     });
     const app = breadc('cli');
     app.option('--count <value>', '', { default: '2', cast: optionCast });
-    app.command('run').argument('[number]', { default: '3', cast: argumentCast });
+    app.command('run').argument('[number]', undefined, { default: '3', cast: argumentCast });
     const context = parse(app, ['run']);
     expect(resolveOptions(context)).toEqual({ count: '2' });
     expect(resolveArgs(context)).toEqual(['3']);
@@ -2324,7 +2350,7 @@ describe('runtime/parser: required spread arguments', () => {
     const cast = vi.fn((files: string[]) => files.join(','));
     const app = breadc('cli');
     const scope = kind === 'group' ? app.group('tool') : app;
-    scope.command(kind === 'command' ? 'upload <owner>' : '<owner>').argument('<...files>', { cast });
+    scope.command(kind === 'command' ? 'upload <owner>' : '<owner>').argument('<...files>', undefined, { cast });
     scope.command('other');
     const prefix = kind === 'command' ? ['upload'] : kind === 'group' ? ['tool'] : [];
     expect(app.parse([...prefix, 'owner', 'a', 'b']).args).toEqual(['owner', 'a,b']);
@@ -2336,7 +2362,7 @@ describe('runtime/parser: required spread arguments', () => {
   it('checks array option collection and required positionals before conversion', () => {
     const cast = vi.fn((files: string[]) => files);
     const app = breadc('cli').option('--include <...value>', '', { cast });
-    app.command('upload').argument('<...files>', { cast });
+    app.command('upload').argument('<...files>', undefined, { cast });
     expect(() => app.parse(['upload', '--include', 'a', 'b'])).toThrow('Missing required argument');
     expect(cast).not.toHaveBeenCalled();
     expect(app.parse(['upload', '--include=a', 'b', 'c']).args).toEqual([['b', 'c']]);
@@ -2349,7 +2375,7 @@ describe('runtime/parser: required spread arguments', () => {
       return files;
     });
     const app = breadc('cli');
-    app.command('upload <owner>').argument('<...files>', { cast });
+    app.command('upload <owner>').argument('<...files>', undefined, { cast });
     expect(() => app.parse(['upload'])).toThrow(
       expect.objectContaining({
         issues: [

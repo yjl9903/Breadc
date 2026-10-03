@@ -39,19 +39,6 @@ describe('breadc/app', () => {
     `);
   });
 
-  it('pass description into command init', () => {
-    const app = breadc('cli');
-    const cmd = app.command('ping', 'Ping command');
-
-    resolveCommand(cmd);
-
-    expect(cmd.init).toMatchInlineSnapshot(`
-      {
-        "description": "Ping command",
-      }
-    `);
-  });
-
   it('accept prebuilt group and command', () => {
     const app = breadc('cli');
     const grp = group('store');
