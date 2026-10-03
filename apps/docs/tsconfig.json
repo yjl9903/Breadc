@@ -3,11 +3,22 @@
     "target": "ES2024",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2024",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["node", "vitepress/client"]
+    "types": [
+      "node",
+      "vitepress/client"
+    ]
   },
-  "include": [".vitepress/**/*.ts"]
+  "include": [
+    ".vitepress/**/*.ts",
+    "cloudflare.config.ts",
+    "wrangler.config.ts"
+  ]
 }

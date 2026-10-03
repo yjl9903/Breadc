@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "vitepress build",
-    "deploy": "wrangler deploy",
+    "deploy": "cf deploy",
     "dev": "vitepress dev",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "cf": "1.0.0-beta.12",
     "vitepress": "2.0.0-alpha.20",
     "vue": "3.5.43",
     "wrangler": "4.145.0"

@@ -5,6 +5,9 @@
     "build": {
       "outputs": [".vitepress/dist/**"]
     },
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
     "deploy": {
       "dependsOn": ["build"],
       "cache": false,

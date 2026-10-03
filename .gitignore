@@ -8,6 +8,7 @@ dist
 tsconfig.vitest-temp.json
 apps/docs/.vitepress/cache
 apps/docs/.wrangler
+apps/docs/.cloudflare
 
 # Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
