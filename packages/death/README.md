@@ -1,6 +1,7 @@
 # @breadc/death
 
-[![version](https://img.shields.io/npm/v/@breadc/death?label=@breadc/death)](https://www.npmjs.com/package/@breadc/death) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
+[![version](https://img.shields.io/npm/v/@breadc/death?label=@breadc/death)](https://www.npmx.dev/package/@breadc/death)
+[![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 
 Easily register termination signals callbacks.
 

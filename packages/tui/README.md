@@ -1,6 +1,7 @@
 # @breadc/tui
 
-[![version](https://img.shields.io/npm/v/@breadc/tui?label=@breadc/tui)](https://www.npmjs.com/package/@breadc/tui) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
+[![version](https://img.shields.io/npm/v/@breadc/tui?label=@breadc/tui)](https://www.npmx.dev/@breadc/tui)
+[![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 
 Logs, spinners, progress bars, and custom terminal views.
 

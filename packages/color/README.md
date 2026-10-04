@@ -1,6 +1,7 @@
 # @breadc/color
 
-[![version](https://img.shields.io/npm/v/@breadc/color?label=@breadc/color)](https://www.npmjs.com/package/@breadc/color) [![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
+[![version](https://img.shields.io/npm/v/@breadc/color?label=@breadc/color)](https://www.npmx.dev/package/@breadc/color)
+[![CI](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml/badge.svg)](https://github.com/yjl9903/Breadc/actions/workflows/ci.yml)
 
 ![example](../../assets/color.png)
 
