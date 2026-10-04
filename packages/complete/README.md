@@ -15,8 +15,8 @@ Add this plugin to your CLI script.
 
 ```ts
 import { z } from 'zod';
-import breadc from 'breadc';
-import complete from '@breadc/complete';
+import { breadc } from 'breadc';
+import { complete } from '@breadc/complete';
 
 const cli = breadc('echo', { version: '1.0.0', plugins: [complete()] })
   .option('--host <host>', { default: 'localhost' })

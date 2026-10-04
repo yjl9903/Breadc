@@ -25,7 +25,7 @@ npm i breadc
 
 ## Usage
 
-Try [./examples/echo.ts](./examples/echo.ts).
+Try [examples/echo.ts](https://github.com/yjl9903/Breadc/blob/main/examples/echo.ts).
 
 ```ts
 import { z } from 'zod';

@@ -1,24 +1,28 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+## Project Overview
 
-Breadc is a command-line application framework with fully strong TypeScript support.
+Breadc is a command-line application framework with strong TypeScript support, organized as a pnpm/Turbo monorepo.
 
-Breadc is a pnpm/turbo monorepo. Core libraries live under `packages/*`. `packages/core` is the working-in-progress framework runtime code, while `packages/breadc` is the legacy framework code which is planned to be deprecated. Other CLI utilities sit in sibling packages like `complete`, `death`, and `tui`.
+`@breadc/core` provides command definitions, parsing, validation, and execution. `breadc` builds on it with built-in help/version, localized output, and CLI utilities.
 
-Related CLI toolchains reside in `apps/*`, which is also working-in-progess.
+The repository also includes CLI toolchains under development and VitePress documentation.
 
-Documentation is maintained in `apps/docs/` (VitePress), demos in `examples/`.
+## Documentation-First Workflow
 
-Shared configuration stays at the root (`tsconfig.json`, `turbo.json`, `pnpm-workspace.yaml`) with package-specific overrides inside each workspace.
+Start with the [user requirements](docs/features/README.md): architecture decisions and implementations must serve the user's original intent. Then read the [architecture specs](docs/architecture/README.md), implementation, and tests before changing behavior.
+
+Keep three layers aligned: user intent in features, design and specifications in architecture, and their realization in source code and tests. Feature documents use public usage examples, not framework implementation details. Never rewrite a requirement merely to justify existing code.
+
+Update affected requirements, architecture, code, tests, and user documentation according to the change. Follow the [development workflow](docs/documentation.md) for document boundaries, change order, and completion criteria.
 
 ## Build, Test, and Development Commands
 
 Install dependencies with `pnpm install`.
 
-Run `pnpm build` to execute every package’s `build` task through Turbo (tsup/unbuild under the hood).
+Run `pnpm build` through Turbo. Libraries and CLI applications use tsdown; documentation uses VitePress.
 
-Unit test is powered by Vitest. Execute unit tests for the full monorepo using `pnpm test:ci`. Run per-package non-iteractive unit tests should use `pnpm -C packages/xxx test:ci`.
+Run non-interactive Vitest tests with `pnpm test:ci`, or `pnpm -C packages/xxx test:ci` for a single package.
 
 Keep TypeScript sound with `pnpm typecheck`, and tidy formatting through `pnpm format`.
 
@@ -26,13 +30,17 @@ Launch docs locally with `pnpm docs:dev`, or build them via `pnpm docs:build`.
 
 ## Coding Style & Naming Conventions
 
-TypeScript ESM is the default. Prefer named exports and colocate CLI handlers in `command.ts` modules. Prettier 3 (two-space indent, trailing commas where valid) governs formatting; run `pnpm format` before committing. File names stay lowercase with short descriptive stems (`command.ts`, `parser/lexer.ts`), and tests mirror their subjects. Place shared types under `types/`, avoid default exports for public APIs, and keep package entry points lean (delegate to `/src`).
+Follow [the code style guide](docs/code-style.md) when changing source code or tests.
+
+Use TypeScript ESM, prefer named exports, and keep public entry points lean. Use short, descriptive lowercase file names. Prettier 3 governs formatting: two-space indentation, single quotes, semicolons, no trailing commas, and a 120-character print width. Run `pnpm format` before committing.
 
 ## Testing Guidelines
 
-Vitest powers the test suite. Store spec files in `test/` with `.test.ts` suffixes that reflect their target (`command.test.ts`). Type assertion tests belong in `.test-d.ts`, while opt-in benchmarks use `.bench.ts`. Maintain or improve the existing coverage in `coverage/` and run `pnpm -C packages/core test` when iterating locally. Snapshot tests are acceptable only when deterministic and stable across platforms.
+Follow [the testing guide](docs/testing.md) for behavior coverage and verification commands.
 
-For changes to `packages/core`, run `pnpm -C packages/core test:coverage` and review test coverage, not just test results.
+Name tests after their subjects: `.test.ts` for unit tests, `.test-d.ts` for type assertions, and `.bench.ts` for opt-in benchmarks. Maintain or improve coverage and run `pnpm -C packages/core test` when iterating on core locally. Snapshot tests must be deterministic and stable across platforms.
+
+For changes to `@breadc/core`, run `pnpm -C packages/core test:coverage` and review test coverage, not just test results.
 
 ## Commit & Pull Request Guidelines
 
