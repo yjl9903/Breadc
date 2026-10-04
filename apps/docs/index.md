@@ -5,6 +5,9 @@ hero:
   name: "Breadc"
   text: "Yet another CLI App Framework"
   tagline: With fully strong TypeScript support
+  image:
+    src: /breadc.svg
+    alt: Breadc favicon
   actions:
     - theme: brand
       text: Examples
@@ -21,4 +24,3 @@ features:
   - title: Toolkits
     details: Contains many useful tools to build your next CLI application
 ---
-

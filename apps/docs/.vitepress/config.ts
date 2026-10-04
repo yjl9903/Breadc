@@ -5,7 +5,9 @@ export default defineConfig({
   title: 'Breadc',
   cleanUrls: true,
   description: 'Yet another Command Line Application Framework with fully TypeScript support',
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/breadc.svg' }]],
   themeConfig: {
+    logo: { src: '/breadc.svg', alt: 'Breadc' },
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
