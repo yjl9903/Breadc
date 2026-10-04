@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://breadc.onekuma.cn/sitemap.xml

@@ -1,5 +1,5 @@
 ---
-outline: deep
+description: Learn how to define commands, infer option types, and validate CLI input with Breadc and Zod.
 ---
 
 # Examples
