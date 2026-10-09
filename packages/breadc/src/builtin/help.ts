@@ -1,5 +1,6 @@
-import { bold, underline } from '@breadc/color';
 import stringWidth from 'fast-string-width';
+
+import { bold, underline } from '@breadc/color';
 import { option as makeOption, type Context, type AppDescription, type CommandDescription } from '@breadc/core';
 
 import type { BreadcInit } from '../types.ts';

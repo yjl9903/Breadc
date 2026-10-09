@@ -1,4 +1,5 @@
 import stringWidth from 'fast-string-width';
+
 import type { Example } from '@breadc/core';
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' });

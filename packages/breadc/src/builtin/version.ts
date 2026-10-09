@@ -1,7 +1,8 @@
-import type { BreadcInit } from '../types.ts';
 import type { Context } from '@breadc/core';
 
 import { option as makeOption } from '@breadc/core';
+
+import type { BreadcInit } from '../types.ts';
 
 import { getDefaultOutput } from '../output.ts';
 
