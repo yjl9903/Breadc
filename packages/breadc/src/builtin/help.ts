@@ -4,6 +4,8 @@ import { option as makeOption, type Context, type AppDescription, type CommandDe
 
 import type { BreadcInit } from '../types.ts';
 
+import { getDefaultOutput } from '../output.ts';
+
 import { i18n, type TranslationKey } from './i18n.ts';
 import { list, wrap, formatExamples } from './layout.ts';
 
@@ -94,16 +96,19 @@ function collectOptions(declarations: Option[]): HelpOption[] {
 export function buildHelpOption(init: BreadcInit) {
   const config = typeof init.builtin?.help === 'object' ? init.builtin.help : undefined;
   const option = makeOption(config?.spec ?? '-h, --help').action(
-    (_value, context) => printHelp(context, { i18n: init.i18n }),
+    (_value, context) => printHelp(context, { i18n: init.i18n, output: init.output }),
     { priority: 10 }
   );
   return Object.assign(option, { _builtin: 'help' as const });
 }
 
 /** Print static help for the declarations resolved by the current parse. */
-export function printHelp(context: Context, { i18n: locale = 'en' }: Pick<BreadcInit, 'i18n'> = {}) {
-  // TODO: Read the available output width from the logger when it is integrated.
-  const width = 80;
+export function printHelp(
+  context: Context,
+  { i18n: locale = 'en', output: destination = getDefaultOutput() }: Pick<BreadcInit, 'i18n' | 'output'> = {}
+) {
+  const columns = destination.columns ?? 80;
+  const width = Number.isFinite(columns) && columns >= 1 ? Math.floor(columns) : 80;
   const { groupPage, scopePage, current, commands } = collect(context);
   const { breadc: app, pieces: prefix, group } = context;
   // Include the default command shown in Usage even when an option action skipped its resolution.
@@ -198,6 +203,6 @@ export function printHelp(context: Context, { i18n: locale = 'en' }: Pick<Breadc
     );
   }
   const text = [...output, ''].join('\n');
-  console.log(text);
+  destination.write(`${text}\n`);
   return text;
 }

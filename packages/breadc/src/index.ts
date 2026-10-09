@@ -1,4 +1,4 @@
-export type { BreadcInit } from './types.ts';
+export type { BreadcInit, BreadcOutput } from './types.ts';
 
 export { breadc } from './app.ts';
 

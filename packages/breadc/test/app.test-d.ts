@@ -1,8 +1,28 @@
 import { describe, it, expectTypeOf } from 'vitest';
 import { z } from 'zod';
-import { breadc, option, argument, type Breadc, type BreadcInit, type AppDescription } from '../src/index.ts';
+import {
+  breadc,
+  option,
+  argument,
+  type Breadc,
+  type BreadcInit,
+  type BreadcOutput,
+  type AppDescription
+} from '../src/index.ts';
 
 describe('app: public types', () => {
+  it('accepts streams and custom writers as output', () => {
+    expectTypeOf(process.stderr).toExtend<BreadcOutput>();
+    expectTypeOf(breadc('cli', { output: process.stderr })).toEqualTypeOf<Breadc>();
+    const output: BreadcOutput = {
+      get columns() {
+        return 40;
+      },
+      write: (_text: string) => {}
+    };
+    expectTypeOf(breadc('cli', { output })).toEqualTypeOf<Breadc>();
+  });
+
   it('accepts descriptions and builtin configuration through the public entry point', () => {
     const description: AppDescription = {
       description: 'Tools',

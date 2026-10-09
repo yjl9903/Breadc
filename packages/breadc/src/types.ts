@@ -1,5 +1,13 @@
 import type { BreadcInit as CoreBreadcInit } from '@breadc/core';
 
+export interface BreadcOutput {
+  /** Available display columns. Read for each help page; defaults to 80 when invalid or omitted. */
+  readonly columns?: number;
+
+  /** Write complete text, including newlines, without adding prefixes or line breaks. */
+  write(text: string): void;
+}
+
 export type BreadcInit = CoreBreadcInit & {
   /**
    * Language used by the builtin help output
@@ -9,9 +17,10 @@ export type BreadcInit = CoreBreadcInit & {
   i18n?: 'en' | 'zh';
 
   /**
-   * Logger
+   * Destination and width for builtin help/version output.
+   * Defaults to process.stdout when writable, otherwise console.log with an 80-column width.
    */
-  // logger?: LoggerInit;
+  output?: BreadcOutput;
 
   /**
    * Builtin command configuration

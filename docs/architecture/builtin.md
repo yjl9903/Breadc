@@ -45,7 +45,7 @@ breadc 应用实例的 `run(argv)` 在解析成功后，同时满足以下条件
 
 ## 帮助内容
 
-`printHelp(context, { i18n })` 根据已解析的 Context 生成、打印并返回字符串。它读取静态声明及匹配路径，不通过执行命令或 cast 获取说明。
+`printHelp(context, { i18n, output })` 根据已解析的 Context 生成、打印并返回字符串。它读取静态声明及匹配路径，不通过执行命令或 cast 获取说明。
 
 | 页面 | 范围和描述 |
 | --- | --- |
@@ -80,16 +80,24 @@ Usage 根据当前位置列出命令路径、参数声明和 `[options]`（中�
 
 ## 排版与语言
 
-帮助当前固定使用 80 个显示单元宽度，不读取终端宽度，也没有已接入的 logger 配置。使用 `fast-string-width` 测量可见宽度，以 grapheme 为切分单位；ANSI 样式和 OSC 链接序列不占宽度、不被拆开。
+帮助每次打印时读取目标 output 的 columns，按显示单元宽度排版。省略 output 时优先使用可写的 process.stdout，否则使用 console.log 并回退到 80 列；自定义 output 未提供宽度时不读取 stdout。宽度必须为有限且不小于 1 的数，小数向下取整，缺省或无效值回退到 80。columns 可以使用 getter，因此后续打印能使用更新后的宽度。使用 `fast-string-width` 测量可见宽度，以 grapheme 为切分单位；ANSI 样式和 OSC 链接序列不占宽度、不被拆开。
 
 正文优先按词换行，长词按 grapheme 换行。列表统一以最长 label 决定描述列；描述列可用宽度不足 20 时，整份列表改为标签在上、描述在下的形式。Usage 能放入单行时与标题同行，否则缩进另起行。
 
 英文/中文配置随各自应用闭包保存，不影响其他应用。`printHelp(context, { i18n: 'zh' })` 可以显式选中文；独立调用省略该参数时默认英文，不自动读取创建 breadc 时的语言设置。只有标题、占位和内置选项文案翻译，作者描述与示例保持原文。
 
-帮助通过一次 `console.log(text)` 输出并返回该 text；生成的 text 自身以换行结束。标题使用加粗和下划线样式。
+帮助通过一次 `output.write(text + '\n')` 输出并返回该 text；生成的 text 自身以换行结束，保留原有输出末尾的空行。标题使用加粗和下划线样式。
+
+## 输出接口
+
+breadc 导出 `BreadcOutput`，包含可选只读 `columns?: number` 和 `write(text: string): void`。write 接收包含换行的完整文本，不应自行添加日志前缀或换行；同步写入错误向调用方传播。接口不管理日志等级、颜色、TUI 生命周期或异步刷新。
+
+`breadc(name, { output })` 的显式帮助、自动帮助和版本动作共享该输出对象，各应用互不影响；未配置时在每次打印时检测环境：process.stdout 存在且 write 为函数时使用它，否则回退到 console.log。console 适配器移除文本末尾的一个换行，再由 console.log 补上，保留原有末尾空行。可写 stdout 的写入异常仍向调用方传播，不触发降级。Node.js Writable stream 可直接作为 output，自定义实现也可将文本交给应用已有的输出系统。该配置不接管业务动作中的 console 调用，也不改变 core 的错误抛出行为。
+
+独立调用 `printHelp(context, { output, i18n })` 或 `printVersion(context, { output })` 时使用显式传入的配置；省略 output 时使用上述 stdout/console 默认策略，不读取创建应用时的 output 配置。
 
 ## 版本及工具导出
 
-`printVersion(context)` 输出并返回 `${name}/${version ?? 'unknown'}`，不附加平台信息；返回字符串本身不带换行，`console.log` 负责输出换行。版本输出不受 i18n 影响，不设置退出码、不主动结束进程。
+`printVersion(context, { output })` 输出并返回 `${name}/${version ?? 'unknown'}`，不附加平台信息；返回字符串本身不带换行，`output.write` 接收附加一个换行的文本。版本输出不受 i18n 影响，不设置退出码、不主动结束进程。
 
 breadc 同时导出颜色、终端链接、进程清理及 TUI API。它们是显式调用的工具，没有自动接入每次命令运行的生命周期；补全生成尚未作为内置能力实现。

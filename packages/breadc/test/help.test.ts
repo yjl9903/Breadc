@@ -2,7 +2,12 @@ import { stripVTControlCharacters } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { breadc, parse, printHelp, type Breadc } from '../src/index.ts';
 
-beforeEach(() => vi.spyOn(console, 'log').mockImplementation(() => {}));
+beforeEach(() => {
+  vi.spyOn(process, 'stdout', 'get').mockReturnValue({
+    columns: 80,
+    write: vi.fn(() => true)
+  } as unknown as typeof process.stdout);
+});
 afterEach(() => vi.restoreAllMocks());
 
 async function help(app: Pick<Breadc, 'run'>, argv: string[] = ['--help']) {
@@ -47,7 +52,7 @@ describe('help: output and navigation', () => {
   it('prints help for both default spellings', async () => {
     const app = breadc('cli');
     for (const flag of ['-h', '--help']) {
-      vi.mocked(console.log).mockClear();
+      vi.mocked(process.stdout.write).mockClear();
       const output = await app.run<string>([flag]);
       expect(stripVTControlCharacters(output)).toMatchInlineSnapshot(`
         "cli/unknown
@@ -59,7 +64,7 @@ describe('help: output and navigation', () => {
           -v, --version  Show version
         "
       `);
-      expect(console.log).toHaveBeenCalledExactlyOnceWith(output);
+      expect(process.stdout.write).toHaveBeenCalledExactlyOnceWith(`${output}\n`);
     }
   });
 
@@ -641,7 +646,7 @@ describe('help: descriptions and layout', () => {
       "
     `);
   });
-  it('wraps long page prose and usage at the fixed output width', async () => {
+  it('wraps long page prose and usage at the available output width', async () => {
     const app = breadc('application-with-a-long-name', { builtin: { version: false } });
     const command = app.command('generate-detailed-application-report <source-directory> <destination-directory>', {
       summary: 'Generate a detailed report from the source directory and write it to the destination directory.',

@@ -1,5 +1,43 @@
 # 帮助与发现
 
+## 沿用应用的输出方式与宽度
+
+开发者希望帮助和版本信息能写入应用选择的终端或日志系统，并按目标的可用宽度排版。使用者在窄终端中也应能阅读帮助；重定向后的示例命令应保留原文，便于复制执行。
+
+### 代码示例
+
+```ts
+import { breadc } from 'breadc';
+
+const cli = breadc('hello', {
+  version: '1.0.0',
+  output: {
+    columns: 40,
+    write: (text) => process.stderr.write(text)
+  }
+});
+
+cli.command('greet <name>', '向指定的人发送问候，并显示问候结果。');
+await cli.run(process.argv.slice(2));
+```
+
+### 使用示例
+
+```sh
+hello --help 2>help.txt
+# 帮助写入 help.txt，正文和列表按 40 个显示列排版。
+
+hello 2>help.txt
+# 自动帮助也使用相同的输出方式与宽度。
+```
+
+```console
+$ hello --version
+hello/1.0.0
+```
+
+版本信息同样写入 stderr。省略 output 时使用 stdout 的当前宽度，无法获取宽度时使用 80 列。没有 process 或可写 stdout 的环境中，帮助和版本信息通过 console.log 输出，帮助按 80 列排版。
+
 ## 不离开终端就能了解命令用法
 
 使用者希望在首次接触或忘记用法时获得相关指引；开发者希望说明与功能保持一致，不必另写一套帮助系统。

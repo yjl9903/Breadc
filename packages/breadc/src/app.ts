@@ -22,7 +22,7 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
   app.run = async (argv) => {
     const context = parse(app, argv);
     if (!context.command && !context.actionOption && !hasUnknownHandler) {
-      return printHelp(context, { i18n: init.i18n });
+      return printHelp(context, { i18n: init.i18n, output: init.output });
     }
     return run(context);
   };

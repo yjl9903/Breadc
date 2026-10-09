@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { breadc, command, group, argument, option, parse, run } from '../src/index.ts';
 
-beforeEach(() => vi.spyOn(console, 'log').mockImplementation(() => {}));
+beforeEach(() => {
+  vi.spyOn(process, 'stdout', 'get').mockReturnValue({
+    columns: 80,
+    write: vi.fn(() => true)
+  } as unknown as typeof process.stdout);
+});
 afterEach(() => vi.restoreAllMocks());
 
 describe('app: parsing', () => {
@@ -12,7 +17,7 @@ describe('app: parsing', () => {
       { all: true, help: true, version: false },
       { all: true, help: false, version: true }
     ]);
-    expect(console.log).not.toHaveBeenCalled();
+    expect(process.stdout.write).not.toHaveBeenCalled();
   });
 
   it('returns converted arguments, options and escaped input without running actions', () => {
@@ -36,7 +41,7 @@ describe('app: parsing', () => {
       }
     `);
     expect(action).not.toHaveBeenCalled();
-    expect(console.log).not.toHaveBeenCalled();
+    expect(process.stdout.write).not.toHaveBeenCalled();
   });
 
   it('composes standalone declarations through the package entry point', async () => {
@@ -84,13 +89,13 @@ describe('app: execution', () => {
       .action((options) => options[name]);
     await expect(app.run([`--${name}`])).resolves.toBe('global action');
     await expect(app.run(['run', `--${name}`])).resolves.toBe(true);
-    expect(console.log).not.toHaveBeenCalled();
+    expect(process.stdout.write).not.toHaveBeenCalled();
   });
 
   it('lets a user option action override builtin priorities', async () => {
     const app = breadc('cli').option(option('--inspect').action(() => 'inspected', { priority: 30 }));
     await expect(app.run(['--help', '--version', '--inspect'])).resolves.toMatchInlineSnapshot(`"inspected"`);
-    expect(console.log).not.toHaveBeenCalled();
+    expect(process.stdout.write).not.toHaveBeenCalled();
   });
 
   it.each(['help', 'version'])('runs %s before business validation and handlers', async (name) => {
@@ -111,7 +116,7 @@ describe('app: execution', () => {
       .action(action);
 
     const output = await app.run(['upload', `--${name}`]);
-    expect(console.log).toHaveBeenCalledExactlyOnceWith(output);
+    expect(process.stdout.write).toHaveBeenCalledExactlyOnceWith(`${output}\n`);
     for (const fn of [cast, validate, middleware, action, unknown]) expect(fn).not.toHaveBeenCalled();
   });
 
@@ -122,7 +127,7 @@ describe('app: execution', () => {
     await expect(app.run(['missing'])).resolves.toMatchInlineSnapshot(`"handled"`);
     expect(handler).toHaveBeenCalledTimes(1);
     expect(cast).toHaveBeenCalledExactlyOnceWith('2');
-    expect(console.log).not.toHaveBeenCalled();
+    expect(process.stdout.write).not.toHaveBeenCalled();
   });
 });
 
@@ -142,7 +147,7 @@ describe('app: errors', () => {
       );
       expect(cast).not.toHaveBeenCalled();
       expect(action).not.toHaveBeenCalled();
-      expect(console.log).not.toHaveBeenCalled();
+      expect(process.stdout.write).not.toHaveBeenCalled();
     }
   );
 

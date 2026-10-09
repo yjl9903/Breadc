@@ -1,17 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { breadc, parse, printVersion } from '../src/index.ts';
 
-beforeEach(() => vi.spyOn(console, 'log').mockImplementation(() => {}));
+beforeEach(() => {
+  vi.spyOn(process, 'stdout', 'get').mockReturnValue({
+    columns: 80,
+    write: vi.fn(() => true)
+  } as unknown as typeof process.stdout);
+});
 afterEach(() => vi.restoreAllMocks());
 
 describe('version: output', () => {
   it('prints the configured version for both default spellings', async () => {
     const app = breadc('cli', { version: '1.2.3' });
     for (const flag of ['-v', '--version']) {
-      vi.mocked(console.log).mockClear();
+      vi.mocked(process.stdout.write).mockClear();
       const output = await app.run<string>([flag]);
       expect(output).toMatchInlineSnapshot(`"cli/1.2.3"`);
-      expect(console.log).toHaveBeenCalledExactlyOnceWith(output);
+      expect(process.stdout.write).toHaveBeenCalledExactlyOnceWith(`${output}\n`);
     }
   });
 
@@ -22,7 +27,7 @@ describe('version: output', () => {
   it('supports the standalone printVersion helper', () => {
     const output = printVersion(parse(breadc('cli', { version: '2.0', i18n: 'zh' }), []));
     expect(output).toMatchInlineSnapshot(`"cli/2.0"`);
-    expect(console.log).toHaveBeenCalledExactlyOnceWith(output);
+    expect(process.stdout.write).toHaveBeenCalledExactlyOnceWith(`${output}\n`);
   });
 });
 
@@ -44,9 +49,9 @@ describe('version: execution', () => {
   it('takes precedence over help regardless of input order', async () => {
     const app = breadc('cli', { version: '1.2.3' });
     for (const argv of [['--help', '--version'], ['--version', '--help'], ['-hv']]) {
-      vi.mocked(console.log).mockClear();
+      vi.mocked(process.stdout.write).mockClear();
       await expect(app.run(argv)).resolves.toMatchInlineSnapshot(`"cli/1.2.3"`);
-      expect(console.log).toHaveBeenCalledExactlyOnceWith('cli/1.2.3');
+      expect(process.stdout.write).toHaveBeenCalledExactlyOnceWith('cli/1.2.3\n');
     }
   });
 });

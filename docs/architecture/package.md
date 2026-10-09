@@ -50,7 +50,7 @@ core 不依赖 breadc 或终端工具。Zod 是 core、breadc 的开发和测试
 
 ## Breadc 与工具包
 
-`breadc` 创建 core 应用后注册帮助、版本选项动作，并替换应用实例的 `run` 以提供自动帮助。其 `parse`、独立 `run(context)`、声明工厂和错误类型沿用 core；`printHelp`、`printVersion` 属于 breadc。
+`breadc` 创建 core 应用后注册帮助、版本选项动作，并替换应用实例的 `run` 以提供自动帮助。其 `parse`、独立 `run(context)`、声明工厂和错误类型沿用 core；`printHelp`、`printVersion` 属于 breadc。breadc 的 `BreadcOutput` 接口提供内置输出的目标和宽度配置，不要求具体 logger 或 TUI renderer；core 不依赖该接口。
 
 `breadc` 重新导出 death、tui 和选定的 color API，作为便利入口；这些工具仍可独立使用。导出工具不意味着每条命令都会启动 TUI 或注册清理回调。`@breadc/complete` 不在 breadc 的默认依赖和导出中。
 
