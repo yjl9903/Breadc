@@ -179,8 +179,8 @@ importers:
         specifier: latest
         version: 12.3.0
       cac:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^7.0.1
+        version: 7.0.1
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -1455,6 +1455,10 @@ packages:
 
   cac@7.0.0:
     resolution: {integrity: sha512-tixWYgm5ZoOD+3g6UTea91eow5z6AAHaho3g0V9CNSNb45gM8SmflpAc+GRd1InC4AqN/07Unrgp56Y94N9hJQ==}
+    engines: {node: '>=20.19.0'}
+
+  cac@7.0.1:
+    resolution: {integrity: sha512-86diuUyeeWM8CrqhpGCaDafrzjS1s++7sWy2AbAPoFNz/xKv7ID57CR4pZsMuGCh60PtsnEx4z68b+Vgt07VPw==}
     engines: {node: '>=20.19.0'}
 
   ccount@2.0.1:
@@ -3200,6 +3204,8 @@ snapshots:
 
   cac@7.0.0: {}
 
+  cac@7.0.1: {}
+
   ccount@2.0.1: {}
 
   cf@1.0.0-beta.13(@types/node@24.19.1):
@@ -3952,7 +3958,7 @@ snapshots:
 
   tsdown@0.23.0(typescript@7.0.2):
     dependencies:
-      cac: 7.0.0
+      cac: 7.0.1
       defu: 6.1.7
       empathic: 2.1.0
       hookable: 6.1.2
