@@ -5,19 +5,19 @@ import {
   command,
   option,
   argument,
-  type AppDescription,
+  type BreadcDescription,
   type CommandDescription
 } from '../src/index.ts';
 
 const description = 'Summary\nDetails\n\n  indented';
 const commandDescription: CommandDescription = {
   summary: 'Summary',
-  details: 'Details\n\n  indented',
+  text: 'Details\n\n  indented',
   examples: [{ command: 'cli run', comment: 'Example' }]
 };
 
-const appDescription: AppDescription = {
-  description,
+const appDescription: BreadcDescription = {
+  text: description,
   examples: [{ command: 'cli store run', comment: 'Example' }]
 };
 

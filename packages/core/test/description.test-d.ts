@@ -1,14 +1,14 @@
 import { it, expectTypeOf } from 'vitest';
-import { breadc, command, group, argument, type AppDescription, type CommandDescription } from '../src/index.ts';
+import { breadc, command, group, argument, type BreadcDescription, type CommandDescription } from '../src/index.ts';
 
 const description = {
   summary: 'Run a tool',
-  details: 'Details\n\n  indented',
+  text: 'Details\n\n  indented',
   examples: [{ command: 'cli tools run', comment: 'Example' }]
 } as const satisfies CommandDescription;
 
 it('accepts structured descriptions while preserving fluent argument inference', () => {
-  const appDescription: AppDescription = { description: 'Tools', examples: description.examples };
+  const appDescription: BreadcDescription = { text: 'Tools', examples: description.examples };
   const tools = breadc('cli', { description: appDescription }).group('tools', description);
   const run = tools.command('run', description);
   expectTypeOf(tools.description).toEqualTypeOf<CommandDescription | undefined>();

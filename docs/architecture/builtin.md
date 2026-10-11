@@ -11,12 +11,12 @@
 | 帮助 | `-h, --help` | 10 | `builtin.help` |
 | 版本 | `-v, --version` | 20 | `builtin.version` |
 
-配置缺省或为 `true` 时启用；`false` 时不注册；`{ spec: '...' }` 替换选项声明，仍按 core 的声明与取值规则解析。`i18n` 支持 `en` 和 `zh`，默认英文，仅用于内置帮助文本。
+配置缺省或为 `true` 时启用；`false` 时不注册；`{ spec: '...' }` 替换选项声明，仍按 core 的声明与取值规则解析。`locale` 支持 `en` 和 `zh`，默认英文，仅用于内置帮助文本。
 
 ```ts
 const app = breadc('tool', {
   version: '1.0.0',
-  i18n: 'zh',
+  locale: 'zh',
   builtin: { help: { spec: '-H, --usage' }, version: false }
 });
 ```
@@ -45,7 +45,7 @@ breadc 应用实例的 `run(argv)` 在解析成功后，同时满足以下条件
 
 ## 帮助内容
 
-`printHelp(context, { i18n, output })` 根据已解析的 Context 生成、打印并返回字符串。它读取静态声明及匹配路径，不通过执行命令或 cast 获取说明。
+`printHelp(context, { locale, output })` 根据已解析的 Context 生成、打印并返回字符串。它读取静态声明及匹配路径，不通过执行命令或 cast 获取说明。
 
 | 页面 | 范围和描述 |
 | --- | --- |
@@ -58,9 +58,9 @@ breadc 应用实例的 `run(argv)` 在解析成功后，同时满足以下条件
 
 ### 描述与示例
 
-应用 description 可以是字符串，或 `{ description, examples? }`。命令/分组 description 可以是字符串，或 `{ summary, details?, examples? }`。每个示例为 `{ command, comment? }`。
+应用 description 使用 `BreadcDescription`，可以是字符串，或 `{ text, examples? }`。命令/分组使用 `CommandDescription`，可以是字符串，或 `{ summary, text?, examples? }`。text 统一表示描述正文，summary 表示列表摘要。每个示例使用 `HelpExample`，形状为 `{ command, comment? }`。
 
-父级命令列表只显示 summary（字符串描述则使用自身）的第一行非空文本。独立页面显示完整内容，结构化 summary 与 details 之间隔一段；换行、空段和显式缩进保留。描述不会被当作 Markdown 渲染。
+父级命令列表只显示 summary（字符串描述则使用自身）的第一行非空文本。独立页面显示完整内容，结构化 summary 与 text 之间隔一段；换行、空段和显式缩进保留。描述不会被当作 Markdown 渲染。
 
 示例按声明顺序展示，可选注释加 `# ` 并换行，命令文本保持字面内容和原换行，即使超过排版宽度也不截断或自动折行。示例之间留空行。
 
@@ -84,7 +84,7 @@ Usage 根据当前位置列出命令路径、参数声明和 `[options]`（中�
 
 正文优先按词换行，长词按 grapheme 换行。列表统一以最长 label 决定描述列；描述列可用宽度不足 20 时，整份列表改为标签在上、描述在下的形式。Usage 能放入单行时与标题同行，否则缩进另起行。
 
-英文/中文配置随各自应用闭包保存，不影响其他应用。`printHelp(context, { i18n: 'zh' })` 可以显式选中文；独立调用省略该参数时默认英文，不自动读取创建 breadc 时的语言设置。只有标题、占位和内置选项文案翻译，作者描述与示例保持原文。
+英文/中文配置随各自应用闭包保存，不影响其他应用。`printHelp(context, { locale: 'zh' })` 可以显式选中文；独立调用省略该参数时默认英文，不自动读取创建 breadc 时的语言设置。只有标题、占位和内置选项文案翻译，作者描述与示例保持原文。
 
 帮助通过一次 `output.write(text + '\n')` 输出并返回该 text；生成的 text 自身以换行结束，保留原有输出末尾的空行。标题使用加粗和下划线样式。
 
@@ -94,10 +94,10 @@ breadc 导出 `BreadcOutput`，包含可选只读 `columns?: number` 和 `write(
 
 `breadc(name, { output })` 的显式帮助、自动帮助和版本动作共享该输出对象，各应用互不影响；未配置时在每次打印时检测环境：process.stdout 存在且 write 为函数时使用它，否则回退到 console.log。console 适配器移除文本末尾的一个换行，再由 console.log 补上，保留原有末尾空行。可写 stdout 的写入异常仍向调用方传播，不触发降级。Node.js Writable stream 可直接作为 output，自定义实现也可将文本交给应用已有的输出系统。该配置不接管业务动作中的 console 调用，也不改变 core 的错误抛出行为。
 
-独立调用 `printHelp(context, { output, i18n })` 或 `printVersion(context, { output })` 时使用显式传入的配置；省略 output 时使用上述 stdout/console 默认策略，不读取创建应用时的 output 配置。
+独立调用 `printHelp(context, { output, locale })` 或 `printVersion(context, { output })` 时使用显式传入的配置；省略 output 时使用上述 stdout/console 默认策略，不读取创建应用时的 output 配置。
 
 ## 版本及工具导出
 
-`printVersion(context, { output })` 输出并返回 `${name}/${version ?? 'unknown'}`，不附加平台信息；返回字符串本身不带换行，`output.write` 接收附加一个换行的文本。版本输出不受 i18n 影响，不设置退出码、不主动结束进程。
+`printVersion(context, { output })` 输出并返回 `${name}/${version ?? 'unknown'}`，不附加平台信息；返回字符串本身不带换行，`output.write` 接收附加一个换行的文本。版本输出不受 locale 影响，不设置退出码、不主动结束进程。
 
 breadc 同时导出颜色、终端链接、进程清理及 TUI API。它们是显式调用的工具，没有自动接入每次命令运行的生命周期；补全生成尚未作为内置能力实现。

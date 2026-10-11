@@ -25,7 +25,7 @@ describe('version: output', () => {
   });
 
   it('supports the standalone printVersion helper', () => {
-    const output = printVersion(parse(breadc('cli', { version: '2.0', i18n: 'zh' }), []));
+    const output = printVersion(parse(breadc('cli', { version: '2.0', locale: 'zh' }), []));
     expect(output).toMatchInlineSnapshot(`"cli/2.0"`);
     expect(process.stdout.write).toHaveBeenCalledExactlyOnceWith(`${output}\n`);
   });

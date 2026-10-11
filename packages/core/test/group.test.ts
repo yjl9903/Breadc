@@ -34,8 +34,8 @@ describe('breadc/group', () => {
         ],
       ]
     `);
-    expect(grp._unknownOptionMiddlewares!.length).toMatchInlineSnapshot(`1`);
-    expect(grp._unknownOptionMiddlewares![0](makeContext(breadc('cli'), []), '-x', '1')).toMatchInlineSnapshot(`
+    expect(grp._unknownOptionHandlers!.length).toMatchInlineSnapshot(`1`);
+    expect(grp._unknownOptionHandlers![0](makeContext(breadc('cli'), []), '-x', '1')).toMatchInlineSnapshot(`
       {
         "name": "-x",
         "value": "1",

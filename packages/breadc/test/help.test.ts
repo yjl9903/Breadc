@@ -18,20 +18,20 @@ function createFilesApp() {
   const app = breadc('cli', {
     version: '1.0',
     description: {
-      description: 'Manage files\nApplication details.',
+      text: 'Manage files\nApplication details.',
       examples: [{ command: 'cli store --help' }]
     }
   });
   const store = app.group('store', {
     summary: 'View and maintain files',
-    details: 'Group details.',
+    text: 'Group details.',
     examples: [{ command: 'cli store ls', comment: 'List files' }]
   });
   store.command('ls', 'List files');
   store
     .command('rm', {
       summary: 'Delete files',
-      details: 'Check the path.\n\n  Keep indentation.',
+      text: 'Check the path.\n\n  Keep indentation.',
       examples: [
         {
           comment: 'Delete archived files\nAfter checking the path',
@@ -432,8 +432,8 @@ describe('help: descriptions and layout', () => {
   it('uses the first nonempty structured summary line in lists and separates details on each page', async () => {
     const app = breadc('cli', { builtin: { version: false } });
     app
-      .group('tools', { summary: '\nTools\nManage tools', details: 'Group details.' })
-      .command('run', { summary: '\nRun\nRun a tool', details: 'Command details.' });
+      .group('tools', { summary: '\nTools\nManage tools', text: 'Group details.' })
+      .command('run', { summary: '\nRun\nRun a tool', text: 'Command details.' });
 
     expect(await help(app)).toMatchInlineSnapshot(`
       "cli/unknown
@@ -650,8 +650,7 @@ describe('help: descriptions and layout', () => {
     const app = breadc('application-with-a-long-name', { builtin: { version: false } });
     const command = app.command('generate-detailed-application-report <source-directory> <destination-directory>', {
       summary: 'Generate a detailed report from the source directory and write it to the destination directory.',
-      details:
-        '  Preserve this indentation when a long description continues onto the following line.\n\nSecond paragraph.'
+      text: '  Preserve this indentation when a long description continues onto the following line.\n\nSecond paragraph.'
     });
     command.alias('report').alias('generate-report-from-source-directory');
     expect(await help(app, ['report', '--help'])).toMatchInlineSnapshot(`
@@ -678,10 +677,10 @@ describe('help: descriptions and layout', () => {
     `);
   });
 
-  it('renders details-only descriptions and hides entirely blank argument descriptions', async () => {
-    const app = breadc('cli', { description: { description: 'Application details.' } });
+  it('renders text without a summary and hides entirely blank argument descriptions', async () => {
+    const app = breadc('cli', { description: { text: 'Application details.' } });
     app
-      .command('run', { summary: '', details: 'Command details.' })
+      .command('run', { summary: '', text: 'Command details.' })
       .argument('<file>', 'Input details.')
       .option('--silent', '')
       .option('--output <file>', 'Output details.');
@@ -767,7 +766,7 @@ describe('help: configuration and locale', () => {
   });
 
   it('keeps locale specific to each app across root, group and command help', async () => {
-    const chinese = breadc('cli', { i18n: 'zh' });
+    const chinese = breadc('cli', { locale: 'zh' });
     chinese.group('store', 'Storage').command('ls', 'List');
     for (const prefix of [[], ['store'], ['store', 'ls']]) {
       const output = await help(chinese, [...prefix, '--help']);
@@ -780,11 +779,11 @@ describe('help: configuration and locale', () => {
 
   it('accepts an explicit locale through printHelp', () => {
     const context = parse(breadc('cli'), []);
-    expect(stripVTControlCharacters(printHelp(context, { i18n: 'zh' }))).toContain('用法: cli [选项]');
+    expect(stripVTControlCharacters(printHelp(context, { locale: 'zh' }))).toContain('用法: cli [选项]');
   });
 
   it('localizes every leaf section while wrapping example comments and preserving long commands', async () => {
-    const app = breadc('cli', { i18n: 'zh', builtin: { version: false } });
+    const app = breadc('cli', { locale: 'zh', builtin: { version: false } });
     app
       .command('upload', {
         summary: '上传文件',

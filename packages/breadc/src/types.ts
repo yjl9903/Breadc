@@ -14,7 +14,7 @@ export type BreadcInit = CoreBreadcInit & {
    *
    * @default 'en'
    */
-  i18n?: 'en' | 'zh';
+  locale?: 'en' | 'zh';
 
   /**
    * Destination and width for builtin help/version output.

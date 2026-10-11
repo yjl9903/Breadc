@@ -1,6 +1,6 @@
 import stringWidth from 'fast-string-width';
 
-import type { Example } from '@breadc/core';
+import type { HelpExample } from '@breadc/core';
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 // SGR and OSC (including hyperlinks) are indivisible, zero-width tokens.
@@ -57,7 +57,7 @@ export function wrap(text: string, width: number): string[] {
 }
 
 /** Shell commands remain literal; only explanatory comments are wrapped. */
-export function formatExamples(examples: readonly Example[], width: number): string[] {
+export function formatExamples(examples: readonly HelpExample[], width: number): string[] {
   return examples.flatMap((example, index) => [
     ...(index ? [''] : []),
     ...(example.comment === undefined ? [] : wrap(example.comment, width - 2).map((line) => `# ${line}`)),

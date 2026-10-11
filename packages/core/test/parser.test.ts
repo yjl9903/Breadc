@@ -1081,7 +1081,7 @@ describe('runtime/parser: unknown options', () => {
     expect(() => app.parse([...prefix, '--typo', 'x'])).toThrow(`Unknown option: --typo`);
   });
 
-  it.each([false, true])('honors default command unknown-option middleware (group: %s)', (grouped) => {
+  it.each([false, true])('honors default command unknown-option handler (group: %s)', (grouped) => {
     const app = breadc('cli');
     const parent = grouped ? app.group('tool') : app;
     parent.command('[message]').allowUnknownOption();
@@ -1163,7 +1163,7 @@ describe('runtime/parser: unknown options', () => {
     `);
   });
 
-  it('allows unknown options at app level with custom middleware', () => {
+  it('allows unknown options at app level with custom handler', () => {
     const app = breadc('cli').allowUnknownOption((_ctx, key, value) => ({
       name: key,
       value
@@ -1177,7 +1177,7 @@ describe('runtime/parser: unknown options', () => {
     `);
   });
 
-  it('accepts unknown option values via middleware type', () => {
+  it('accepts unknown option values via handler type', () => {
     const app = breadc('cli').allowUnknownOption((_ctx, key, value) => ({
       name: key,
       value,
@@ -1192,12 +1192,12 @@ describe('runtime/parser: unknown options', () => {
     `);
   });
 
-  it.each([null, undefined])('rejects unknown options when middleware returns %s', (result) => {
+  it.each([null, undefined])('rejects unknown options when handler returns %s', (result) => {
     const app = breadc('cli').allowUnknownOption(() => result);
     expect(() => app.parse(['-x', 'foo'])).toThrow(`Unknown option: -x`);
   });
 
-  it('continues through middleware until an unknown option is accepted', () => {
+  it('continues through handler until an unknown option is accepted', () => {
     const app = breadc('cli').allowUnknownOption(() => undefined);
     app
       .group('tool')
@@ -1622,7 +1622,7 @@ describe('runtime/parser: boolean option forms', () => {
     expect(grouped.parse(['tool', '--no-all', 'name']).options).toEqual({ all: false });
   });
 
-  it('does not infer negation from names accepted by unknown-option middleware', () => {
+  it('does not infer negation from names accepted by unknown-option handler', () => {
     const app = breadc('cli').allowUnknownOption((_context, name, value) => ({ name, value, type: 'boolean' }));
     expect(app.parse(['--no-all']).options).toEqual({ noAll: true });
     expect(app.parse(['--no-all=false']).options).toEqual({ noAll: false });
@@ -1821,19 +1821,19 @@ describe('runtime/parser: short option combinations', () => {
 });
 
 describe('runtime/parser: unknown options in short combinations', () => {
-  it.each(['-xyz=value', '-axyz=value'])('passes an unknown suffix intact to middleware for %s', (arg) => {
-    const middleware = vi.fn((_context, key, value) => ({ name: key, value }));
-    const app = breadc('cli').option('-a, --all').option('-z, --last').allowUnknownOption(middleware);
+  it.each(['-xyz=value', '-axyz=value'])('passes an unknown suffix intact to handler for %s', (arg) => {
+    const handler = vi.fn((_context, key, value) => ({ name: key, value }));
+    const app = breadc('cli').option('-a, --all').option('-z, --last').allowUnknownOption(handler);
     expect(app.parse([arg]).options).toEqual({ all: arg.startsWith('-a'), last: false, xyz: 'value' });
-    expect(middleware).toHaveBeenCalledExactlyOnceWith(expect.anything(), 'xyz', 'value');
+    expect(handler).toHaveBeenCalledExactlyOnceWith(expect.anything(), 'xyz', 'value');
   });
 
-  it('preserves unknown middleware following-token behavior', () => {
+  it('preserves unknown handler following-token behavior', () => {
     const app = breadc('cli').option('-a, --all').allowUnknownOption();
     expect(app.parse(['-axyz', 'value']).options).toEqual({ all: true, xyz: 'value' });
   });
 
-  it('uses middleware types for unknown suffixes', () => {
+  it('uses handler types for unknown suffixes', () => {
     const app = breadc('cli')
       .option('-a, --all')
       .allowUnknownOption((_context, key, value) => ({ name: key, value, type: 'boolean' }));
@@ -1843,7 +1843,7 @@ describe('runtime/parser: unknown options in short combinations', () => {
     expect(result.args).toEqual(['value']);
   });
 
-  it('rejects an unknown suffix when no middleware accepts it', () => {
+  it('rejects an unknown suffix when no handler accepts it', () => {
     const app = breadc('cli').option('-a, --all').option('-z, --last');
     app.command('[rest]');
     expect(() => app.parse(['-axyz', 'value'])).toThrow(`Unknown option: -xyz`);
@@ -1913,7 +1913,7 @@ describe('runtime/parser: option value boundaries', () => {
     expect(() => app.parse([...prefix, '--output', '--all'])).toThrow('Missing required option value');
   });
 
-  it('applies the same boundary to options accepted by middleware', () => {
+  it('applies the same boundary to options accepted by handler', () => {
     const app = breadc('cli')
       .option('--all')
       .allowUnknownOption((_ctx, name, value) => ({ name, value, type: 'required' }));
@@ -2078,8 +2078,8 @@ describe('runtime/parser: aggregated input diagnostics', () => {
     ]);
   });
 
-  it('immediately propagates unknown-option middleware failures after a collected diagnostic', () => {
-    const failure = { user: 'middleware error' };
+  it('immediately propagates unknown-option handler failures after a collected diagnostic', () => {
+    const failure = { user: 'handler error' };
     const app = breadc('cli').allowUnknownOption((_context, name) => {
       if (name === 'fail') throw failure;
     });
@@ -2163,22 +2163,22 @@ describe('runtime/parser: multi-value array options', () => {
     expect(result['--']).toEqual(['x', '--foo', 'build', '-v']);
   });
 
-  it.each(['--unknown', '-x', '-foo'])('leaves %s to unknown-option errors and middleware', (flag) => {
+  it.each(['--unknown', '-x', '-foo'])('leaves %s to unknown-option errors and handler', (flag) => {
     const app = makeApp();
     app.command('build <target>');
     expect(() => app.parse(['build', '--include', 'a', 'b', flag, 'target'])).toThrow(
       expect.objectContaining({ issues: [expect.objectContaining({ code: ErrorCode.UNKNOWN_OPTION, name: flag })] })
     );
-    const middleware = vi.fn((context, name) => {
+    const handler = vi.fn((context, name) => {
       expect(context.options.get('include')?.value()).toEqual(['a', 'b']);
       expect(name).toBe(flag.replace(/^-+/, ''));
       return { name, value: true, type: 'boolean' as const };
     });
-    app.allowUnknownOption(middleware);
+    app.allowUnknownOption(handler);
     const result = app.parse(['build', '--include', 'a', 'b', flag, 'target']);
     expect(result.args).toEqual(['target']);
     expect(result.options.include).toEqual(['a', 'b']);
-    expect(middleware).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it('aggregates missing occurrences independently of earlier values and defaults', () => {

@@ -7,8 +7,8 @@ import type {
   BreadcInit,
   InternalBreadc,
   ActionMiddleware,
-  UnknownCommandMiddleware,
-  UnknownOptionMiddleware,
+  UnknownCommandHandler,
+  UnknownOptionHandler,
   Option,
   OptionInit,
   InternalOption,
@@ -22,14 +22,14 @@ import type {
 
 import { group as makeGroup } from './group.ts';
 import { command as makeCommand } from './command.ts';
-import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
+import { defaultUnknownOptionHandler, resolveOptionInput } from './shared.ts';
 
 export function breadc(name: string, init: BreadcInit = {}): Breadc {
   const commands: (InternalGroup | InternalCommand)[] = [];
   const options: InternalOption[] = [];
   const actionMiddlewares: ActionMiddleware<any, any>[] = [];
-  const unknownCommandMiddlewares: UnknownCommandMiddleware<any>[] = [];
-  const unknownOptionMiddlewares: UnknownOptionMiddleware<any>[] = [];
+  const unknownCommandHandlers: UnknownCommandHandler<any>[] = [];
+  const unknownOptionHandlers: UnknownOptionHandler<any>[] = [];
 
   const app = <InternalBreadc>{
     name,
@@ -40,8 +40,8 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
     _commands: commands,
     _options: options,
     _actionMiddlewares: actionMiddlewares,
-    _unknownOptionMiddlewares: unknownOptionMiddlewares,
-    _unknownCommandMiddlewares: unknownCommandMiddlewares,
+    _unknownOptionHandlers: unknownOptionHandlers,
+    _unknownCommandHandlers: unknownCommandHandlers,
 
     option<Spec extends string, Init extends OptionInit<Spec>>(
       spec: Spec | Option<Spec>,
@@ -73,16 +73,16 @@ export function breadc(name: string, init: BreadcInit = {}): Breadc {
       return app;
     },
 
-    onUnknownCommand(middleware: UnknownCommandMiddleware<{}>) {
-      unknownCommandMiddlewares.push(middleware);
+    onUnknownCommand(handler: UnknownCommandHandler<{}>) {
+      unknownCommandHandlers.push(handler);
       return app;
     },
 
-    allowUnknownOption(middleware?: UnknownOptionMiddleware<{}>) {
-      if (typeof middleware === 'function') {
-        unknownOptionMiddlewares.push(middleware);
+    allowUnknownOption(handler?: UnknownOptionHandler<{}>) {
+      if (typeof handler === 'function') {
+        unknownOptionHandlers.push(handler);
       } else {
-        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware);
+        unknownOptionHandlers.push(defaultUnknownOptionHandler);
       }
       return app;
     },

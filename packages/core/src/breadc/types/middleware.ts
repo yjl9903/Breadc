@@ -1,25 +1,4 @@
 import type { Context } from '../../runtime/context.ts';
-import type { MatchedUnknownOption } from '../../runtime/matched.ts';
-
-/**
- * Unknown command middleware
- *
- * @public
- */
-export type UnknownCommandMiddleware<Data extends {} = {}> = (context: Context<Data>) => Promise<any> | any;
-
-/**
- * Unknown option middleware
- * Return a match to accept the option, or null/undefined to try the next middleware.
- * If no middleware accepts it, parsing throws an InputError.
- *
- * @public
- */
-export type UnknownOptionMiddleware<Data extends {} = {}> = (
-  context: Context<Data>,
-  key: string,
-  value: string | undefined
-) => MatchedUnknownOption | null | undefined;
 
 export interface ActionMiddlewareNextFn {
   <NextData extends {} = {}>(nextContextData?: { data?: NextData }): Promise<Context<NextData>>;

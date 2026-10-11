@@ -28,4 +28,4 @@ const zh: Record<TranslationKey, string> = {
   'Show version': '显示版本'
 };
 
-export const i18n = (locale: BreadcInit['i18n'], key: TranslationKey) => (locale === 'zh' ? zh : en)[key];
+export const i18n = (locale: BreadcInit['locale'], key: TranslationKey) => (locale === 'zh' ? zh : en)[key];

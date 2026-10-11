@@ -47,10 +47,17 @@ hello/1.0.0
 ```ts
 import { breadc } from 'breadc';
 
-const cli = breadc('hello', { version: '1.0.0', description: '一个问候工具' });
+const cli = breadc('hello', {
+  version: '1.0.0',
+  description: {
+    text: '一个问候工具',
+    examples: [{ command: 'hello greet Breadc', comment: '发送问候' }]
+  }
+});
 
 cli.command('greet <name>', {
   summary: '向指定的人问好',
+  text: '输入姓名发送问候，也可以使用 --shout 大声问好。',
   examples: [{ command: 'hello greet Breadc', comment: '发送问候' }]
 })
   .option('--shout', '大声问好')
@@ -88,7 +95,7 @@ hello/1.0.0
 import { breadc } from 'breadc';
 
 const cli = breadc('hello', {
-  i18n: 'zh',
+  locale: 'zh',
   builtin: { help: { spec: '-H, --usage' }, version: false }
 });
 

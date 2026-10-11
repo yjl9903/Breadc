@@ -2,7 +2,8 @@ import type { Context } from '../../runtime/context.ts';
 
 import type { BreadcInit, GroupInit } from './init.ts';
 import type { Breadc, Option, Group, Command, Argument } from './app.ts';
-import type { ActionMiddleware, UnknownCommandMiddleware, UnknownOptionMiddleware } from './middleware.ts';
+import type { ActionMiddleware } from './middleware.ts';
+import type { UnknownCommandHandler, UnknownOptionHandler } from './handler.ts';
 
 /**
  * @internal
@@ -31,12 +32,12 @@ export type InternalBreadc = Breadc<any, any> & {
   /**
    * @internal
    */
-  _unknownCommandMiddlewares: UnknownCommandMiddleware<any>[];
+  _unknownCommandHandlers: UnknownCommandHandler<any>[];
 
   /**
    * @internal
    */
-  _unknownOptionMiddlewares: UnknownOptionMiddleware<any>[];
+  _unknownOptionHandlers: UnknownOptionHandler<any>[];
 };
 
 export type InternalGroup = Group<string, GroupInit<string>, any, any> & {
@@ -72,7 +73,7 @@ export type InternalGroup = Group<string, GroupInit<string>, any, any> & {
   /**
    * @internal
    */
-  _unknownOptionMiddlewares?: UnknownOptionMiddleware<any>[];
+  _unknownOptionHandlers?: UnknownOptionHandler<any>[];
 };
 
 export type InternalCommand = Command & {
@@ -118,7 +119,7 @@ export type InternalCommand = Command & {
   /**
    * @internal
    */
-  _unknownOptionMiddlewares?: UnknownOptionMiddleware<any>[];
+  _unknownOptionHandlers?: UnknownOptionHandler<any>[];
 
   /**
    * @internal

@@ -9,13 +9,8 @@ import type {
   ArgumentInit,
   CheckedArgumentInit
 } from './init.ts';
-import type {
-  ActionMiddleware,
-  ActionMiddlewareNextFn,
-  InferMiddlewareData,
-  UnknownCommandMiddleware,
-  UnknownOptionMiddleware
-} from './middleware.ts';
+import type { ActionMiddleware, ActionMiddlewareNextFn, InferMiddlewareData } from './middleware.ts';
+import type { UnknownCommandHandler, UnknownOptionHandler } from './handler.ts';
 import type { ArgumentType } from './internal.ts';
 import type { CommandDescription } from './description.ts';
 import type { InferOption, InferOptionActionValue, InferArgumentType, InferArgumentsType } from './infer.ts';
@@ -65,15 +60,15 @@ export type Breadc<Data extends {} = {}, Options extends Record<never, never> = 
   ): Breadc<InferMiddlewareData<Middleware>, Options>;
 
   /**
-   * Unknown command middleware
+   * Unknown command handler
    */
-  onUnknownCommand(middleware?: UnknownCommandMiddleware<Data>): Breadc<Data, Options>;
+  onUnknownCommand(handler?: UnknownCommandHandler<Data>): Breadc<Data, Options>;
 
   /**
    * Accept unknown options, which otherwise throw an InputError.
-   * A custom middleware must return a match to accept an option.
+   * A custom handler must return a match to accept an option.
    */
-  allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Breadc<Data, Options>;
+  allowUnknownOption(handler?: UnknownOptionHandler<Data>): Breadc<Data, Options>;
 
   /**
    * Parse and convert CLI input without executing actions or middleware.
@@ -145,9 +140,9 @@ export type Group<
 
   /**
    * Accept unknown options in this group, which otherwise throw an InputError.
-   * A custom middleware must return a match to accept an option.
+   * A custom handler must return a match to accept an option.
    */
-  allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Group<Spec, Init, Data, Options>;
+  allowUnknownOption(handler?: UnknownOptionHandler<Data>): Group<Spec, Init, Data, Options>;
 };
 
 export type Command<
@@ -207,9 +202,9 @@ export type Command<
 
   /**
    * Accept unknown options in this command, which otherwise throw an InputError.
-   * A custom middleware must return a match to accept an option.
+   * A custom handler must return a match to accept an option.
    */
-  allowUnknownOption(middleware?: UnknownOptionMiddleware<Data>): Command<Spec, Init, Data, Options, Arguments, Return>;
+  allowUnknownOption(handler?: UnknownOptionHandler<Data>): Command<Spec, Init, Data, Options, Arguments, Return>;
 
   /**
    * Bind action function

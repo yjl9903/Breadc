@@ -170,7 +170,7 @@ function* parseShortOptions(
     const key = text[i];
     const option = options.get(key)?.option;
     if (!option) {
-      // Keep an unknown suffix intact for the existing unknown-option middleware.
+      // Keep an unknown suffix intact for the existing unknown-option handler.
       yield splitOnce(text.slice(i), '=');
       return;
     }
@@ -393,14 +393,14 @@ function doParse(context: Context, fallback?: ParseFallback): ParseResult {
           const matchedOption = matchedOptions.get(option.long)!;
           matchedOption.accept(context, key, value, inverted);
         } else {
-          const unknownOptionMiddlewares = [
-            ...breadc._unknownOptionMiddlewares,
-            ...(matchedGroup?._unknownOptionMiddlewares ?? []),
-            ...(matchedCommand?._unknownOptionMiddlewares ?? [])
+          const unknownOptionHandlers = [
+            ...breadc._unknownOptionHandlers,
+            ...(matchedGroup?._unknownOptionHandlers ?? []),
+            ...(matchedCommand?._unknownOptionHandlers ?? [])
           ];
           let accepted = false;
-          for (const middleware of unknownOptionMiddlewares) {
-            const result = middleware(context, key, value);
+          for (const handler of unknownOptionHandlers) {
+            const result = handler(context, key, value);
             if (result) {
               // TODO: check following unknown option logic
               const matched = new MatchedOption(

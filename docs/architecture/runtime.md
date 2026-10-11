@@ -7,10 +7,10 @@
 | 术语 | 注册入口与类型 | 执行阶段 |
 | --- | --- | --- |
 | 动作中间件 | `.use(handler)`，`ActionMiddleware` | 普通命令执行时，通过 `next()` 包围后续中间件和命令动作 |
-| 未知选项处理器 | `.allowUnknownOption(handler)`，`UnknownOptionMiddleware` | parser 扫描未知选项时同步调用，决定是否接受该输入 |
-| 未知命令处理器 | `.onUnknownCommand(handler)`，`UnknownCommandMiddleware` | 没有匹配命令和选项动作时，由 run 调用 |
+| 未知选项处理器 | `.allowUnknownOption(handler)`，`UnknownOptionHandler` | parser 扫描未知选项时同步调用，决定是否接受该输入 |
+| 未知命令处理器 | `.onUnknownCommand(handler)`，`UnknownCommandHandler` | 没有匹配命令和选项动作时，由 run 调用 |
 
-文档中的“中间件”专指动作中间件。后两者虽然在公开类型名中使用 Middleware，正文统一称为“处理器”；它们不属于 `.use()` 的动作中间件链。
+`Middleware` 专指通过 `next()` 组合执行的动作中间件。未知命令和未知选项使用 `Handler` 类型；它们不属于 `.use()` 的动作中间件链。
 
 ## 公开入口
 

@@ -1,15 +1,15 @@
 /** A literal shell command with an optional explanatory comment. */
-export interface Example {
+export interface HelpExample {
   command: string;
   comment?: string;
 }
 
 /** Full application prose. Line breaks, paragraphs and indentation are preserved. */
-export type AppDescription =
+export type BreadcDescription =
   | string
   | {
-      description: string;
-      examples?: readonly Example[];
+      text: string;
+      examples?: readonly HelpExample[];
     };
 
 /** The parent list uses the first nonempty summary line; the command page shows all prose. */
@@ -18,6 +18,6 @@ export type CommandDescription =
   | {
       summary: string;
       /** Additional prose, displayed as a separate paragraph after the summary. */
-      details?: string;
-      examples?: readonly Example[];
+      text?: string;
+      examples?: readonly HelpExample[];
     };

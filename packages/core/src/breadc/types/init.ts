@@ -5,7 +5,7 @@ import type {
   InferArgumentCastInput
 } from './infer.ts';
 import type { Cast } from './cast.ts';
-import type { AppDescription } from './description.ts';
+import type { BreadcDescription } from './description.ts';
 
 export type BreadcInit = {
   /**
@@ -16,7 +16,7 @@ export type BreadcInit = {
   /**
    * CLI app description
    */
-  description?: AppDescription;
+  description?: BreadcDescription;
 };
 
 export type OptionInit<Spec extends string, Output = unknown> = {

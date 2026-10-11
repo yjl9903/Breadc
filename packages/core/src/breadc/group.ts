@@ -3,7 +3,7 @@ import { DefinitionError, ErrorCode } from '../error.ts';
 import type {
   CommandDescription,
   ActionMiddleware,
-  UnknownOptionMiddleware,
+  UnknownOptionHandler,
   Option,
   OptionInit,
   InternalOption,
@@ -16,7 +16,7 @@ import type {
 } from './types/index.ts';
 
 import { command as makeCommand } from './command.ts';
-import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
+import { defaultUnknownOptionHandler, resolveOptionInput } from './shared.ts';
 
 export function group<S extends string, I extends GroupInit<S>>(
   spec: S,
@@ -34,7 +34,7 @@ export function group<S extends string, I extends GroupInit<S>>(
   const commands: InternalCommand[] = [];
   const options: InternalOption[] = [];
   const actionMiddlewares: ActionMiddleware<any, any>[] = [];
-  const unknownOptionMiddlewares: UnknownOptionMiddleware<any>[] = [];
+  const unknownOptionHandlers: UnknownOptionHandler<any>[] = [];
 
   const group: InternalGroup = {
     spec,
@@ -45,7 +45,7 @@ export function group<S extends string, I extends GroupInit<S>>(
     _commands: commands,
     _options: options,
     _actionMiddlewares: actionMiddlewares,
-    _unknownOptionMiddlewares: unknownOptionMiddlewares,
+    _unknownOptionHandlers: unknownOptionHandlers,
 
     option<Spec extends string, I extends OptionInit<Spec>>(spec: Spec | Option<Spec>, description?: string, init?: I) {
       options.push(resolveOptionInput(spec, description, init));
@@ -68,11 +68,11 @@ export function group<S extends string, I extends GroupInit<S>>(
       return group;
     },
 
-    allowUnknownOption(middleware?: UnknownOptionMiddleware<any>) {
-      if (typeof middleware === 'function') {
-        unknownOptionMiddlewares.push(middleware);
+    allowUnknownOption(handler?: UnknownOptionHandler<any>) {
+      if (typeof handler === 'function') {
+        unknownOptionHandlers.push(handler);
       } else {
-        unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware);
+        unknownOptionHandlers.push(defaultUnknownOptionHandler);
       }
       return group;
     }

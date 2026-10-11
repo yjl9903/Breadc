@@ -4,6 +4,10 @@
 
 ## 类型载体与组合
 
+公开类型按所属对象命名：应用使用 `BreadcInit`、`BreadcDescription`，命令使用 `CommandInit`、`CommandDescription`；分组复用命令描述的结构。应用、命令和分组的描述正文统一使用 `text`，列表摘要使用 `summary`，帮助示例使用 `HelpExample`。内置帮助的语言选择使用 `locale`。
+
+回调类型按执行方式区分：`ActionMiddleware` 接收 `next`，`UnknownCommandHandler`、`UnknownOptionHandler` 直接处理未知输入。处理器的 Data 泛型与注册时应用、分组或命令的数据类型保持一致。
+
 | 类型 | 携带的信息 |
 | --- | --- |
 | `Breadc<Data, Options>` | 中间件数据和全局选项 |

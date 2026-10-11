@@ -104,7 +104,7 @@ describe('output: destinations', () => {
     const applicationOutput = capture();
     const output = capture(40);
     const context = parse(breadc('cli', { output: applicationOutput, description }), []);
-    const help = printHelp(context, { output, i18n: 'zh' });
+    const help = printHelp(context, { output, locale: 'zh' });
     const version = printVersion(context, { output });
     expect(output.text).toBe(`${help}\n${version}\n`);
     expect(stripVTControlCharacters(help)).toContain('用法:');
@@ -141,7 +141,7 @@ describe('output: help width', () => {
     };
     const app = breadc('cli', {
       output,
-      description: { description, examples: [{ command }] }
+      description: { text: description, examples: [{ command }] }
     });
     app.command('send <file>', '发送文件到目标目录，并显示文件的上传结果。');
     const narrow = stripVTControlCharacters(await app.run<string>(['--help']));

@@ -1,4 +1,4 @@
-import type { InternalOption, Option, OptionInit, UnknownOptionMiddleware } from './types/index.ts';
+import type { InternalOption, Option, OptionInit, UnknownOptionHandler } from './types/index.ts';
 
 import { option as makeOption } from './option.ts';
 
@@ -11,7 +11,7 @@ export function resolveOptionInput<Spec extends string, Init extends OptionInit<
   return resolved as unknown as InternalOption;
 }
 
-export const defaultUnknownOptionMiddleware: UnknownOptionMiddleware<any> = (_ctx, key, value) => ({
+export const defaultUnknownOptionHandler: UnknownOptionHandler<any> = (_ctx, key, value) => ({
   name: key,
   value
 });

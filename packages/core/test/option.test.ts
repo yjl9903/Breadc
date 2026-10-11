@@ -328,7 +328,7 @@ describe('option conversion lifecycle', () => {
     }
   });
 
-  it('does not cast when unknown-option middleware reads a preliminary pass', () => {
+  it('does not cast when unknown-option handler reads a preliminary pass', () => {
     const cast = vi.fn((value: boolean) => (value ? 'on' : 'off'));
     const seen: unknown[] = [];
     const app = breadc('cli').option('--flag', '', { cast });

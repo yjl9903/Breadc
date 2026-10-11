@@ -7,8 +7,8 @@ export { printHelp } from './builtin/help.ts';
 export { printVersion } from './builtin/version.ts';
 
 export type {
-  Example,
-  AppDescription,
+  HelpExample,
+  BreadcDescription,
   CommandDescription,
   Cast,
   InferCastOutput,
@@ -25,8 +25,8 @@ export type {
   Argument,
   ArgumentInit,
   Context,
-  UnknownCommandMiddleware,
-  UnknownOptionMiddleware,
+  UnknownCommandHandler,
+  UnknownOptionHandler,
   ActionMiddleware
 } from '@breadc/core';
 

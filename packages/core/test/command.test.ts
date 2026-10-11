@@ -348,7 +348,7 @@ describe('breadc/command', () => {
     cmd.allowUnknownOption();
 
     expect(cmd._actionMiddlewares?.length).toMatchInlineSnapshot(`2`);
-    expect(cmd._unknownOptionMiddlewares?.length).toMatchInlineSnapshot(`2`);
+    expect(cmd._unknownOptionHandlers?.length).toMatchInlineSnapshot(`2`);
   });
 
   it('reject invalid custom argument ordering', async () => {

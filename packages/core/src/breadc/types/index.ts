@@ -11,3 +11,5 @@ export * from './infer.ts';
 export * from './internal.ts';
 
 export * from './middleware.ts';
+
+export * from './handler.ts';

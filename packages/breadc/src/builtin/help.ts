@@ -1,7 +1,7 @@
 import stringWidth from 'fast-string-width';
 
 import { bold, underline } from '@breadc/color';
-import { option as makeOption, type Context, type AppDescription, type CommandDescription } from '@breadc/core';
+import { option as makeOption, type Context, type BreadcDescription, type CommandDescription } from '@breadc/core';
 
 import type { BreadcInit } from '../types.ts';
 
@@ -25,11 +25,11 @@ function summary(description?: CommandDescription): string {
   return text?.split(/\r?\n/).find((line) => line.trim()) ?? '';
 }
 
-function prose(description?: AppDescription | CommandDescription): string {
+function prose(description?: BreadcDescription | CommandDescription): string {
   if (typeof description === 'string') return description;
   if (!description) return '';
-  if ('description' in description) return description.description;
-  return [description.summary, description.details].filter(Boolean).join('\n\n');
+  if ('summary' in description) return [description.summary, description.text].filter(Boolean).join('\n\n');
+  return description.text;
 }
 
 function startsWith(path: string[], prefix: string[]) {
@@ -97,7 +97,7 @@ function collectOptions(declarations: Option[]): HelpOption[] {
 export function buildHelpOption(init: BreadcInit) {
   const config = typeof init.builtin?.help === 'object' ? init.builtin.help : undefined;
   const option = makeOption(config?.spec ?? '-h, --help').action(
-    (_value, context) => printHelp(context, { i18n: init.i18n, output: init.output }),
+    (_value, context) => printHelp(context, { locale: init.locale, output: init.output }),
     { priority: 10 }
   );
   return Object.assign(option, { _builtin: 'help' as const });
@@ -106,7 +106,7 @@ export function buildHelpOption(init: BreadcInit) {
 /** Print static help for the declarations resolved by the current parse. */
 export function printHelp(
   context: Context,
-  { i18n: locale = 'en', output: destination = getDefaultOutput() }: Pick<BreadcInit, 'i18n' | 'output'> = {}
+  { locale = 'en', output: destination = getDefaultOutput() }: Pick<BreadcInit, 'locale' | 'output'> = {}
 ) {
   const columns = destination.columns ?? 80;
   const width = Number.isFinite(columns) && columns >= 1 ? Math.floor(columns) : 80;

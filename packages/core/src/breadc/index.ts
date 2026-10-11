@@ -25,7 +25,7 @@ export type {
   InternalArgument,
   Cast,
   InferCastOutput,
-  Example,
-  AppDescription,
+  HelpExample,
+  BreadcDescription,
   CommandDescription
 } from './types/index.ts';

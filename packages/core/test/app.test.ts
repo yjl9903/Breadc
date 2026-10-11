@@ -18,19 +18,19 @@ describe('breadc/app', () => {
     `);
   });
 
-  it('register default unknown option middleware', () => {
+  it('register default unknown option handler', () => {
     const app = breadc('cli');
     app.allowUnknownOption();
 
-    expect((app as unknown as InternalBreadc)._unknownOptionMiddlewares.length).toMatchInlineSnapshot(`1`);
+    expect((app as unknown as InternalBreadc)._unknownOptionHandlers.length).toMatchInlineSnapshot(`1`);
   });
 
-  it('default unknown option middleware should return name/value', () => {
+  it('default unknown option handler should return name/value', () => {
     const app = breadc('cli');
     app.allowUnknownOption();
 
-    const middleware = (app as unknown as InternalBreadc)._unknownOptionMiddlewares[0];
-    const result = middleware(makeContext(app, []), '-x', '1');
+    const handler = (app as unknown as InternalBreadc)._unknownOptionHandlers[0];
+    const result = handler(makeContext(app, []), '-x', '1');
     expect(result).toMatchInlineSnapshot(`
       {
         "name": "-x",

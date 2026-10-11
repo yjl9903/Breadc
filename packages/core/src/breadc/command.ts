@@ -3,7 +3,7 @@ import { DefinitionError, ErrorCode } from '../error.ts';
 import type {
   CommandDescription,
   ActionMiddleware,
-  UnknownOptionMiddleware,
+  UnknownOptionHandler,
   Option,
   OptionInit,
   InternalOption,
@@ -18,7 +18,7 @@ import type {
   InferArgumentsType
 } from './types/index.ts';
 
-import { defaultUnknownOptionMiddleware, resolveOptionInput } from './shared.ts';
+import { defaultUnknownOptionHandler, resolveOptionInput } from './shared.ts';
 
 export function command<S extends string, I extends CommandInit<S>>(
   spec: S,
@@ -74,14 +74,14 @@ export function command<S extends string, I extends CommandInit<S>>(
     return run;
   };
 
-  run.allowUnknownOption = (middleware?: UnknownOptionMiddleware<{}>) => {
-    if (!run._unknownOptionMiddlewares) {
-      run._unknownOptionMiddlewares = [];
+  run.allowUnknownOption = (handler?: UnknownOptionHandler<{}>) => {
+    if (!run._unknownOptionHandlers) {
+      run._unknownOptionHandlers = [];
     }
-    if (typeof middleware === 'function') {
-      run._unknownOptionMiddlewares.push(middleware);
+    if (typeof handler === 'function') {
+      run._unknownOptionHandlers.push(handler);
     } else {
-      run._unknownOptionMiddlewares.push(defaultUnknownOptionMiddleware);
+      run._unknownOptionHandlers.push(defaultUnknownOptionHandler);
     }
     return run;
   };

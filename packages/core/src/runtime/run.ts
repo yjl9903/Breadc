@@ -18,7 +18,7 @@ export async function run(context: Context) {
   // 3. Decide whether execution is needed before converting user input.
   const { breadc, command } = context;
 
-  if (!command && breadc._unknownCommandMiddlewares.length === 0) {
+  if (!command && breadc._unknownCommandHandlers.length === 0) {
     return;
   }
 
@@ -31,8 +31,8 @@ export async function run(context: Context) {
 
   if (!command) {
     let res: any;
-    for (const middleware of breadc._unknownCommandMiddlewares) {
-      res = await middleware(context);
+    for (const handler of breadc._unknownCommandHandlers) {
+      res = await handler(context);
     }
     finalizeInput(context);
     return res;

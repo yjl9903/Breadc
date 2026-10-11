@@ -90,7 +90,7 @@ describe('runtime/run', () => {
     `);
   });
 
-  it('uses unknown command middleware', async () => {
+  it('uses unknown command handler', async () => {
     const app = breadc('cli');
     app.onUnknownCommand(() => 'handled');
 
