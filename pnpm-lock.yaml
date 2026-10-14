@@ -236,8 +236,8 @@ importers:
   apps/docs:
     devDependencies:
       cf:
-        specifier: 1.0.0-beta.15
-        version: 1.0.0-beta.15(@types/node@24.19.2)
+        specifier: 1.0.0-beta.16
+        version: 1.0.0-beta.16(@types/node@24.19.2)
       vitepress:
         specifier: 2.0.0-alpha.20
         version: 2.0.0-alpha.20(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(postcss@8.5.29)(typescript@7.0.2)(yaml@2.9.1)
@@ -1373,8 +1373,8 @@ packages:
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
-  cf@1.0.0-beta.15:
-    resolution: {integrity: sha512-8wOSnVM7fj5U6/OmEO0oSK6EFdRT5ayXdaWPIHzs+JFutWNOOvWR1N4+tijKoGXGP2KCxISpsnSDgVdJLRhzbA==}
+  cf@1.0.0-beta.16:
+    resolution: {integrity: sha512-buY0XUHp+wAA0paOKxdUr5UgLKhO8xkeJL5Pn2Xt1UQLfqPFKrqTC3mKrGsrmOhf8Qyn4Omxc4F/8x37fa9kVA==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1790,10 +1790,6 @@ packages:
   millify@6.1.0:
     resolution: {integrity: sha512-H/E3J6t+DQs/F2YgfDhxUVZz/dF8JXPPKTLHL/yHCcLZLtCXJDUaqvhJXQwqOVBvbyNn4T0WjLpIHd7PAw7fBA==}
     hasBin: true
-
-  miniflare@5.20261006.1-alpha:
-    resolution: {integrity: sha512-6ylv8tamkrspDI2R/cAYfv+YWmfGNdXe76Pi9TauEUWsFVXn3LNF9Yk8oduzf1a+TYsSRYTqlOE7+nGGRsMHdw==}
-    engines: {node: '>=22.0.0'}
 
   miniflare@5.20261006.2-beta:
     resolution: {integrity: sha512-agufWI3mXF8xGzry2/sOF8Im8AoYs04DWBCLDWDmd4QtMSGEo9IgrPmYOwsCmQA3K3MbLzsvr01GpWc8x3Duqw==}
@@ -3049,14 +3045,14 @@ snapshots:
 
   ccount@2.0.1: {}
 
-  cf@1.0.0-beta.15(@types/node@24.19.2):
+  cf@1.0.0-beta.16(@types/node@24.19.2):
     dependencies:
       '@cloudflare/build-output-utils': 0.9.1
       '@cloudflare/codemods': 0.4.2
       '@cloudflare/config': 0.25.0
       '@cloudflare/runtime-types': 0.1.10(@types/node@24.19.2)
       blake3-wasm: 2.1.5
-      miniflare: 5.20261006.1-alpha(@types/node@24.19.2)
+      miniflare: 5.20261006.2-beta(@types/node@24.19.2)
       minisearch: 7.2.0
     transitivePeerDependencies:
       - '@types/node'
@@ -3545,19 +3541,6 @@ snapshots:
   millify@6.1.0:
     dependencies:
       yargs: 17.7.3
-
-  miniflare@5.20261006.1-alpha(@types/node@24.19.2):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      sharp: 0.35.5(@types/node@24.19.2)
-      undici: 7.29.1
-      workerd: 1.20261006.1
-      ws: 8.21.0
-      youch: 4.1.0-beta.10
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - utf-8-validate
 
   miniflare@5.20261006.2-beta(@types/node@24.19.2):
     dependencies:
