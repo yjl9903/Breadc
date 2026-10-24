@@ -17,20 +17,20 @@
     "preversion": "turbo run test:ci"
   },
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^14.2.0",
-    "@types/node": "^24.19.1",
-    "@vitest/coverage-v8": "^5.0.3",
+    "@size-limit/preset-small-lib": "^14.3.0",
+    "@types/node": "^24.19.2",
+    "@vitest/coverage-v8": "^5.0.5",
     "bumpp": "latest",
-    "cac": "^7.0.1",
+    "cac": "^7.1.0",
     "commander": "^15.0.0",
-    "prettier": "^3.9.9",
-    "size-limit": "^14.2.0",
-    "tsdown": "^0.23.0",
-    "turbo": "^2.11.7",
+    "prettier": "^3.9.10",
+    "size-limit": "^14.3.0",
+    "tsdown": "^0.23.1",
+    "turbo": "^2.11.10",
     "typescript": "^7.0.2",
-    "vite": "^8.3.4",
-    "vitest": "^5.0.3",
-    "zod": "^4.6.5"
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5",
+    "zod": "^4.6.7"
   },
-  "packageManager": "pnpm@12.10.1"
+  "packageManager": "pnpm@12.15.0"
 }
