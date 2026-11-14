@@ -11,10 +11,10 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "cf": "1.0.0-beta.13",
-    "vitepress": "2.0.0-alpha.20",
-    "vitepress-plugin-llms": "1.14.0",
-    "vue": "3.5.43",
-    "wrangler": "4.148.0"
+    "cf": "1.0.0-beta.31",
+    "vitepress": "2.0.0-alpha.21",
+    "vitepress-plugin-llms": "1.15.0",
+    "vue": "3.5.45",
+    "wrangler": "4.161.0"
   }
 }
